@@ -88,19 +88,21 @@ sudo chown -R ${USER} ${BUNDLE_DIR}
 # rebuilding fibers
 cd ${BUNDLE_DIR}/programs/server
 
-if [ -d ./npm ]; then
-  cd npm
-  rebuild_binary_npm_modules
-  cd ../
+if [ -d npm ]; then
+  (cd npm && rebuild_binary_npm_modules)
 fi
 
-if [ -d ./node_modules ]; then
-  cd ./node_modules
-  gyp_rebuild_inside_node_modules
-  cd ../
+if [ -d node_modules ]; then
+  (cd node_modules && gyp_rebuild_inside_node_modules)
 fi
+
+# Special fix for bcrypt invalid ELF issue
+# @see http://stackoverflow.com/questions/27984456/deploying-meteor-app-from-os-x-to-linux-causes-bcrypt-issues
+(cd npm/npm-bcrypt && npm install -f bcrypt)
+(cd npm && npm install -f bignum)
 
 if [ -f package.json ]; then
+  echo "Found package.json, running npm install ..."
   # support for 0.9
   sudo npm install
 else
@@ -109,7 +111,7 @@ else
   sudo npm install bcrypt
 fi
 
-cd /opt/<%= appName %>/
+cd $APP_ROOT
 
 # remove old app, if it exists
 if [ -d old_app ]; then
@@ -125,7 +127,7 @@ sudo mv tmp/bundle app
 
 #wait and check
 echo "Waiting for MongoDB to initialize. (5 minutes)"
-. /opt/<%= appName %>/config/env.sh
+. $APP_ROOT/config/env.sh
 wait-for-mongo ${MONGO_URL} 300000
 
 # restart app
