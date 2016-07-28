@@ -72,12 +72,16 @@ revert_app (){
 set -e
 set -o xtrace
 
+APP_ROOT=/opt/<%= appName %>
 TMP_DIR=/opt/<%= appName %>/tmp
 BUNDLE_DIR=${TMP_DIR}/bundle
+BUNDLE_TARBALL_FILE=bundle.tar.gz
 
 cd ${TMP_DIR}
+echo "Removing bundle..."
 sudo rm -rf bundle
-sudo tar xvzf bundle.tar.gz > /dev/null
+echo "Extracing $TMP_DIR/$BUNDLE_TARBALL_FILE"
+sudo tar xvzf $BUNDLE_TARBALL_FILE > /dev/null
 sudo chmod -R +x *
 sudo chown -R ${USER} ${BUNDLE_DIR}
 
