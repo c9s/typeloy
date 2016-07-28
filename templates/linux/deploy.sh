@@ -43,13 +43,11 @@ gyp_rebuild_inside_node_modules () {
 rebuild_binary_npm_modules () {
   for package in ./*; do
     if [ -d $package/node_modules ]; then
-      cd $package/node_modules
-        gyp_rebuild_inside_node_modules
-      cd ../../
+      (cd $package/node_modules && \
+        gyp_rebuild_inside_node_modules)
     elif [ -d $package/main/node_module ]; then
-      cd $package/node_modules
-        gyp_rebuild_inside_node_modules
-      cd ../../../
+      (cd $package/node_modules && \
+        gyp_rebuild_inside_node_modules )
     fi
   done
 }
