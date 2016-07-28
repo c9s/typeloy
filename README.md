@@ -2,6 +2,16 @@
 
 Maintained and customized.
 
+### EXTRA FEATURES
+
+- Show information as much as possible in the console. like .. what version of node will be installed ... 
+
+- Reuse bundle file if you want, so you don't have to re-build for just debugging the deployment:
+
+    BUILD_DIR=/tmp/meteor-dd2ca2e9-9bc9-4531-b85f-93f1443b1176 mup deploy $(date +%s)
+
+- Don't export environment variables with weird escaping.
+
 #### Production Quality Meteor Deployments
 
 Meteor Up (mup for short) is a command line tool that allows you to deploy any [Meteor](http://meteor.com) app to your own server. It supports only Debian/Ubuntu flavours and Open Solaris at the moments. (PRs are welcome)
