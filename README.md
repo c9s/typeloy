@@ -1,8 +1,6 @@
 # Meteor Up
 
-> This version is no longer maintaining.<br/>
-> [Mupx](https://github.com/arunoda/meteor-up/tree/mupx) is the stable version. <br/>
-> New development is moved to here: https://github.com/kadirahq/meteor-up.
+Maintained and customized.
 
 #### Production Quality Meteor Deployments
 
