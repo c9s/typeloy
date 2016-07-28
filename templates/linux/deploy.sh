@@ -70,6 +70,7 @@ revert_app (){
 
 # logic
 set -e
+set -o xtrace
 
 TMP_DIR=/opt/<%= appName %>/tmp
 BUNDLE_DIR=${TMP_DIR}/bundle
