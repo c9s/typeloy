@@ -72,8 +72,9 @@ revert_app (){
 set -e
 set -o xtrace
 
-APP_ROOT=/opt/<%= appName %>
-TMP_DIR=/opt/<%= appName %>/tmp
+APP_NAME="<%= appName %>"
+APP_ROOT=/opt/$APP_NAME
+TMP_DIR=/opt/$APP_NAME/tmp
 BUNDLE_DIR=${TMP_DIR}/bundle
 BUNDLE_TARBALL_FILE=bundle.tar.gz
 
@@ -100,10 +101,10 @@ fi
 # @see http://stackoverflow.com/questions/27984456/deploying-meteor-app-from-os-x-to-linux-causes-bcrypt-issues
 # @see https://github.com/meteor/meteor/issues/7513
 rm -rf npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
-npm install -f bcrypt
+npm install --update-binary -f bcrypt
 cp -r node_modules/bcrypt npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
 rm -rf npm/node_modules/bignum
-npm install -f bignum
+npm install --update-binary -f bignum
 cp -r node_modules/bignum npm/node_modules/bignum
 
 if [ -f package.json ]; then
@@ -136,8 +137,9 @@ echo "Waiting for MongoDB to initialize. (5 minutes)"
 wait-for-mongo ${MONGO_URL} 300000
 
 # restart app
-sudo stop <%= appName %> || :
-sudo start <%= appName %> || :
+echo "Restarting the app"
+sudo stop $APP_NAME || :
+sudo start $APP_NAME || :
 
 echo "Waiting for <%= deployCheckWaitTime %> seconds while app is booting up"
 sleep <%= deployCheckWaitTime %>
