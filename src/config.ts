@@ -68,10 +68,18 @@ function canonicalizePath(loc:string) : string {
   return path.resolve(expandPath(loc));
 }
 
+
+
 export class ConfigParser {
 
-  public static parse(mupJsonPath:string) : Config {
-    var config:Config = this.preprocess(cjson.load(mupJsonPath));
+  public static parse(configPath:string) : Config {
+    var config:Config;
+    if (configPath.match(/\.json$/)) {
+      config = cjson.load(configPath);
+    } else if (configPath.match(/\.js$/)) {
+      config = require(configPath);
+    }
+    config = this.preprocess(config);
     this.validate(config);
     return config;
   }
@@ -161,7 +169,7 @@ export class ConfigParser {
 }
 
 export function readConfig() : Config {
-  var possibleConfigFiles:Array<string> = ['kup.json', 'mup.json'];
+  var possibleConfigFiles:Array<string> = ['typeloy.config.js', 'typeloy.config.json', 'typeloy.json', 'mup.json'];
   for (var i = 0; i < possibleConfigFiles.length ; i++) {
     var fn = possibleConfigFiles[i];
     var filepath : string = path.resolve(fn);
