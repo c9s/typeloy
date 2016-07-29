@@ -18,10 +18,11 @@ The difference between kup and meteor-up:
 
 ### Roadmap
 
-- [ ] TypeScript integration
-- [ ] Add commander integration
-- [ ] SiteName support
-- [ ] Provide easy to use nodejs API.
+- [x] TypeScript integration
+- [x] Add commander integration
+- [ ] Add server list site name support
+- [ ] Ability to deploy just one site from the multiple server list.
+- [ ] Provide easy-to-use nodejs API.
 - [ ] Auto deployment
 - [ ] Add plugin architect
     - [ ] Slack plugin to integrate Slack notification
