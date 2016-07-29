@@ -32,7 +32,8 @@ function storeLastNChars(vars, field, limit, color) {
 
 function whenAfterDeployed(buildLocation, options:CmdDeployOptions) {
   return (error, summaryMaps) => {
-    if (options.noClean) {
+    if (!options.noClean) {
+      console.log(`Cleaning up ${buildLocation}`);
       rimraf.sync(buildLocation);
     }
     whenAfterCompleted(error, summaryMaps);

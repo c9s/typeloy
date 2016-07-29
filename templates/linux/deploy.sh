@@ -1,5 +1,5 @@
 #!/bin/bash
-DEPLOY_PREFIX=/opt
+DEPLOY_PREFIX="<%= deployPrefix %>"
 APP_NAME="<%= appName %>"
 APP_ROOT=$DEPLOY_PREFIX/$APP_NAME
 TMP_DIR=$DEPLOY_PREFIX/$APP_NAME/tmp
