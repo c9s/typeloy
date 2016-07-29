@@ -41,6 +41,7 @@ interface MupConfig {
   servers: Array<MupServer>;
   app: string;
   ssl?: MupSslConfig;
+  deployCheckWaitTime?: number;
 }
 
 export class ConfigParser {
