@@ -60,6 +60,7 @@ export default class ActionsRegistry {
     this.cwd = cwd;
     this.config = config;
     this.sessionsMap = this._createSessionsMap(config);
+
     // Get settings.json into env,
     // The METEOR_SETTINGS can be used for setting up meteor application without passing "--settings=...."
     //
@@ -159,7 +160,7 @@ export default class ActionsRegistry {
     this._executePararell("setup", [this.config]);
   }
 
-  public deploy(config) {
+  public deploy(config = {}) {
     var self = this;
     self._showKadiraLink();
 

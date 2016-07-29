@@ -5,18 +5,36 @@ var format = require('util').format;
 
 import 'colors';
 
+interface MupSslConfig {
+  backendPort: number;
+  pem: string;
+}
+
+interface MupConfig {
+  setupNode: boolean;
+  setupPhantom: boolean;
+  enableUploadProgressBar: boolean;
+  appName: string;
+  env: Object;
+  meteorBinary?: string;
+  servers: Array<any>;
+  app: string;
+  ssl?: MupSslConfig;
+}
+
+
 export function read() {
   var mupJsonPath = path.resolve('mup.json');
   if (fs.existsSync(mupJsonPath)) {
-    var mupJson = cjson.load(mupJsonPath);
+    var mupJson:MupConfig = cjson.load(mupJsonPath);
 
     //initialize options
     mupJson.env = mupJson.env || {};
 
-    if(typeof mupJson.setupNode === "undefined") {
+    if (typeof mupJson.setupNode === "undefined") {
       mupJson.setupNode = true;
     }
-    if(typeof mupJson.setupPhantom === "undefined") {
+    if (typeof mupJson.setupPhantom === "undefined") {
       mupJson.setupPhantom = true;
     }
     mupJson.meteorBinary = (mupJson.meteorBinary) ? getCanonicalPath(mupJson.meteorBinary) : 'meteor';
