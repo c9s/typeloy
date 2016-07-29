@@ -17,7 +17,8 @@ export default class LinuxTasks {
       taskList.executeScript('Installing Node.js: ' + config.nodeVersion, {
         script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
         vars: {
-          nodeVersion: config.nodeVersion
+          nodeVersion: config.nodeVersion,
+          deployPrefix: DEPLOY_PREFIX
         }
       });
     }
@@ -31,7 +32,8 @@ export default class LinuxTasks {
     taskList.executeScript('Setting up environment variable script', {
       script: path.resolve(SCRIPT_DIR, 'setup-env.sh'),
       vars: {
-        appName: config.appName
+        appName: config.appName,
+        deployPrefix: DEPLOY_PREFIX
       }
     });
 
@@ -56,6 +58,7 @@ export default class LinuxTasks {
       src: path.resolve(TEMPLATES_DIR, 'meteor.conf'),
       dest: upstartConfig,
       vars: {
+        deployPrefix: DEPLOY_PREFIX,
         appName: config.appName
       }
     });
@@ -90,6 +93,7 @@ export default class LinuxTasks {
       src: path.resolve(TEMPLATES_DIR, 'env.sh'),
       dest: DEPLOY_PREFIX + '/' + appName + '/config/env.sh',
       vars: {
+        deployPrefix: DEPLOY_PREFIX,
         env: bashenv,
         appName: appName
       }
@@ -99,6 +103,7 @@ export default class LinuxTasks {
       src: path.resolve(TEMPLATES_DIR, 'deploy.sh'),
       dest: DEPLOY_PREFIX + '/' + appName + '/build.sh',
       vars: {
+        deployPrefix: DEPLOY_PREFIX,
         deployCheckWaitTime: deployCheckWaitTime || 10,
         appName: appName
       }
@@ -108,6 +113,7 @@ export default class LinuxTasks {
     taskList.executeScript('Invoking deployment process', {
       script: path.resolve(TEMPLATES_DIR, 'deploy.sh'),
       vars: {
+        deployPrefix: DEPLOY_PREFIX,
         deployCheckWaitTime: deployCheckWaitTime || 10,
         appName: appName
       }
