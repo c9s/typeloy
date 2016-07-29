@@ -58,10 +58,10 @@ export class ConfigParser {
       config.setupPhantom = true;
     }
     config.meteorBinary = (config.meteorBinary) ? getCanonicalPath(config.meteorBinary) : 'meteor';
-    if(typeof config.appName === "undefined") {
+    if (typeof config.appName === "undefined") {
       config.appName = "meteor";
     }
-    if(typeof config.enableUploadProgressBar === "undefined") {
+    if (typeof config.enableUploadProgressBar === "undefined") {
       config.enableUploadProgressBar = true;
     }
 
@@ -84,11 +84,14 @@ export class ConfigParser {
 
       if (!server.host) {
         mupErrorLog('Server host does not exist');
-      } else if (!server.username) {
+      }
+      if (!server.username) {
         mupErrorLog('Server username does not exist');
-      } else if (!server.password && !server.pem && !sshAgentExists) {
+      }
+      if (!server.password && !server.pem && !sshAgentExists) {
         mupErrorLog('Server password, pem or a ssh agent does not exist');
-      } else if (!config.app) {
+      }
+      if (!config.app) {
         mupErrorLog('Path to app does not exist');
       }
 
@@ -130,25 +133,23 @@ export function read() : MupConfig {
   }
 };
 
-function rewriteHome(location) {
-  if(/^win/.test(process.platform)) {
-    return location.replace('~', process.env.USERPROFILE);
-  } else {
-    return location.replace('~', process.env.HOME);
+function rewriteHome(loc:string) : string {
+  if (/^win/.test(process.platform)) {
+    return loc.replace('~', process.env.USERPROFILE);
   }
+  return loc.replace('~', process.env.HOME);
 }
 
-function mupErrorLog(message) {
+function mupErrorLog(message:string) {
   var errorMessage = 'Invalid mup.json file: ' + message;
   console.error(errorMessage.red.bold);
   process.exit(1);
 }
 
-function getCanonicalPath(location) {
-  var localDir = path.resolve(__dirname, location);
-  if(fs.existsSync(localDir)) {
+function getCanonicalPath(loc:string) : string {
+  var localDir : string = path.resolve(__dirname, loc);
+  if (fs.existsSync(localDir)) {
     return localDir;
-  } else {
-    return path.resolve(rewriteHome(location));
   }
+  return path.resolve(rewriteHome(loc));
 }
