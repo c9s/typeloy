@@ -1,8 +1,10 @@
-# Meteor Up
+# Kup
 
-Maintained and customized.
+Maintained and customized meteor-up.
 
 ### EXTRA FEATURES
+
+The difference between kup and meteor-up:
 
 - Show information as much as possible in the console. like .. what version of node will be installed ... 
 
@@ -11,6 +13,13 @@ Maintained and customized.
     BUILD_DIR=/tmp/meteor-dd2ca2e9-9bc9-4531-b85f-93f1443b1176 mup deploy $(date +%s)
 
 - Don't export environment variables with weird escaping.
+
+- Automatically fix the npm bcrypt invalid elf binary issue in the deploy script.
+
+
+
+
+
 
 #### Production Quality Meteor Deployments
 
@@ -368,3 +377,9 @@ Fortunately, Meteor Up **will take care** of that job for you and it will detect
 * [Using Meteor Up with Nitrous.io](https://github.com/arunoda/meteor-up/wiki/Using-Meteor-Up-with-Nitrous.io)
 * [Change Ownership of Additional Directories](https://github.com/arunoda/meteor-up/wiki/Change-Ownership-of-Additional-Directories)
 * [Using Meteor Up with NginX vhosts](https://github.com/arunoda/meteor-up/wiki/Using-Meteor-Up-with-NginX-vhosts)
+
+
+### LICENSE
+
+This package was forked from arunoda/meteor-up and is released under MIT.
+
