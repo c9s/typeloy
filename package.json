@@ -1,7 +1,7 @@
 {
-  "name": "kup",
+  "name": "typeloy",
   "version": "0.1.0",
-  "description": "Production quality meteor deployments",
+  "description": "friendly meteor deployments",
   "dependencies": {
     "archiver": "0.14.x",
     "async": "^0.9.0",
@@ -14,9 +14,9 @@
     "uuid": "1.4.x"
   },
   "bin": {
-    "kup": "./lib/bin/kup.js"
+    "typeloy": "./lib/bin/typeloy.js"
   },
-  "author": "Arunoda Susiripala <arunoda.susiripala@gmail.com>",
+  "author": "Yo-An Lin <yoanlin93@gmail.com>",
   "repository": {
     "type": "git",
     "url": "git://github.com/c9s/kup.git"

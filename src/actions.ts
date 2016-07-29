@@ -160,7 +160,7 @@ export default class ActionsRegistry {
     this._executePararell("setup", [this.config]);
   }
 
-  public deploy(config = {}) {
+  public deploy(options = {}) {
     var self = this;
     self._showKadiraLink();
 
@@ -210,7 +210,7 @@ export default class ActionsRegistry {
             callback(null, summaryMap);
           });
         },
-        whenAfterDeployed(buildLocation, config)
+        whenAfterDeployed(buildLocation, options)
       );
     });
   }
@@ -254,15 +254,15 @@ export default class ActionsRegistry {
     this._executePararell("start", [this.config.appName]);
   }
 
-  public logs() {
+  public logs(options) {
     var self = this;
-    var tailOptions = process.argv.slice(3).join(" ");
+    var tailOptions = options.tail || '';
 
     for(var os in self.sessionsMap) {
       var sessionsInfo = self.sessionsMap[os];
       sessionsInfo.sessions.forEach(function(session) {
         var hostPrefix = '[' + session._host + '] ';
-        var options = {
+        var opts = {
           onStdout: function(data) {
             process.stdout.write(hostPrefix + data.toString());
           },
@@ -277,7 +277,7 @@ export default class ActionsRegistry {
           var command = 'sudo tail ' + tailOptions +
             ' /var/svc/log/site-' + self.config.appName + '\\:default.log';
         }
-        session.execute(command, options);
+        session.execute(command, opts);
       });
     }
   }
