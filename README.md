@@ -16,10 +16,16 @@ The difference between kup and meteor-up:
 
 - Automatically fix the npm bcrypt invalid elf binary issue in the deploy script.
 
+### Roadmap
 
-
-
-
+- [ ] TypeScript integration
+- [ ] Add commander integration
+- [ ] SiteName support
+- [ ] Provide easy to use nodejs API.
+- [ ] Auto deployment
+- [ ] Add plugin architect
+    - [ ] Slack plugin to integrate Slack notification
+- [ ] Docker composer support
 
 #### Production Quality Meteor Deployments
 

@@ -14,7 +14,7 @@
     "uuid": "1.4.x"
   },
   "bin": {
-    "kup": "./bin/kup"
+    "kup": "./lib/bin/kup.js"
   },
   "author": "Arunoda Susiripala <arunoda.susiripala@gmail.com>",
   "repository": {
