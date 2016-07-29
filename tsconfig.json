@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "allowSyntheticDefaultImports": true,
+    "module": "commonjs",
+    "sourceMap": true,
+    "allowJs": true,
+    "outDir": "lib"
+  },
+  "exclude": ["node_modules"],
+  "files": ["typings/index.d.ts", "src"]
+}
