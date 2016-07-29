@@ -11,6 +11,7 @@ var async = require('async');
 
 import LinuxTasks from "./taskLists/linux";
 import SunosTasks from "./taskLists/sunos";
+import {CmdDeployOptions} from './options';
 
 import _ = require('underscore');
 import {buildApp} from './build';
@@ -29,9 +30,11 @@ function storeLastNChars(vars, field, limit, color) {
   };
 }
 
-function whenAfterDeployed(buildLocation, config) {
-  return function(error, summaryMaps) {
-    rimraf.sync(buildLocation);
+function whenAfterDeployed(buildLocation, options:CmdDeployOptions) {
+  return (error, summaryMaps) => {
+    if (options.noClean) {
+      rimraf.sync(buildLocation);
+    }
     whenAfterCompleted(error, summaryMaps);
   };
 }
@@ -51,7 +54,7 @@ function hasSummaryMapErrors(summaryMap) {
   });
 }
 
-export default class ActionsRegistry {
+export default class Actions {
   public cwd;
   public config;
   public sessionsMap;
@@ -139,7 +142,7 @@ export default class ActionsRegistry {
     }
   }
 
-  private _executePararell(actionName, args) {
+  private _executePararell(actionName:string, args) {
     var self = this;
     var sessionInfoList = _.values(self.sessionsMap);
     async.map(
@@ -160,14 +163,19 @@ export default class ActionsRegistry {
     this._executePararell("setup", [this.config]);
   }
 
-  public deploy(options = {}) {
+  public deploy(version:string, sites:Array<string>, options:CmdDeployOptions) {
     var self = this;
     self._showKadiraLink();
 
-    var buildLocation = process.env.BUILD_DIR || path.resolve(os.tmpdir(), "meteor-" + uuid.v4());
-    var bundlePath = path.resolve(buildLocation, 'bundle.tar.gz');
+    const getDefaultBuildDirName = function(appName:string = null, version:string = null) : string {
+      return (appName || "meteor-") + "-" + (version || uuid.v4());
+    };
 
-    console.log('Bundle Path', bundlePath);
+    const buildLocation = process.env.BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, version));
+    const bundlePath = path.resolve(buildLocation, 'bundle.tar.gz');
+
+    console.log('Version:', version);
+    console.log('Bundle Path:', bundlePath);
 
     // spawn inherits env vars from process.env
     // so we can simply set them like this

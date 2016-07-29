@@ -6,6 +6,8 @@ var util = require('util');
 var SCRIPT_DIR = path.resolve(__dirname, '../../scripts/linux');
 var TEMPLATES_DIR = path.resolve(__dirname, '../../templates/linux');
 
+const DEPLOY_PREFIX = "/opt";
+
 export default class LinuxTasks {
   public static setup(config) {
     var taskList = nodemiral.taskList('Setup (linux)');
@@ -64,10 +66,11 @@ export default class LinuxTasks {
   public static deploy(bundlePath, env, deployCheckWaitTime, appName, enableUploadProgressBar) {
     var taskList = nodemiral.taskList("Deploy app '" + appName + "' (linux)");
 
-    console.log(bundlePath + ' => ' + '/opt/' + appName + '/tmp/bundle.tar.gz');
+    const remoteBundlePath = DEPLOY_PREFIX + '/' + appName + '/tmp/bundle.tar.gz'
+    console.log("Transfering " + bundlePath + ' => ' + remoteBundlePath);
     taskList.copy('Uploading bundle', {
       src: bundlePath,
-      dest: '/opt/' + appName + '/tmp/bundle.tar.gz',
+      dest: DEPLOY_PREFIX + '/' + appName + '/tmp/bundle.tar.gz',
       progressBar: enableUploadProgressBar
     });
 
@@ -85,7 +88,7 @@ export default class LinuxTasks {
     }
     taskList.copy('Setting up environment variables', {
       src: path.resolve(TEMPLATES_DIR, 'env.sh'),
-      dest: '/opt/' + appName + '/config/env.sh',
+      dest: DEPLOY_PREFIX + '/' + appName + '/config/env.sh',
       vars: {
         env: bashenv,
         appName: appName
@@ -94,7 +97,7 @@ export default class LinuxTasks {
 
     taskList.copy('Creating build.sh', {
       src: path.resolve(TEMPLATES_DIR, 'deploy.sh'),
-      dest: '/opt/' + appName + '/build.sh',
+      dest: DEPLOY_PREFIX + '/' + appName + '/build.sh',
       vars: {
         deployCheckWaitTime: deployCheckWaitTime || 10,
         appName: appName
@@ -118,7 +121,7 @@ export default class LinuxTasks {
 
     taskList.copy('Setting up Environment Variables', {
       src: path.resolve(TEMPLATES_DIR, 'env.sh'),
-      dest: '/opt/' + appName + '/config/env.sh',
+      dest: DEPLOY_PREFIX + '/' + appName + '/config/env.sh',
       vars: {
         env: env || {},
         appName: appName
@@ -182,20 +185,20 @@ export default class LinuxTasks {
 
     taskList.copy('Configuring SSL', {
       src: pemFilePath,
-      dest: '/opt/stud/ssl.pem'
+      dest: DEPLOY_PREFIX + '/stud/ssl.pem'
     });
 
 
     taskList.copy('Configuring Stud', {
       src: path.resolve(TEMPLATES_DIR, 'stud.conf'),
-      dest: '/opt/stud/stud.conf',
+      dest: DEPLOY_PREFIX + '/stud/stud.conf',
       vars: {
         backend: util.format('[%s]:%d', backend.host, backend.port)
       }
     });
 
     taskList.execute('Verifying SSL Configurations (ssl.pem)', {
-      command: 'stud --test --config=/opt/stud/stud.conf'
+      command: `stud --test --config=${DEPLOY_PREFIX}/stud/stud.conf`
     });
 
     //restart stud

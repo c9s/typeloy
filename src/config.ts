@@ -123,7 +123,6 @@ export class ConfigParser {
 
     // rewrite ~ with $HOME
     config.app = expandPath(config.app);
-
     if (config.ssl) {
       config.ssl.backendPort = config.ssl.backendPort || 80;
       config.ssl.pem = path.resolve(expandPath(config.ssl.pem));
@@ -168,7 +167,13 @@ export class ConfigParser {
   }
 }
 
-export function readConfig() : Config {
+export function readConfig(configPath:string = null) : Config {
+  if (configPath != null) {
+    let filepath : string = path.resolve(configPath);
+    if (fs.existsSync(filepath)) {
+      return ConfigParser.parse(filepath);
+    }
+  }
   var possibleConfigFiles:Array<string> = ['typeloy.config.js', 'typeloy.config.json', 'typeloy.json', 'mup.json'];
   for (var i = 0; i < possibleConfigFiles.length ; i++) {
     var fn = possibleConfigFiles[i];
