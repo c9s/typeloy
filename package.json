@@ -13,7 +13,7 @@
     "archiver": "0.14.x"
   },
   "bin": {
-    "mup": "./bin/mup"
+    "kup": "./bin/kup"
   },
   "author": "Arunoda Susiripala <arunoda.susiripala@gmail.com>",
   "repository": {
