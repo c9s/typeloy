@@ -12,6 +12,7 @@ interface Env {
 
 interface SshOptions {
   agent?: string;
+  port?: number;
 }
 
 interface Server {
@@ -42,6 +43,29 @@ interface Config {
   app: string;
   ssl?: SslConfig;
   deployCheckWaitTime?: number;
+}
+
+
+
+function rewriteHome(loc:string) : string {
+  if (/^win/.test(process.platform)) {
+    return loc.replace('~', process.env.USERPROFILE);
+  }
+  return loc.replace('~', process.env.HOME);
+}
+
+function mupErrorLog(message:string) {
+  var errorMessage = 'Invalid mup.json file: ' + message;
+  console.error(errorMessage.red.bold);
+  process.exit(1);
+}
+
+function getCanonicalPath(loc:string) : string {
+  var localDir : string = path.resolve(__dirname, loc);
+  if (fs.existsSync(localDir)) {
+    return localDir;
+  }
+  return path.resolve(rewriteHome(loc));
 }
 
 export class ConfigParser {
@@ -148,23 +172,3 @@ export function read() : Config {
   }
 };
 
-function rewriteHome(loc:string) : string {
-  if (/^win/.test(process.platform)) {
-    return loc.replace('~', process.env.USERPROFILE);
-  }
-  return loc.replace('~', process.env.HOME);
-}
-
-function mupErrorLog(message:string) {
-  var errorMessage = 'Invalid mup.json file: ' + message;
-  console.error(errorMessage.red.bold);
-  process.exit(1);
-}
-
-function getCanonicalPath(loc:string) : string {
-  var localDir : string = path.resolve(__dirname, loc);
-  if (fs.existsSync(localDir)) {
-    return localDir;
-  }
-  return path.resolve(rewriteHome(loc));
-}
