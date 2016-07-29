@@ -18,7 +18,7 @@
   "author": "Arunoda Susiripala <arunoda.susiripala@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git://github.com/arunoda/meteor-up.git"
+    "url": "git://github.com/c9s/kup.git"
   },
   "license": "MIT"
 }
