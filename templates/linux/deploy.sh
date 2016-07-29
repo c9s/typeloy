@@ -1,4 +1,11 @@
 #!/bin/bash
+DEPLOY_PREFIX=/opt
+APP_NAME="<%= appName %>"
+APP_ROOT=$DEPLOY_PREFIX/$APP_NAME
+TMP_DIR=$DEPLOY_PREFIX/$APP_NAME/tmp
+BUNDLE_DIR=$TMP_DIR/bundle
+BUNDLE_TARBALL_FILE=bundle.tar.gz
+DEPLOY_CHECK_WAIT_TIME=<%= deployCheckWaitTime %>
 
 # utilities
 gyp_rebuild_inside_node_modules () {
@@ -52,13 +59,12 @@ rebuild_binary_npm_modules () {
   done
 }
 
-revert_app (){
+revert_app () {
   if [[ -d old_app ]]; then
     sudo rm -rf app
     sudo mv old_app app
     sudo stop <%= appName %> || :
     sudo start <%= appName %> || :
-
     echo "Latest deployment failed! Reverted back to the previous version." 1>&2
     exit 1
   else
@@ -67,22 +73,20 @@ revert_app (){
   fi
 }
 
-
 # logic
 set -e
 set -o xtrace
 
-APP_NAME="<%= appName %>"
-APP_ROOT=/opt/$APP_NAME
-TMP_DIR=/opt/$APP_NAME/tmp
-BUNDLE_DIR=${TMP_DIR}/bundle
-BUNDLE_TARBALL_FILE=bundle.tar.gz
+
 
 cd ${TMP_DIR}
 echo "Removing bundle..."
-sudo rm -rf bundle
+sudo rm -rf $TMP_DIR/bundle
+
 echo "Extracing $TMP_DIR/$BUNDLE_TARBALL_FILE"
 sudo tar xvzf $BUNDLE_TARBALL_FILE > /dev/null
+
+# why are we adding execute mode?
 sudo chmod -R +x *
 sudo chown -R ${USER} ${BUNDLE_DIR}
 
@@ -106,12 +110,18 @@ if [[ -e npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt ]] ; then
     rm -rf npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
     npm install --update-binary -f bcrypt
     cp -r node_modules/bcrypt npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
-fi 
+fi
 
 if [[ -e npm/node_modules/bignum ]] ; then
     rm -rf npm/node_modules/bignum
     npm install --update-binary -f bignum
     cp -r node_modules/bignum npm/node_modules/bignum
+fi
+if [[ -e npm/npm-container/node_modules/nsq.js/node_modules/bignum ]] ; then
+    # for meteor 1.2
+    rm -rf npm/npm-container/node_modules/nsq.js/node_modules/bignum
+    npm install --update-binary -f bignum
+    cp -r node_modules/bignum npm/npm-container/node_modules/nsq.js/node_modules/bignum
 fi
 
 if [ -f package.json ]; then
@@ -141,15 +151,15 @@ sudo mv tmp/bundle app
 #wait and check
 echo "Waiting for MongoDB to initialize. (5 minutes)"
 . $APP_ROOT/config/env.sh
-wait-for-mongo ${MONGO_URL} 300000
+wait-for-mongo $MONGO_URL 300000
 
 # restart app
 echo "Restarting the app"
 sudo stop $APP_NAME || :
 sudo start $APP_NAME || :
 
-echo "Waiting for <%= deployCheckWaitTime %> seconds while app is booting up"
-sleep <%= deployCheckWaitTime %>
+echo "Waiting for $DEPLOY_CHECK_WAIT_TIME seconds while app is booting up"
+sleep $DEPLOY_CHECK_WAIT_TIME
 
 echo "Checking is app booted or not?"
 curl localhost:${PORT} || revert_app

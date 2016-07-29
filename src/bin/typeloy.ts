@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import path = require('path');
-import Config = require('../config');
+import {readConfig} from '../config';
 import ActionsRegistry from '../actions';
 require('colors');
 
@@ -10,17 +10,18 @@ var version = '1.0.0';
 var cwd = path.resolve('.');
 
 // read config and validate it
-var config = Config.read();
+var config = readConfig();
 var actionsRegistry = new ActionsRegistry(config, cwd);
 
 prog.version(version);
+prog.usage('[options] <subcommand> ...');
 prog.option('-v, --verbose', 'verbose mode');
 
-prog.command('deploy [version] ([site1] [site2] ...)')
+prog.command('deploy [version] [sites...]')
   .description('set the deployment version and start deploying.')
-  // .option("-s, --setup_mode [mode]", "Which setup mode to use")
-  .action( (env, options) => {
-    actionsRegistry.deploy();
+  .option("-d, --dryrun", 'do not really deploy it.')
+  .action( (version, sites, options) => {
+    actionsRegistry.deploy(options);
   })
   ;
 
@@ -30,6 +31,13 @@ prog.command('setup')
     actionsRegistry.setup();
   })
   ;
+
+prog.command('logs')
+  .description('init the mup.json config.')
+  .option("-f, --tail", 'tail')
+  .action((options) => {
+    actionsRegistry.logs(options);
+  });
 
 prog.command('init')
   .description('init the mup.json config.')
@@ -57,6 +65,14 @@ prog.command('restart')
     actionsRegistry.restart();
   });
   ;
+
+/*
+// handling undefined command
+prog.command('*')
+  .action(function(env){
+    console.log('deploying "%s"', env);
+  });
+*/
 
 prog.on('--help', function(){
   /*

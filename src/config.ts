@@ -47,25 +47,25 @@ interface Config {
 
 
 
-function rewriteHome(loc:string) : string {
+function expandPath(loc:string) : string {
   if (/^win/.test(process.platform)) {
     return loc.replace('~', process.env.USERPROFILE);
   }
   return loc.replace('~', process.env.HOME);
 }
 
-function mupErrorLog(message:string) {
-  var errorMessage = 'Invalid mup.json file: ' + message;
+function fatal(message:string) {
+  var errorMessage = 'Invalid json config file: ' + message;
   console.error(errorMessage.red.bold);
   process.exit(1);
 }
 
-function getCanonicalPath(loc:string) : string {
+function canonicalizePath(loc:string) : string {
   var localDir : string = path.resolve(__dirname, loc);
   if (fs.existsSync(localDir)) {
     return localDir;
   }
-  return path.resolve(rewriteHome(loc));
+  return path.resolve(expandPath(loc));
 }
 
 export class ConfigParser {
@@ -85,7 +85,7 @@ export class ConfigParser {
     if (typeof config.setupPhantom === "undefined") {
       config.setupPhantom = true;
     }
-    config.meteorBinary = (config.meteorBinary) ? getCanonicalPath(config.meteorBinary) : 'meteor';
+    config.meteorBinary = (config.meteorBinary) ? canonicalizePath(config.meteorBinary) : 'meteor';
     if (typeof config.appName === "undefined") {
       config.appName = "meteor";
     }
@@ -103,7 +103,7 @@ export class ConfigParser {
       }
       server.os = server.os || "linux";
       if (server.pem) {
-        server.pem = rewriteHome(server.pem);
+        server.pem = expandPath(server.pem);
       }
 
       server.env = server.env || {};
@@ -114,11 +114,11 @@ export class ConfigParser {
     });
 
     // rewrite ~ with $HOME
-    config.app = rewriteHome(config.app);
+    config.app = expandPath(config.app);
 
     if (config.ssl) {
       config.ssl.backendPort = config.ssl.backendPort || 80;
-      config.ssl.pem = path.resolve(rewriteHome(config.ssl.pem));
+      config.ssl.pem = path.resolve(expandPath(config.ssl.pem));
     }
     return config;
   }
@@ -126,10 +126,10 @@ export class ConfigParser {
   public static validate(config:Config) {
     // validating server config
     if (typeof config.servers === "undefined") {
-      mupErrorLog("Config 'servers' is not defined.");
+      fatal("Config 'servers' is not defined.");
     }
     if (config.servers instanceof Array && config.servers.length == 0) {
-      mupErrorLog("Config 'servers' is empty.");
+      fatal("Config 'servers' is empty.");
     }
 
     _.each(config.servers, (server:Server) => {
@@ -140,35 +140,37 @@ export class ConfigParser {
       }
 
       if (!server.host) {
-        mupErrorLog('Server host does not exist');
+        fatal('Server host does not exist');
       }
       if (!server.username) {
-        mupErrorLog('Server username does not exist');
+        fatal('Server username does not exist');
       }
       if (!server.password && !server.pem && !sshAgentExists) {
-        mupErrorLog('Server password, pem or a ssh agent does not exist');
+        fatal('Server password, pem or a ssh agent does not exist');
       }
       if (!config.app) {
-        mupErrorLog('Path to app does not exist');
+        fatal('Path to app does not exist');
       }
     });
     if (config.ssl) {
       if (!fs.existsSync(config.ssl.pem)) {
-        mupErrorLog('SSL pem file does not exist');
+        fatal('SSL pem file does not exist');
       }
     }
   }
-
 }
 
-export function read() : Config {
-  var filepath : string = path.resolve('mup.json');
-  if (fs.existsSync(filepath)) {
-    return ConfigParser.parse(filepath);
-  } else {
-    console.error('mup.json file does not exist!'.red.bold);
-    // helpers.printHelp();
-    process.exit(1);
+export function readConfig() : Config {
+  var possibleConfigFiles:Array<string> = ['kup.json', 'mup.json'];
+  for (var i = 0; i < possibleConfigFiles.length ; i++) {
+    var fn = possibleConfigFiles[i];
+    var filepath : string = path.resolve(fn);
+    if (fs.existsSync(filepath)) {
+      return ConfigParser.parse(filepath);
+    }
   }
+  console.error('mup.json file does not exist!'.red.bold);
+  // helpers.printHelp();
+  process.exit(1);
 };
 
