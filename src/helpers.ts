@@ -1,5 +1,6 @@
 var exec = require('child_process').exec;
 
+/*
 exports.printHelp = function() {
   console.error('\nValid Actions');
   console.error('-------------');
@@ -14,5 +15,5 @@ exports.printHelp = function() {
   console.error('start         - Start your app instances');
   console.error('stop          - Stop your app instances');
   console.error('restart       - Restart your app instances');
-
 };
+*/

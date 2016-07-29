@@ -8,5 +8,5 @@
     "outDir": "lib"
   },
   "exclude": ["node_modules"],
-  "files": ["typings/index.d.ts", "src"]
+  "files": ["typings/index.d.ts", "src/bin/kup.ts"]
 }
