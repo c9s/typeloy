@@ -14,7 +14,7 @@ interface SshOptions {
   agent?: string;
 }
 
-interface MupServer {
+interface Server {
   host: string;
   port: number;
   username: string;
@@ -26,30 +26,33 @@ interface MupServer {
   sshOptions: SshOptions;
 }
 
-interface MupSslConfig {
+interface SslConfig {
   backendPort: number;
   pem: string;
 }
 
-interface MupConfig {
+interface Config {
   setupNode: boolean;
   setupPhantom: boolean;
   enableUploadProgressBar: boolean;
   appName: string;
   env: Env;
   meteorBinary?: string;
-  servers: Array<MupServer>;
+  servers: Array<Server>;
   app: string;
-  ssl?: MupSslConfig;
+  ssl?: SslConfig;
   deployCheckWaitTime?: number;
 }
 
 export class ConfigParser {
 
-  public static parse(mupJsonPath:string) : MupConfig {
-    var config:MupConfig = cjson.load(mupJsonPath);
+  public static parse(mupJsonPath:string) : Config {
+    var config:Config = this.preprocess(cjson.load(mupJsonPath));
+    this.validate(config);
+    return config;
+  }
 
-    //initialize options
+  public static preprocess(config:Config) : Config {
     config.env = config.env || {};
 
     if (typeof config.setupNode === "undefined") {
@@ -65,16 +68,8 @@ export class ConfigParser {
     if (typeof config.enableUploadProgressBar === "undefined") {
       config.enableUploadProgressBar = true;
     }
-
-    // validating server config
-    if (typeof config.servers === "undefined") {
-      mupErrorLog("Config 'servers' is not defined.");
-    }
-    if (config.servers instanceof Array && config.servers.length == 0) {
-      mupErrorLog("Config 'servers' is empty.");
-    }
-
-    _.each(config.servers, (server:MupServer) => {
+    
+    _.each(config.servers, (server:Server) => {
       var sshAgentExists = false;
       var sshAgent:string = process.env.SSH_AUTH_SOCK;
       if (sshAgent) {
@@ -82,22 +77,7 @@ export class ConfigParser {
         server.sshOptions = server.sshOptions || {};
         server.sshOptions.agent = sshAgent;
       }
-
-      if (!server.host) {
-        mupErrorLog('Server host does not exist');
-      }
-      if (!server.username) {
-        mupErrorLog('Server username does not exist');
-      }
-      if (!server.password && !server.pem && !sshAgentExists) {
-        mupErrorLog('Server password, pem or a ssh agent does not exist');
-      }
-      if (!config.app) {
-        mupErrorLog('Path to app does not exist');
-      }
-
       server.os = server.os || "linux";
-
       if (server.pem) {
         server.pem = rewriteHome(server.pem);
       }
@@ -115,15 +95,49 @@ export class ConfigParser {
     if (config.ssl) {
       config.ssl.backendPort = config.ssl.backendPort || 80;
       config.ssl.pem = path.resolve(rewriteHome(config.ssl.pem));
+    }
+    return config;
+  }
+
+  public static validate(config:Config) {
+    // validating server config
+    if (typeof config.servers === "undefined") {
+      mupErrorLog("Config 'servers' is not defined.");
+    }
+    if (config.servers instanceof Array && config.servers.length == 0) {
+      mupErrorLog("Config 'servers' is empty.");
+    }
+
+    _.each(config.servers, (server:Server) => {
+      var sshAgentExists:boolean = false;
+      var sshAgent:string = process.env.SSH_AUTH_SOCK;
+      if (sshAgent) {
+        sshAgentExists = fs.existsSync(sshAgent);
+      }
+
+      if (!server.host) {
+        mupErrorLog('Server host does not exist');
+      }
+      if (!server.username) {
+        mupErrorLog('Server username does not exist');
+      }
+      if (!server.password && !server.pem && !sshAgentExists) {
+        mupErrorLog('Server password, pem or a ssh agent does not exist');
+      }
+      if (!config.app) {
+        mupErrorLog('Path to app does not exist');
+      }
+    });
+    if (config.ssl) {
       if (!fs.existsSync(config.ssl.pem)) {
         mupErrorLog('SSL pem file does not exist');
       }
     }
-    return config;
   }
+
 }
 
-export function read() : MupConfig {
+export function read() : Config {
   var filepath : string = path.resolve('mup.json');
   if (fs.existsSync(filepath)) {
     return ConfigParser.parse(filepath);

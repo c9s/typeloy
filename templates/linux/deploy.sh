@@ -100,12 +100,19 @@ fi
 # Special fix for bcrypt invalid ELF issue
 # @see http://stackoverflow.com/questions/27984456/deploying-meteor-app-from-os-x-to-linux-causes-bcrypt-issues
 # @see https://github.com/meteor/meteor/issues/7513
-rm -rf npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
-npm install --update-binary -f bcrypt
-cp -r node_modules/bcrypt npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
-rm -rf npm/node_modules/bignum
-npm install --update-binary -f bignum
-cp -r node_modules/bignum npm/node_modules/bignum
+
+# for 1.3 
+if [[ -e npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt ]] ; then
+    rm -rf npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
+    npm install --update-binary -f bcrypt
+    cp -r node_modules/bcrypt npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
+fi 
+
+if [[ -e npm/node_modules/bignum ]] ; then
+    rm -rf npm/node_modules/bignum
+    npm install --update-binary -f bignum
+    cp -r node_modules/bignum npm/node_modules/bignum
+fi
 
 if [ -f package.json ]; then
   echo "Found package.json, running npm install ..."
