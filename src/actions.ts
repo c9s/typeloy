@@ -10,9 +10,9 @@ var extend = require('util')._extend;
 var async = require('async');
 
 import {Config} from './config';
-import Profile from './profile';
 import LinuxTasks from "./taskLists/linux";
 import SunosTasks from "./taskLists/sunos";
+import Deployment from './deployment';
 import {CmdDeployOptions} from './options';
 import {Plugin, PluginRunner, SlackNotificationPlugin} from './plugins';
 
@@ -129,9 +129,9 @@ export default class Actions {
       var hasKadira = kadiraRegex.test(packages);
       if(!hasKadira) {
         console.log(
-          "“ Checkout " + "Kadira".bold + "!"+
+          "“ Checkout " + "Kadira" + "!"+
           "\n  It's the best way to monitor performance of your app."+
-          "\n  Visit: " + "https://kadira.io/mup".underline + " ”\n"
+          "\n  Visit: " + "https://kadira.io/mup" + " ”\n"
         );
       }
     }
@@ -158,18 +158,18 @@ export default class Actions {
     this._executePararell("setup", [this.config]);
   }
 
-  public deploy(version:string, sites:Array<string>, options:CmdDeployOptions) {
+  public deploy(deploymen:Deployment, sites:Array<string>, options:CmdDeployOptions) {
     var self = this;
     self._showKadiraLink();
 
-    const getDefaultBuildDirName = function(appName:string = null, version:string = null) : string {
-      return (appName || "meteor-") + "-" + (version || uuid.v4());
+    const getDefaultBuildDirName = function(appName:string, tag:string) : string {
+      return (appName || "meteor-") + "-" + (tag || uuid.v4());
     };
 
-    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, version));
+    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, deploymen.tag));
     const bundlePath = options.bundleFile || path.resolve(buildLocation, 'bundle.tar.gz');
 
-    console.log('Deploy Version:', version);
+    console.log('Deployment Tag:', deploymen.tag);
     console.log('Build Location:', buildLocation);
     console.log('Bundle Path:', bundlePath);
 
@@ -290,7 +290,7 @@ export default class Actions {
     var destSettingsJson = path.resolve('settings.json');
 
     if(fs.existsSync(destMupJson) || fs.existsSync(destSettingsJson)) {
-      console.error('A Project Already Exists'.bold.red);
+      console.error('A Project Already Exists');
       process.exit(1);
     }
 
@@ -300,7 +300,7 @@ export default class Actions {
     copyFile(exampleMupJson, destMupJson);
     copyFile(exampleSettingsJson, destSettingsJson);
 
-    console.log('Empty Project Initialized!'.bold.green);
+    console.log('Empty Project Initialized!');
 
     function copyFile(src, dest) {
       var content = fs.readFileSync(src, 'utf8');
