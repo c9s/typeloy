@@ -1,5 +1,6 @@
 export interface CmdDeployOptions {
   dryrun: boolean;
-  noClean: boolean;
+  clean: boolean;
   bundleFile: string;
+  buildDir: string;
 }

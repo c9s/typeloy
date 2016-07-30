@@ -8,6 +8,7 @@
     "cjson": "0.3.x",
     "colors": "0.6.x",
     "commander": "^2.9.0",
+    "fibers": "^1.0.13",
     "nodemiral": "^1.1.1",
     "rimraf": "2.x.x",
     "underscore": "1.7.0",

@@ -2,6 +2,7 @@
   "globalDependencies": {
     "archiver": "registry:dt/archiver#0.15.0+20160709062918",
     "commander": "registry:dt/commander#2.3.0+20160317120654",
+    "fibers": "registry:dt/fibers#0.0.0+20160317120654",
     "mocha": "registry:dt/mocha#2.2.5+20160317120654",
     "node": "registry:dt/node#6.0.0+20160728152422",
     "underscore": "registry:dt/underscore#1.7.0+20160720002543"
