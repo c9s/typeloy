@@ -5,7 +5,7 @@ A maintained and customized meteor-up, re-written in TypeScript.
 **This project was forked from Arunoda Susiripala's meteor-up.
 Thank you Arunoda Susiripala for the hard work**
 
-### EXTRA FEATURES
+### Difference
 
 The difference between **typeloy** and **meteor-up**:
 
@@ -19,6 +19,7 @@ The difference between **typeloy** and **meteor-up**:
 
 - Automatically fix the npm bcrypt invalid elf binary issue in the deploy script.
 
+- Require node v4.4.7+
 
 ### Roadmap
 
@@ -26,7 +27,7 @@ The difference between **typeloy** and **meteor-up**:
 - [x] Add commander integration
 - [x] `BUILD_DIR` should be the deploy version name.
 - [x] `--bundle-file [path]` option to reuse pre-built bundle tarball file.
-- [ ] Collecting deployment metadata and pass to the handler of different phases.
+- [x] Collecting deployment metadata and pass to the handler of different phases.
 - [ ] Add plugin architect
     - [ ] Slack plugin to integrate Slack notification
 - [ ] Auto deployment
