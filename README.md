@@ -24,8 +24,8 @@ The difference between **typeloy** and **meteor-up**:
 
 - [x] TypeScript integration
 - [x] Add commander integration
-- [ ] `BUILD_DIR` should be the deploy version name.
-- [ ] `--bundle [path]` option to reuse pre-built bundle tarball file.
+- [x] `BUILD_DIR` should be the deploy version name.
+- [x] `--bundle-file [path]` option to reuse pre-built bundle tarball file.
 - [ ] Add server list site name support
 - [ ] Ability to deploy just one site from the multiple server list.
 - [ ] Provide easy-to-use nodejs API.
