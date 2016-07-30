@@ -1,6 +1,6 @@
 {
   "name": "typeloy",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "friendly meteor deployments",
   "dependencies": {
     "@slack/client": "^3.5.3",
