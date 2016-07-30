@@ -3,6 +3,7 @@
   "version": "0.2.0",
   "description": "friendly meteor deployments",
   "dependencies": {
+    "@slack/client": "^3.5.3",
     "archiver": "0.14.x",
     "async": "^0.9.0",
     "cjson": "0.3.x",
