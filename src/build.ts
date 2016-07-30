@@ -3,7 +3,6 @@ var archiver = require('archiver');
 var fs = require('fs');
 var pathResolve = require('path').resolve;
 
-import Profile from './profile';
 import _ = require('underscore');
 
 type Path = string;
@@ -11,7 +10,7 @@ type Path = string;
 /**
  * @param {Function(err)} callback
  */
-export const buildApp = Profile("buildApp", function(appPath:Path, meteorBinary:Path, buildLocation:Path, bundlePath:Path, callback) {
+export function buildApp(appPath:Path, meteorBinary:Path, buildLocation:Path, bundlePath:Path, callback) {
   callback = _.once(callback);
   bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
   if (fs.existsSync(bundlePath)) {
@@ -26,9 +25,9 @@ export const buildApp = Profile("buildApp", function(appPath:Path, meteorBinary:
       callback(new Error("build-error"));
     }
   });
-});
+}
 
-const buildMeteorApp = Profile("buildMeteorApp", function(appPath:Path, executable:Path, buildLocation:Path, callback) {
+export function buildMeteorApp(appPath:Path, executable:Path, buildLocation:Path, callback) {
   var args : Array<string> = [
     "build", "--directory", buildLocation, 
     "--server", "http://localhost:3000"
@@ -52,7 +51,7 @@ const buildMeteorApp = Profile("buildMeteorApp", function(appPath:Path, executab
   meteor.stdout.pipe(process.stdout, {end: false});
   meteor.stderr.pipe(process.stderr, {end: false});
   meteor.on('close', callback);
-});
+};
 
 function archiveIt(buildLocation:string, bundlePath:string, callback) {
   let sourceDir = pathResolve(buildLocation, 'bundle');
