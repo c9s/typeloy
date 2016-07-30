@@ -26,12 +26,13 @@ The difference between **typeloy** and **meteor-up**:
 - [x] Add commander integration
 - [x] `BUILD_DIR` should be the deploy version name.
 - [x] `--bundle-file [path]` option to reuse pre-built bundle tarball file.
+- [ ] Collecting deployment metadata and pass to the handler of different phases.
+- [ ] Add plugin architect
+    - [ ] Slack plugin to integrate Slack notification
+- [ ] Auto deployment
 - [ ] Add server list site name support
 - [ ] Ability to deploy just one site from the multiple server list.
 - [ ] Provide easy-to-use nodejs API.
-- [ ] Auto deployment
-- [ ] Add plugin architect
-    - [ ] Slack plugin to integrate Slack notification
 - [ ] Docker composer support
 
 #### Production Quality Meteor Deployments
