@@ -9,6 +9,7 @@ var format = require('util').format;
 var extend = require('util')._extend;
 var async = require('async');
 
+import Profile from './profile';
 import LinuxTasks from "./taskLists/linux";
 import SunosTasks from "./taskLists/sunos";
 import {CmdDeployOptions} from './options';
@@ -30,9 +31,12 @@ function storeLastNChars(vars, field, limit, color) {
   };
 }
 
-function whenAfterDeployed(buildLocation, options:CmdDeployOptions) {
+/**
+ * After deployed, we trigger this method to clean up.
+ */
+function whenAfterDeployed(buildLocation:string, options:CmdDeployOptions) {
   return (error, summaryMaps) => {
-    if (!options.noClean) {
+    if (options.clean) {
       console.log(`Cleaning up ${buildLocation}`);
       rimraf.sync(buildLocation);
     }
@@ -40,6 +44,12 @@ function whenAfterDeployed(buildLocation, options:CmdDeployOptions) {
   };
 }
 
+/**
+ * After completed ....
+ *
+ * Right now we don't have things to do, just exit the process with the error
+ * code.
+ */
 function whenAfterCompleted(error, summaryMaps) {
   var errorCode = error || haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
   process.exit(errorCode);
@@ -172,10 +182,11 @@ export default class Actions {
       return (appName || "meteor-") + "-" + (version || uuid.v4());
     };
 
-    const buildLocation = process.env.BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, version));
-    const bundlePath = path.resolve(buildLocation, 'bundle.tar.gz');
+    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, version));
+    const bundlePath = options.bundleFile || path.resolve(buildLocation, 'bundle.tar.gz');
 
-    console.log('Version:', version);
+    console.log('Deploy Version:', version);
+    console.log('Build Location:', buildLocation);
     console.log('Bundle Path:', bundlePath);
 
     // spawn inherits env vars from process.env
@@ -190,7 +201,7 @@ export default class Actions {
 
     console.log('Meteor Path: ' + meteorBinary);
     console.log('Building Started: ' + this.config.app);
-    buildApp(appPath, meteorBinary, buildLocation, function(err) {
+    buildApp(appPath, meteorBinary, buildLocation, bundlePath, (err) => {
       if (err) {
         process.exit(1);
         return;
@@ -227,12 +238,11 @@ export default class Actions {
   public reconfig() {
     var self = this;
     var sessionInfoList = [];
-    for (var os in self.sessionsMap) {
-      var sessionsInfo = self.sessionsMap[os];
-      sessionsInfo.sessions.forEach(function(session) {
-        var env = _.extend({}, self.config.env, session._serverConfig.env);
-        var taskList = sessionsInfo.taskListsBuilder.reconfig(
-          env, self.config.appName);
+    for (var os in this.sessionsMap) {
+      var sessionsInfo = this.sessionsMap[os];
+      sessionsInfo.sessions.forEach((session) => {
+        var env = _.extend({}, this.config.env, session._serverConfig.env);
+        var taskList = sessionsInfo.taskListsBuilder.reconfig(env, this.config.appName);
         sessionInfoList.push({
           taskList: taskList,
           session: session
@@ -242,7 +252,7 @@ export default class Actions {
 
     async.mapSeries(
       sessionInfoList,
-      function(sessionInfo, callback) {
+      (sessionInfo, callback) => {
         sessionInfo.taskList.run(sessionInfo.session, function(summaryMap) {
           callback(null, summaryMap);
         });
@@ -267,7 +277,7 @@ export default class Actions {
     var self = this;
     var tailOptions = options.tail || '';
 
-    for(var os in self.sessionsMap) {
+    for (var os in self.sessionsMap) {
       var sessionsInfo = self.sessionsMap[os];
       sessionsInfo.sessions.forEach(function(session) {
         var hostPrefix = '[' + session._host + '] ';

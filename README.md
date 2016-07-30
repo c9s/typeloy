@@ -4,17 +4,18 @@ A maintained and customized meteor-up, re-written in TypeScript.
 
 ### EXTRA FEATURES
 
-The difference between kup and meteor-up:
+The difference between **typeloy** and **meteor-up**:
 
 - Show information as much as possible in the console. like .. what version of node will be installed ... 
 
 - Reuse bundle file if you want, so you don't have to re-build for just debugging the deployment:
 
-    BUILD_DIR=/tmp/meteor-dd2ca2e9-9bc9-4531-b85f-93f1443b1176 mup deploy $(date +%s)
+    METEOR_BUILD_DIR=/tmp/meteor-dd2ca2e9-9bc9-4531-b85f-93f1443b1176 typeloy deploy $(date +%s)
 
 - Don't export environment variables with weird escaping.
 
 - Automatically fix the npm bcrypt invalid elf binary issue in the deploy script.
+
 
 ### Roadmap
 
