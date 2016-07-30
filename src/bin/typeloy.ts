@@ -3,6 +3,7 @@ import path = require('path');
 import {readConfig} from '../config';
 import Actions from '../actions';
 import {CmdDeployOptions} from '../options';
+import Deployment from '../deployment';
 require('colors');
 
 var prog = require('commander');
@@ -15,19 +16,21 @@ prog.usage('[options] <subcommand> ...');
 prog.option('-v, --verbose', 'verbose mode');
 prog.option('-c, --config <file>', 'config file');
 
-prog.command('deploy [version] [sites...]')
-  .description('set the deployment version and start deploying.')
+prog.command('deploy [tag] [sites...]')
+  .description('set the deployment tag and start deploying.')
   .option("-d, --dryrun", 'do not really deploy it.')
   .option("--bundle-file <file>", 'the bundle file you have already built with meteor build.')
   .option("--build-dir <dir>", 'the meteor build directory.')
   .option("-C, --no-clean", 'whether to clean up the bundle files.')
-  .action((version:string, sites:Array<string>, options:CmdDeployOptions) => {
+  .action((deploymentTag:string, sites:Array<string>, options:CmdDeployOptions) => {
     let config = readConfig(prog.config);
     let actions = new Actions(config, cwd);
-    if (!version) {
-      version = "v" + (new Date).getTime();
+    if (!deploymentTag) {
+      deploymentTag = "v" + (new Date).getTime();
     }
-    actions.deploy(version, sites, options);
+    Deployment.create(cwd, deploymentTag).then((deployment:Deployment) => {
+      actions.deploy(deployment, sites, options);
+    });
   })
   ;
 
