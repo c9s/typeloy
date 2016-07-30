@@ -13,7 +13,15 @@ The difference between **typeloy** and **meteor-up**:
 
 - Reuse bundle file if you want, so you don't have to re-build for just debugging the deployment:
 
-    METEOR_BUILD_DIR=/tmp/meteor-dd2ca2e9-9bc9-4531-b85f-93f1443b1176 typeloy deploy $(date +%s)
+        METEOR_BUILD_DIR=/tmp/meteor-dd2ca2e9-9bc9-4531-b85f-93f1443b1176 typeloy deploy $(date +%s)
+
+        typeloy --config mup.json deploy --no-clean v0.0.3
+
+        typeloy --config mup.json deploy --build-dir /tmp v0.0.3
+
+    Send your existing bundle file without rebuilding the tarball file:
+
+        typeloy --config mup.json deploy --bundle-file /tmp/bundle.tar.gz /tmp v0.0.3
 
 - Don't export environment variables with weird escaping.
 
