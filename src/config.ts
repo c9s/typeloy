@@ -32,7 +32,7 @@ interface SslConfig {
   pem: string;
 }
 
-interface Config {
+export interface Config {
   setupNode: boolean;
   setupPhantom: boolean;
   enableUploadProgressBar: boolean;
@@ -43,6 +43,7 @@ interface Config {
   app: string;
   ssl?: SslConfig;
   deployCheckWaitTime?: number;
+  plugins: Array<any>;
 }
 
 
@@ -67,8 +68,6 @@ function canonicalizePath(loc:string) : string {
   }
   return path.resolve(expandPath(loc));
 }
-
-
 
 export class ConfigParser {
 

@@ -9,10 +9,12 @@ var format = require('util').format;
 var extend = require('util')._extend;
 var async = require('async');
 
+import {Config} from './config';
 import Profile from './profile';
 import LinuxTasks from "./taskLists/linux";
 import SunosTasks from "./taskLists/sunos";
 import {CmdDeployOptions} from './options';
+import {Plugin, PluginRunner, SlackNotificationPlugin} from './plugins';
 
 import _ = require('underscore');
 import {buildApp} from './build';
@@ -31,29 +33,7 @@ function storeLastNChars(vars, field, limit, color) {
   };
 }
 
-/**
- * After deployed, we trigger this method to clean up.
- */
-function whenAfterDeployed(buildLocation:string, options:CmdDeployOptions) {
-  return (error, summaryMaps) => {
-    if (options.clean) {
-      console.log(`Cleaning up ${buildLocation}`);
-      rimraf.sync(buildLocation);
-    }
-    whenAfterCompleted(error, summaryMaps);
-  };
-}
 
-/**
- * After completed ....
- *
- * Right now we don't have things to do, just exit the process with the error
- * code.
- */
-function whenAfterCompleted(error, summaryMaps) {
-  var errorCode = error || haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
-  process.exit(errorCode);
-}
 
 function haveSummaryMapsErrors(summaryMaps) {
   return _.some(summaryMaps, hasSummaryMapErrors);
@@ -66,14 +46,18 @@ function hasSummaryMapErrors(summaryMap) {
 }
 
 export default class Actions {
-  public cwd;
-  public config;
+  public cwd:string;
+  public config:Config;
   public sessionsMap;
 
-  constructor(config, cwd) {
+  protected pluginRunner:PluginRunner;
+
+  constructor(config:Config, cwd:string) {
     this.cwd = cwd;
     this.config = config;
     this.sessionsMap = this._createSessionsMap(config);
+
+    this.pluginRunner = new PluginRunner(config, cwd);
 
     // Get settings.json into env,
     // The METEOR_SETTINGS can be used for setting up meteor application without passing "--settings=...."
@@ -93,7 +77,7 @@ export default class Actions {
   /**
   * @param {object} config (the mup config object)
   */
-  private _createSessionsMap(config) {
+  private _createSessionsMap(config:Config) {
     var sessionsMap = {};
 
     config.servers.forEach(function(server) {
@@ -165,7 +149,7 @@ export default class Actions {
           callback(null, summaryMap);
         });
       },
-      whenAfterCompleted
+      this.whenAfterCompleted
     );
   }
 
@@ -230,7 +214,7 @@ export default class Actions {
             callback(null, summaryMap);
           });
         },
-        whenAfterDeployed(buildLocation, options)
+        this.whenAfterDeployed(buildLocation, options)
       );
     });
   }
@@ -257,7 +241,7 @@ export default class Actions {
           callback(null, summaryMap);
         });
       },
-      whenAfterCompleted
+      this.whenAfterCompleted
     );
   }
 
@@ -322,6 +306,44 @@ export default class Actions {
       var content = fs.readFileSync(src, 'utf8');
       fs.writeFileSync(dest, content);
     }
+  }
+
+
+  /**
+  * After completed ....
+  *
+  * Right now we don't have things to do, just exit the process with the error
+  * code.
+  */
+  whenAfterCompleted(error, summaryMaps) {
+    var errorCode = error || haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
+    if (errorCode != 0) {
+      this.whenFailure(error, summaryMaps);
+    } else {
+      this.whenSuccess(error, summaryMaps);
+    }
+    process.exit(errorCode);
+  }
+
+  whenSuccess(error, summaryMaps) {
+
+  }
+
+  whenFailure(error, summaryMaps) {
+
+  }
+
+  /**
+   * Return a callback, which is used when after deployed, clean up the files.
+   */
+  whenAfterDeployed(buildLocation:string, options:CmdDeployOptions) {
+    return (error, summaryMaps) => {
+      if (options.clean) {
+        console.log(`Cleaning up ${buildLocation}`);
+        rimraf.sync(buildLocation);
+      }
+      this.whenAfterCompleted(error, summaryMaps);
+    };
   }
 }
 
