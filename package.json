@@ -1,6 +1,6 @@
 {
   "name": "typeloy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "friendly meteor deployments",
   "dependencies": {
     "archiver": "0.14.x",
