@@ -57,7 +57,7 @@ function expandPath(loc:string) : string {
 
 function fatal(message:string) {
   var errorMessage = 'Invalid json config file: ' + message;
-  console.error(errorMessage.red.bold);
+  console.error(errorMessage);
   process.exit(1);
 }
 
@@ -166,7 +166,7 @@ export class ConfigParser {
   }
 }
 
-export function readConfig(configPath:string = null) : Config {
+export function readConfig(configPath:string) : Config {
   if (configPath != null) {
     let filepath : string = path.resolve(configPath);
     if (fs.existsSync(filepath)) {
@@ -181,7 +181,7 @@ export function readConfig(configPath:string = null) : Config {
       return ConfigParser.parse(filepath);
     }
   }
-  console.error('mup.json file does not exist!'.red.bold);
+  console.error('config file does not exist! possible config filenames: [' + possibleConfigFiles.join(',') + ']');
   // helpers.printHelp();
   process.exit(1);
 };
