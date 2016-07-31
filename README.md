@@ -52,10 +52,12 @@ The difference between **typeloy** and **meteor-up**:
 
 ### Config File
 
-The typeloy config is compatible with `mup.json`. typeloy checks the config filenames by this order:
+Typeloy uses its own config but the config format is backward-compatible
+with `mup.json`.
+
+The config filename will be checked by this order:
 
   ['typeloy.js', 'typeloy.json', 'typeloy.config.json', 'mup.json']
-
 
 `typeloy.js` is used by when you have some node modules need to be integrated
 with typeloy, for example, SlackNotificationPlugin ...
