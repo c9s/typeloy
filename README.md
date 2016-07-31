@@ -29,6 +29,8 @@ The difference between **typeloy** and **meteor-up**:
 
 - Require node v4.4.7+
 
+- Plugin support! with SlackNotification.
+
 ### Roadmap
 
 - [x] TypeScript integration
@@ -36,11 +38,11 @@ The difference between **typeloy** and **meteor-up**:
 - [x] `BUILD_DIR` should be the deploy version name.
 - [x] `--bundle-file [path]` option to reuse pre-built bundle tarball file.
 - [x] Collecting deployment metadata and pass to the handler of different phases.
-- [ ] Add plugin architect
-    - [ ] Slack plugin to integrate Slack notification
-- [ ] Auto deployment
+- [x] Add plugin architect
+    - [x] Slack plugin to integrate Slack notification
 - [ ] Add server list site name support
 - [ ] Ability to deploy just one site from the multiple server list.
+- [ ] Auto deployment
 - [ ] Provide easy-to-use nodejs API.
 - [ ] Docker composer support
 
