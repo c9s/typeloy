@@ -2,8 +2,8 @@
 
 A maintained and customized meteor-up, re-written in TypeScript.
 
-**This project was forked from Arunoda Susiripala's meteor-up.
-Thank you Arunoda Susiripala for the hard work**
+*This project was forked from Arunoda Susiripala's meteor-up.
+Thank you Arunoda Susiripala for the hard work*
 
 ### Difference
 
@@ -29,6 +29,8 @@ The difference between **typeloy** and **meteor-up**:
 
 - Require node v4.4.7+
 
+- Plugin support! with SlackNotification.
+
 ### Roadmap
 
 - [x] TypeScript integration
@@ -36,13 +38,80 @@ The difference between **typeloy** and **meteor-up**:
 - [x] `BUILD_DIR` should be the deploy version name.
 - [x] `--bundle-file [path]` option to reuse pre-built bundle tarball file.
 - [x] Collecting deployment metadata and pass to the handler of different phases.
-- [ ] Add plugin architect
-    - [ ] Slack plugin to integrate Slack notification
-- [ ] Auto deployment
+- [x] Add plugin architect
+    - [x] Slack plugin to integrate Slack notification
 - [ ] Add server list site name support
 - [ ] Ability to deploy just one site from the multiple server list.
+- [ ] Auto deployment
 - [ ] Provide easy-to-use nodejs API.
 - [ ] Docker composer support
+
+### Installation
+
+    npm install -g typeloy
+
+### Config File
+
+Typeloy uses its own config but the config format is backward-compatible
+with `mup.json`.
+
+The config filename will be checked by this order:
+
+`typeloy.js`, `typeloy.json`, `typeloy.config.json`, `mup.json`
+
+`typeloy.js` is used by when you have some node modules need to be integrated
+with typeloy, for example, SlackNotificationPlugin ...
+
+
+typeloy.js
+```
+var SlackNotificationPlugin = require('typeloy').SlackNotificationPlugin;
+module.exports = {
+  "servers": [
+    {
+      "host": "11.22.33.44",
+      "username": "root",
+      "password": "12341234",
+      "env": {
+        "ROOT_URL": "http://yoursite.com"
+      }
+    }
+  ],
+  "setup": {
+    "mongo": false,
+    "phantom": false,
+    "node": "0.10.44",
+  },
+  "deploy": {
+    "checkDelay": 30,
+  },
+  "enableUploadProgressBar": true,
+  "appName": "shaka",
+  "app": "./app",
+  "plugins": [
+    new SlackNotificationPlugin({
+      hookUrl: 'https://hooks.slack.com/services/.../.../...',
+      username: 'typeloy',
+      channel: '#deploy',
+      github: {
+        org: "c9s",
+        repo: "typeloy"
+      },
+    })
+  ],
+  "env": {
+    "PORT": 80,
+    "MAIL_URL": "....",
+    "MONGO_URL": "...",
+    "MONGO_OPLOG_URL": "..."
+  }
+}
+```
+
+
+
+
+
 
 #### Production Quality Meteor Deployments
 
@@ -97,15 +166,12 @@ You can use install and use Meteor Up from Linux, Mac and Windows.
 * Secured MongoDB Installation (Optional)
 * Pre-Installed PhantomJS (Optional)
 
-### Installation
-
-    npm install -g mup
 
 ### Creating a Meteor Up Project
 
     mkdir ~/my-meteor-deployment
     cd ~/my-meteor-deployment
-    mup init
+    typeloy init
 
 This will create two files in your Meteor Up project directory:
 

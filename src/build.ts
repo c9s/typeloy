@@ -7,30 +7,42 @@ import _ = require('underscore');
 
 type Path = string;
 
+type BuildCallback = (err:Error) => void;
+
+type BuildMeteorAppCallback = (code:number) => void;
+
 /**
  * @param {Function(err)} callback
  */
-export function buildApp(appPath:Path, meteorBinary:Path, buildLocation:Path, bundlePath:Path, callback) {
-  callback = _.once(callback);
+export function buildApp(appPath:Path, meteorBinary:Path, buildLocation:Path, bundlePath:Path,
+                         start,
+                         done:BuildCallback) {
+
+  start = _.once(start);
+  done = _.once(done);
   bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
   if (fs.existsSync(bundlePath)) {
     console.log("Found existing bundle file: " + bundlePath);
-    return callback();
+    return done(null);
   }
-  buildMeteorApp(appPath, meteorBinary, buildLocation, function(code) {
+  start();
+  buildMeteorApp(appPath, meteorBinary, buildLocation, {}, (code:number) => {
     if (code == 0) {
-      archiveIt(buildLocation, bundlePath, callback);
+      // Success
+      console.log("Build succeed. Archiving the files...");
+      archiveIt(buildLocation, bundlePath, done);
     } else {
       console.log("\n=> Build Error. Check the logs printed above.");
-      callback(new Error("build-error"));
+      done(new Error("Build error. Please check the console log output."));
     }
   });
 }
 
-export function buildMeteorApp(appPath:Path, executable:Path, buildLocation:Path, callback) {
+export function buildMeteorApp(appPath:Path, executable:Path, buildLocation:Path, config, done:BuildMeteorAppCallback) {
   var args : Array<string> = [
-    "build", "--directory", buildLocation, 
-    "--server", "http://localhost:3000"
+    "build",
+    "--directory", buildLocation, 
+    "--server", (config.server || "http://localhost:3000"),
   ];
   
   var isWin = /^win/.test(process.platform);
@@ -41,16 +53,16 @@ export function buildMeteorApp(appPath:Path, executable:Path, buildLocation:Path
     args = ["/c", "meteor"].concat(args);
   }
 
-  var options = {"cwd": appPath};
-
-  console.log("Building Meteor App: ", executable, args, options);
+  var options = {"cwd": pathResolve(appPath) };
+  console.log("Building Meteor App");
+  console.log("  ", executable, args.join(' '), options);
 
   var meteor = spawn(executable, args, options);
   var stdout = "";
   var stderr = "";
   meteor.stdout.pipe(process.stdout, {end: false});
   meteor.stderr.pipe(process.stderr, {end: false});
-  meteor.on('close', callback);
+  meteor.on('close', done);
 };
 
 function archiveIt(buildLocation:string, bundlePath:string, callback) {
