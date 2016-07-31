@@ -22,7 +22,7 @@ export function buildApp(appPath:Path, meteorBinary:Path, buildLocation:Path, bu
     return done();
   }
   start();
-  buildMeteorApp(appPath, meteorBinary, buildLocation, function(code) {
+  buildMeteorApp(appPath, meteorBinary, buildLocation, {}, function(code) {
     if (code == 0) {
       archiveIt(buildLocation, bundlePath, done);
     } else {
@@ -32,10 +32,11 @@ export function buildApp(appPath:Path, meteorBinary:Path, buildLocation:Path, bu
   });
 }
 
-export function buildMeteorApp(appPath:Path, executable:Path, buildLocation:Path, callback) {
+export function buildMeteorApp(appPath:Path, executable:Path, buildLocation:Path, config, done) {
   var args : Array<string> = [
-    "build", "--directory", buildLocation, 
-    "--server", "http://localhost:3000"
+    "build",
+    "--directory", buildLocation, 
+    "--server", (config.server || "http://localhost:3000"),
   ];
   
   var isWin = /^win/.test(process.platform);
@@ -46,16 +47,16 @@ export function buildMeteorApp(appPath:Path, executable:Path, buildLocation:Path
     args = ["/c", "meteor"].concat(args);
   }
 
-  var options = {"cwd": appPath};
-
-  console.log("Building Meteor App: ", executable, args, options);
+  var options = {"cwd": pathResolve(appPath) };
+  console.log("Building Meteor App");
+  console.log("  ", executable, args.join(' '), options);
 
   var meteor = spawn(executable, args, options);
   var stdout = "";
   var stderr = "";
   meteor.stdout.pipe(process.stdout, {end: false});
   meteor.stderr.pipe(process.stderr, {end: false});
-  meteor.on('close', callback);
+  meteor.on('close', done);
 };
 
 function archiveIt(buildLocation:string, bundlePath:string, callback) {

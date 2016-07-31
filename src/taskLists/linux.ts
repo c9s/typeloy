@@ -13,7 +13,8 @@ export default class LinuxTasks {
     var taskList = nodemiral.taskList('Setup (linux)');
 
     // Installation
-    if(config.setupNode) {
+    if ((config.setup && config.setup.node) || config.setupNode) {
+      // let nodeVersion = 
       taskList.executeScript('Installing Node.js: ' + config.nodeVersion, {
         script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
         vars: {

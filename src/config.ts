@@ -32,9 +32,20 @@ interface SslConfig {
   pem: string;
 }
 
+
+interface SetupConfig {
+  node: boolean|string;
+  phantom: boolean;
+}
+
 export interface Config {
+  setup?: SetupConfig;
+
+  // legacy setup config
   setupNode: boolean;
   setupPhantom: boolean;
+  nodeVersion?: string;
+
   enableUploadProgressBar: boolean;
   appName: string;
   env: Env;
@@ -85,12 +96,15 @@ export class ConfigParser {
 
   public static preprocess(config:Config) : Config {
     config.env = config.env || {};
+    config.setup = config.setup || {} as SetupConfig;
 
     if (typeof config.setupNode === "undefined") {
       config.setupNode = true;
+      config.setup.node = config.nodeVersion || true;
     }
     if (typeof config.setupPhantom === "undefined") {
       config.setupPhantom = true;
+      config.setup.phantom = true;
     }
     config.meteorBinary = (config.meteorBinary) ? canonicalizePath(config.meteorBinary) : 'meteor';
     if (typeof config.appName === "undefined") {
