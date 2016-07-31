@@ -2,8 +2,8 @@
 
 A maintained and customized meteor-up, re-written in TypeScript.
 
-**This project was forked from Arunoda Susiripala's meteor-up.
-Thank you Arunoda Susiripala for the hard work**
+*This project was forked from Arunoda Susiripala's meteor-up.
+Thank you Arunoda Susiripala for the hard work*
 
 ### Difference
 
