@@ -28,7 +28,7 @@ prog.command('deploy [tag] [sites...]')
     if (!deploymentTag) {
       deploymentTag = "v" + (new Date).getTime();
     }
-    Deployment.create(cwd, deploymentTag).then((deployment:Deployment) => {
+    Deployment.create(config, cwd, deploymentTag).then((deployment:Deployment) => {
       actions.deploy(deployment, sites, options);
     });
   })
@@ -39,7 +39,7 @@ prog.command('setup')
   .action( (env, options) => {
     let config = readConfig(prog.config);
     let actions = new Actions(config, cwd);
-    actions.setup();
+    actions.setup(null);
   })
   ;
 
@@ -65,7 +65,7 @@ prog.command('start')
   .action( (env, options) => {
     let config = readConfig(prog.config);
     let actions = new Actions(config, cwd);
-    actions.start();
+    actions.start(null);
   });
   ;
 
@@ -74,7 +74,7 @@ prog.command('stop')
   .action( (env, options) => {
     let config = readConfig(prog.config);
     let actions = new Actions(config, cwd);
-    actions.stop();
+    actions.stop(null);
   });
   ;
 
@@ -83,7 +83,7 @@ prog.command('restart')
   .action( (env, options) => {
     let config = readConfig(prog.config);
     let actions = new Actions(config, cwd);
-    actions.restart();
+    actions.restart(null);
   });
   ;
 

@@ -1,15 +1,17 @@
 var GitRepo = require('simple-git');
 
-export interface GitRevInfo {
-  rev: string;
-  abbrev: string;
-  user: string;
-  date: Date;
-  localChanges: string;
+interface GitCommit {
+  hash : string;
+  date : string;
+  message : string;
+  author_name: string;
+  author_email : string;
+}
 
-  latestTag : string;
-  latestCommit : any;
+export interface GitRevInfo {
+  commit : GitCommit;
   commitsAfterLatestTag : any;
+  latestTag : string;
   numberOfCommitsAfterLatestTag : number;
   diff : any;
   diffStats : any;
@@ -17,23 +19,19 @@ export interface GitRevInfo {
 
 export interface RevCollector { }
 
-
 async function parseGitRepo(cwd:string) {
   return new Promise<any>(resolve => {
     let repo = GitRepo(cwd);
-    let info:any = {};
+    let info:GitRevInfo = {} as GitRevInfo;
     repo.tags((err:any, tags:any) => {
-      // console.log("Latest available tag: %s", tags.latest);
       info.latestTag = tags.latest;
       repo.log({ from: tags.latest, to: 'HEAD' }, (err, ret) => {
-        info.latestCommit = ret.latest;
+        info.commit = <GitCommit>ret.latest;
         info.commitsAfterLatestTag = ret.all;
         info.numberOfCommitsAfterLatestTag = ret.total;
-      })
-      repo.diff((err, diff) => {
+      }).diff((err, diff) => {
         info.diff = diff;
-      });
-      repo.diffSummary((err, diffStats) => {
+      }).diffSummary((err, diffStats) => {
         info.diffStats = diffStats;
       }).then(() => {
         resolve(info);

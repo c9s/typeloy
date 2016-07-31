@@ -8,12 +8,14 @@ var TEMPLATES_DIR = path.resolve(__dirname, '../../templates/linux');
 
 const DEPLOY_PREFIX = "/opt";
 
-export default class LinuxTasks {
+export default class LinuxTaskBuilder {
+
   public static setup(config) {
     var taskList = nodemiral.taskList('Setup (linux)');
 
     // Installation
-    if(config.setupNode) {
+    if (config.setup && config.setup.node) {
+      // let nodeVersion = 
       taskList.executeScript('Installing Node.js: ' + config.nodeVersion, {
         script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
         vars: {
@@ -23,7 +25,7 @@ export default class LinuxTasks {
       });
     }
 
-    if(config.setupPhantom) {
+    if (config.setup && config.setup.phantom) {
       taskList.executeScript('Installing PhantomJS', {
         script: path.resolve(SCRIPT_DIR, 'install-phantomjs.sh')
       });
@@ -37,7 +39,7 @@ export default class LinuxTasks {
       }
     });
 
-    if (config.setupMongo) {
+    if (config.setup.mongo) {
       // If the user prefers some mongodb config, read the option
       taskList.copy('Copying MongoDB configuration', {
         src: path.resolve(TEMPLATES_DIR, 'mongodb.conf'),
@@ -66,7 +68,7 @@ export default class LinuxTasks {
     return taskList;
   }
 
-  public static deploy(bundlePath, env, deployCheckWaitTime, appName, enableUploadProgressBar) {
+  public static deploy(bundlePath, env, checkDelay, appName, enableUploadProgressBar) {
     var taskList = nodemiral.taskList("Deploy app '" + appName + "' (linux)");
 
     const remoteBundlePath = DEPLOY_PREFIX + '/' + appName + '/tmp/bundle.tar.gz'
@@ -104,7 +106,7 @@ export default class LinuxTasks {
       dest: DEPLOY_PREFIX + '/' + appName + '/build.sh',
       vars: {
         deployPrefix: DEPLOY_PREFIX,
-        deployCheckWaitTime: deployCheckWaitTime || 10,
+        deployCheckWaitTime: checkDelay || 10,
         appName: appName
       }
     });
@@ -114,7 +116,7 @@ export default class LinuxTasks {
       script: path.resolve(TEMPLATES_DIR, 'deploy.sh'),
       vars: {
         deployPrefix: DEPLOY_PREFIX,
-        deployCheckWaitTime: deployCheckWaitTime || 10,
+        deployCheckWaitTime: checkDelay || 10,
         appName: appName
       }
     });

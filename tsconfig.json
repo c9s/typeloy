@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "allowSyntheticDefaultImports": true,
+    "removeComments": false,
     "module": "commonjs",
     "sourceMap": true,
     "allowJs": true,

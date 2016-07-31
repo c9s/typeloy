@@ -36,10 +36,10 @@ gyp_rebuild_inside_node_modules () {
       echo " > $npmModule: npm install due to binary npm modules"
       rm -rf node_modules
       if [ -f binding.gyp ]; then
-        sudo npm install
+        sudo npm install --update-binary
         sudo node-gyp rebuild || :
       else
-        sudo npm install
+        sudo npm install --update-binary
       fi
     fi
 
@@ -111,17 +111,22 @@ if [[ -e npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt ]] ; then
     npm install --update-binary -f bcrypt
     cp -r node_modules/bcrypt npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
 fi
-
 if [[ -e npm/node_modules/bignum ]] ; then
     rm -rf npm/node_modules/bignum
     npm install --update-binary -f bignum
     cp -r node_modules/bignum npm/node_modules/bignum
 fi
 if [[ -e npm/npm-container/node_modules/nsq.js/node_modules/bignum ]] ; then
-    # for meteor 1.2
+    # for meteor 1.2, we have npm-container
     rm -rf npm/npm-container/node_modules/nsq.js/node_modules/bignum
     npm install --update-binary -f bignum
     cp -r node_modules/bignum npm/npm-container/node_modules/nsq.js/node_modules/bignum
+fi
+if [[ -e npm/node_modules/nsq.js/node_modules/bignum ]] ; then
+    # for meteor 1.3, we have bignum used in nsq.js
+    rm -rf npm/node_modules/nsq.js/node_modules/bignum
+    npm install --update-binary -f bignum
+    cp -r node_modules/bignum npm/node_modules/nsq.js/node_modules/bignum
 fi
 
 if [ -f package.json ]; then

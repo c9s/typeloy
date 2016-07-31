@@ -9,9 +9,9 @@ var format = require('util').format;
 var extend = require('util')._extend;
 var async = require('async');
 
-import {Config} from './config';
-import LinuxTasks from "./taskLists/linux";
-import SunosTasks from "./taskLists/sunos";
+import {Config, ServerConfig} from './config';
+import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
+import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import Deployment from './deployment';
 import {CmdDeployOptions} from './options';
 import {Plugin, PluginRunner, SlackNotificationPlugin} from './plugins';
@@ -21,6 +21,35 @@ import {buildApp} from './build';
 
 var os = require('os');
 require('colors');
+
+/*
+Session {
+  _host: '...',
+  _auth: { username: 'root', password: '...' },
+  _options:
+   { ssh: { agent: '....' },
+     keepAlive: true },
+  _keepAlive: true,
+  _tasks: [],
+  _callbacks: [],
+  _debug: { [Function: disabled] enabled: false },
+  _serverConfig:
+   { host: '....',
+     username: 'root',
+     password: '...',
+     env:
+      { ROOT_URL: 'http://site.com',
+        CLUSTER_ENDPOINT_URL: 'http://111.222.11.22:80' },
+     sshOptions: { agent: '/tmp/ssh-RcgKVIGk8tfL/agent.4345' },
+     os: 'linux' } }
+*/
+interface Session {
+  copy(src, dest, options, callback)
+  execute(shellCommand, options, callback)
+  executeScript(scriptFile, options, callback)
+  close()
+}
+
 
 const kadiraRegex = /^meteorhacks:kadira/m;
 
@@ -46,8 +75,11 @@ function hasSummaryMapErrors(summaryMap) {
 }
 
 export default class Actions {
+
   public cwd:string;
+
   public config:Config;
+
   public sessionsMap;
 
   protected pluginRunner:PluginRunner;
@@ -55,7 +87,7 @@ export default class Actions {
   constructor(config:Config, cwd:string) {
     this.cwd = cwd;
     this.config = config;
-    this.sessionsMap = this._createSessionsMap(config);
+    this.sessionsMap = this._createSessionsMap(config, null);
 
     this.pluginRunner = new PluginRunner(config, cwd);
 
@@ -75,43 +107,56 @@ export default class Actions {
 
 
   /**
+   * Create sessions maps for only one site. It's possible to have more than
+   * one servers in one site.
+   *
+   * the structure of sessions map is:
+   *
+   * [os:string] = SessionMap;
+   *
   * @param {object} config (the mup config object)
   */
-  private _createSessionsMap(config:Config) {
+  private _createSessionsMap(config:Config, siteName:string) {
     var sessionsMap = {};
 
-    config.servers.forEach(function(server) {
+    if (!siteName) {
+      siteName = "_default_";
+    }
+    config.sites[siteName].servers.forEach((server:ServerConfig) => {
       var host = server.host;
-      var auth:any = { username: server.username };
 
-      if(server.pem) {
+      /// The auth object is used for nodemiral to connect ssh servers.
+      var auth:any = {
+        username: server.username
+      };
+      if (server.pem) {
         auth.pem = fs.readFileSync(path.resolve(server.pem), 'utf8');
       } else {
         auth.password = server.password;
       }
 
+      // create options for nodemiral
       var nodemiralOptions = {
         ssh: server.sshOptions,
         keepAlive: true
       };
 
-      if(!sessionsMap[server.os]) {
+      // Create os => taskListBuilder map
+      if (!sessionsMap[server.os]) {
         switch (server.os) {
           case "linux":
             sessionsMap[server.os] = {
               sessions: [],
-              taskListsBuilder: LinuxTasks
+              taskListsBuilder: LinuxTaskBuilder
             };
             break;
           case "sunos":
             sessionsMap[server.os] = {
               sessions: [],
-              taskListsBuilder: SunosTasks
+              taskListsBuilder: SunOSTaskBuilder
             };
             break;
         }
-
-
       }
 
       var session = nodemiral.session(host, auth, nodemiralOptions);
@@ -137,28 +182,29 @@ export default class Actions {
     }
   }
 
-  private _executePararell(actionName:string, args) {
+  private _executePararell(actionName:string, deployment, args) {
     var self = this;
     var sessionInfoList = _.values(self.sessionsMap);
     async.map(
       sessionInfoList,
-      function(sessionsInfo, callback) {
+      // callback: the trigger method
+      (sessionsInfo, callback) => {
         var taskList = sessionsInfo.taskListsBuilder[actionName]
           .apply(sessionsInfo.taskListsBuilder, args);
         taskList.run(sessionsInfo.sessions, function(summaryMap) {
-          callback(null, summaryMap);
+          callback(deployment, null, summaryMap);
         });
       },
       this.whenAfterCompleted
     );
   }
 
-  public setup() {
+  public setup(deployment) {
     this._showKadiraLink();
-    this._executePararell("setup", [this.config]);
+    this._executePararell("setup", deployment, [this.config]);
   }
 
-  public deploy(deploymen:Deployment, sites:Array<string>, options:CmdDeployOptions) {
+  public deploy(deployment:Deployment, sites:Array<string>, options:CmdDeployOptions) {
     var self = this;
     self._showKadiraLink();
 
@@ -166,10 +212,10 @@ export default class Actions {
       return (appName || "meteor-") + "-" + (tag || uuid.v4());
     };
 
-    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, deploymen.tag));
+    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, deployment.tag));
     const bundlePath = options.bundleFile || path.resolve(buildLocation, 'bundle.tar.gz');
 
-    console.log('Deployment Tag:', deploymen.tag);
+    console.log('Deployment Tag:', deployment.tag);
     console.log('Build Location:', buildLocation);
     console.log('Bundle Path:', bundlePath);
 
@@ -177,7 +223,7 @@ export default class Actions {
     // so we can simply set them like this
     process.env.BUILD_LOCATION = buildLocation;
 
-    var deployCheckWaitTime = this.config.deployCheckWaitTime;
+    var deployCheckWaitTime = this.config.deploy.checkDelay;
     var appName = this.config.appName;
     var appPath = this.config.app;
     var enableUploadProgressBar = this.config.enableUploadProgressBar;
@@ -185,15 +231,18 @@ export default class Actions {
 
     console.log('Meteor Path: ' + meteorBinary);
     console.log('Building Started: ' + this.config.app);
-    buildApp(appPath, meteorBinary, buildLocation, bundlePath, (err) => {
+
+
+    buildApp(appPath, meteorBinary, buildLocation, bundlePath, () => {
+      this.whenBeforeBuilding(deployment);
+    } , (err:Error) => {
       if (err) {
-        process.exit(1);
-        return;
+        throw err;
       }
       var sessionsData = [];
       _.forEach(self.sessionsMap, (sessionsInfo:any) => {
         var taskListsBuilder = sessionsInfo.taskListsBuilder;
-        _.forEach(sessionsInfo.sessions, function (session) {
+        _.forEach(sessionsInfo.sessions, (session) => {
           sessionsData.push({
             taskListsBuilder: taskListsBuilder,
             session: session
@@ -201,25 +250,31 @@ export default class Actions {
         });
       });
 
+      // We only want to fire once for now.
+      this.whenBeforeDeploying(deployment);
+
       async.mapSeries(
         sessionsData,
         (sessionData, callback) => {
           var session = sessionData.session;
           var taskListsBuilder = sessionData.taskListsBuilder;
-          var env = _.extend({}, self.config.env, session._serverConfig.env);
+          var env = _.extend({}, this.config.env, session._serverConfig.env);
+
+          // Build deploy tasks
           var taskList = taskListsBuilder.deploy(
-            bundlePath, env,
-            deployCheckWaitTime, appName, enableUploadProgressBar);
-          taskList.run(session, function (summaryMap) {
+                          bundlePath, env,
+                          deployCheckWaitTime, appName, enableUploadProgressBar);
+          taskList.run(session, (summaryMap) => {
             callback(null, summaryMap);
           });
         },
-        this.whenAfterDeployed(buildLocation, options)
+        // When all deployment was done, this method will be triggered.
+        this.whenAfterDeployed(deployment, buildLocation, options)
       );
     });
   }
 
-  public reconfig() {
+  public reconfig(deployment: Deployment) {
     var self = this;
     var sessionInfoList = [];
     for (var os in this.sessionsMap) {
@@ -238,29 +293,31 @@ export default class Actions {
       sessionInfoList,
       (sessionInfo, callback) => {
         sessionInfo.taskList.run(sessionInfo.session, function(summaryMap) {
-          callback(null, summaryMap);
+          callback(deployment, null, summaryMap);
         });
       },
       this.whenAfterCompleted
     );
   }
 
-  public restart() {
-    this._executePararell("restart", [this.config.appName]);
+  public restart(deployment: Deployment) {
+    this._executePararell("restart", deployment, [this.config.appName]);
   }
 
-  public stop() {
-    this._executePararell("stop", [this.config.appName]);
+  public stop(deployment: Deployment) {
+    this._executePararell("stop", deployment, [this.config.appName]);
   };
 
-  public start() {
-    this._executePararell("start", [this.config.appName]);
+  public start(deployment: Deployment) {
+    this._executePararell("start", deployment, [this.config.appName]);
   }
 
   public logs(options) {
     var self = this;
-    var tailOptions = options.tail || '';
-
+    var tailOptions = [];
+    if (options.tail) {
+      tailOptions.push('-f');
+    }
     for (var os in self.sessionsMap) {
       var sessionsInfo = self.sessionsMap[os];
       sessionsInfo.sessions.forEach(function(session) {
@@ -275,9 +332,9 @@ export default class Actions {
         };
 
         if(os == 'linux') {
-          var command = 'sudo tail ' + tailOptions + ' /var/log/upstart/' + self.config.appName + '.log';
+          var command = 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + self.config.appName + '.log';
         } else if(os == 'sunos') {
-          var command = 'sudo tail ' + tailOptions +
+          var command = 'sudo tail ' + tailOptions.join(' ') +
             ' /var/svc/log/site-' + self.config.appName + '\\:default.log';
         }
         session.execute(command, opts);
@@ -308,6 +365,13 @@ export default class Actions {
     }
   }
 
+  whenBeforeBuilding(deployment : Deployment) {
+    this.pluginRunner.whenBeforeBuilding(deployment);
+  }
+
+  whenBeforeDeploying(deployment : Deployment) {
+    this.pluginRunner.whenBeforeDeploying(deployment);
+  }
 
   /**
   * After completed ....
@@ -315,34 +379,38 @@ export default class Actions {
   * Right now we don't have things to do, just exit the process with the error
   * code.
   */
-  whenAfterCompleted(error, summaryMaps) {
+  async whenAfterCompleted(deployment : Deployment, error, summaryMaps) {
+    this.pluginRunner.whenAfterCompleted(deployment);
     var errorCode = error || haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
     if (errorCode != 0) {
-      this.whenFailure(error, summaryMaps);
+      await this.whenFailure(deployment, error, summaryMaps);
     } else {
-      this.whenSuccess(error, summaryMaps);
+      await this.whenSuccess(deployment, error, summaryMaps);
     }
     process.exit(errorCode);
   }
 
-  whenSuccess(error, summaryMaps) {
-
+  public async whenSuccess(deployment : Deployment, error, summaryMaps) {
+    let promise = this.pluginRunner.whenSuccess(deployment);
+    await promise;
   }
 
-  whenFailure(error, summaryMaps) {
-
+  public async whenFailure(deployment : Deployment, error, summaryMaps) {
+    let promise = this.pluginRunner.whenFailure(deployment);
+    await promise;
   }
 
   /**
    * Return a callback, which is used when after deployed, clean up the files.
    */
-  whenAfterDeployed(buildLocation:string, options:CmdDeployOptions) {
+  whenAfterDeployed(deployment : Deployment, buildLocation:string, options:CmdDeployOptions) {
     return (error, summaryMaps) => {
+      this.pluginRunner.whenAfterDeployed(deployment);
       if (options.clean) {
         console.log(`Cleaning up ${buildLocation}`);
         rimraf.sync(buildLocation);
       }
-      this.whenAfterCompleted(error, summaryMaps);
+      return this.whenAfterCompleted(deployment, error, summaryMaps);
     };
   }
 }
