@@ -22,6 +22,35 @@ import {buildApp} from './build';
 var os = require('os');
 require('colors');
 
+/*
+Session {
+  _host: '161.202.108.119',
+  _auth: { username: 'root', password: 'SmQUld3z' },
+  _options:
+   { ssh: { agent: '/tmp/ssh-RcgKVIGk8tfL/agent.4345' },
+     keepAlive: true },
+  _keepAlive: true,
+  _tasks: [],
+  _callbacks: [],
+  _debug: { [Function: disabled] enabled: false },
+  _serverConfig:
+   { host: '161.202.108.119',
+     username: 'root',
+     password: 'SmQUld3z',
+     env:
+      { ROOT_URL: 'http://staging.kaneoh.com',
+        CLUSTER_ENDPOINT_URL: 'http://161.202.108.119:80' },
+     sshOptions: { agent: '/tmp/ssh-RcgKVIGk8tfL/agent.4345' },
+     os: 'linux' } }
+*/
+interface Session {
+  copy(src, dest, options, callback)
+  execute(shellCommand, options, callback)
+  executeScript(scriptFile, options, callback)
+  close()
+}
+
+
 const kadiraRegex = /^meteorhacks:kadira/m;
 
 function storeLastNChars(vars, field, limit, color) {
@@ -137,28 +166,29 @@ export default class Actions {
     }
   }
 
-  private _executePararell(actionName:string, args) {
+  private _executePararell(actionName:string, deployment, args) {
     var self = this;
     var sessionInfoList = _.values(self.sessionsMap);
     async.map(
       sessionInfoList,
-      function(sessionsInfo, callback) {
+      // callback: the trigger method
+      (sessionsInfo, callback) => {
         var taskList = sessionsInfo.taskListsBuilder[actionName]
           .apply(sessionsInfo.taskListsBuilder, args);
         taskList.run(sessionsInfo.sessions, function(summaryMap) {
-          callback(null, summaryMap);
+          callback(deployment, null, summaryMap);
         });
       },
       this.whenAfterCompleted
     );
   }
 
-  public setup() {
+  public setup(deployment) {
     this._showKadiraLink();
-    this._executePararell("setup", [this.config]);
+    this._executePararell("setup", deployment, [this.config]);
   }
 
-  public deploy(deploymen:Deployment, sites:Array<string>, options:CmdDeployOptions) {
+  public deploy(deployment:Deployment, sites:Array<string>, options:CmdDeployOptions) {
     var self = this;
     self._showKadiraLink();
 
@@ -166,10 +196,10 @@ export default class Actions {
       return (appName || "meteor-") + "-" + (tag || uuid.v4());
     };
 
-    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, deploymen.tag));
+    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, deployment.tag));
     const bundlePath = options.bundleFile || path.resolve(buildLocation, 'bundle.tar.gz');
 
-    console.log('Deployment Tag:', deploymen.tag);
+    console.log('Deployment Tag:', deployment.tag);
     console.log('Build Location:', buildLocation);
     console.log('Bundle Path:', bundlePath);
 
@@ -185,6 +215,9 @@ export default class Actions {
 
     console.log('Meteor Path: ' + meteorBinary);
     console.log('Building Started: ' + this.config.app);
+
+    this.whenBeforeBuilding(deployment);
+
     buildApp(appPath, meteorBinary, buildLocation, bundlePath, (err) => {
       if (err) {
         process.exit(1);
@@ -193,7 +226,7 @@ export default class Actions {
       var sessionsData = [];
       _.forEach(self.sessionsMap, (sessionsInfo:any) => {
         var taskListsBuilder = sessionsInfo.taskListsBuilder;
-        _.forEach(sessionsInfo.sessions, function (session) {
+        _.forEach(sessionsInfo.sessions, (session) => {
           sessionsData.push({
             taskListsBuilder: taskListsBuilder,
             session: session
@@ -201,25 +234,31 @@ export default class Actions {
         });
       });
 
+      // We only want to fire once for now.
+      this.whenBeforeDeploying(deployment);
+
       async.mapSeries(
         sessionsData,
         (sessionData, callback) => {
           var session = sessionData.session;
           var taskListsBuilder = sessionData.taskListsBuilder;
-          var env = _.extend({}, self.config.env, session._serverConfig.env);
+          var env = _.extend({}, this.config.env, session._serverConfig.env);
+
+          // Build deploy tasks
           var taskList = taskListsBuilder.deploy(
-            bundlePath, env,
-            deployCheckWaitTime, appName, enableUploadProgressBar);
+                          bundlePath, env,
+                          deployCheckWaitTime, appName, enableUploadProgressBar);
           taskList.run(session, function (summaryMap) {
             callback(null, summaryMap);
           });
         },
-        this.whenAfterDeployed(buildLocation, options)
+        // When all deployment was done, this method will be triggered.
+        this.whenAfterDeployed(deployment, buildLocation, options)
       );
     });
   }
 
-  public reconfig() {
+  public reconfig(deployment: Deployment) {
     var self = this;
     var sessionInfoList = [];
     for (var os in this.sessionsMap) {
@@ -238,23 +277,23 @@ export default class Actions {
       sessionInfoList,
       (sessionInfo, callback) => {
         sessionInfo.taskList.run(sessionInfo.session, function(summaryMap) {
-          callback(null, summaryMap);
+          callback(deployment, null, summaryMap);
         });
       },
       this.whenAfterCompleted
     );
   }
 
-  public restart() {
-    this._executePararell("restart", [this.config.appName]);
+  public restart(deployment: Deployment) {
+    this._executePararell("restart", deployment, [this.config.appName]);
   }
 
-  public stop() {
-    this._executePararell("stop", [this.config.appName]);
+  public stop(deployment: Deployment) {
+    this._executePararell("stop", deployment, [this.config.appName]);
   };
 
-  public start() {
-    this._executePararell("start", [this.config.appName]);
+  public start(deployment: Deployment) {
+    this._executePararell("start", deployment, [this.config.appName]);
   }
 
   public logs(options) {
@@ -308,6 +347,13 @@ export default class Actions {
     }
   }
 
+  whenBeforeBuilding(deployment : Deployment) {
+    this.pluginRunner.whenBeforeBuilding(deployment);
+  }
+
+  whenBeforeDeploying(deployment : Deployment) {
+    this.pluginRunner.whenBeforeDeploying(deployment);
+  }
 
   /**
   * After completed ....
@@ -315,34 +361,36 @@ export default class Actions {
   * Right now we don't have things to do, just exit the process with the error
   * code.
   */
-  whenAfterCompleted(error, summaryMaps) {
+  whenAfterCompleted(deployment : Deployment, error, summaryMaps) : number {
+    this.pluginRunner.whenAfterCompleted(deployment);
     var errorCode = error || haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
     if (errorCode != 0) {
-      this.whenFailure(error, summaryMaps);
+      this.whenFailure(deployment, error, summaryMaps);
     } else {
-      this.whenSuccess(error, summaryMaps);
+      this.whenSuccess(deployment, error, summaryMaps);
     }
-    process.exit(errorCode);
+    return errorCode;
   }
 
-  whenSuccess(error, summaryMaps) {
-
+  public whenSuccess(deployment : Deployment, error, summaryMaps) {
+    this.pluginRunner.whenSuccess(deployment);
   }
 
-  whenFailure(error, summaryMaps) {
-
+  public whenFailure(deployment : Deployment, error, summaryMaps) {
+    this.pluginRunner.whenFailure(deployment);
   }
 
   /**
    * Return a callback, which is used when after deployed, clean up the files.
    */
-  whenAfterDeployed(buildLocation:string, options:CmdDeployOptions) {
+  whenAfterDeployed(deployment : Deployment, buildLocation:string, options:CmdDeployOptions) {
     return (error, summaryMaps) => {
+      this.pluginRunner.whenAfterDeployed(deployment);
       if (options.clean) {
         console.log(`Cleaning up ${buildLocation}`);
         rimraf.sync(buildLocation);
       }
-      this.whenAfterCompleted(error, summaryMaps);
+      return this.whenAfterCompleted(deployment, error, summaryMaps);
     };
   }
 }

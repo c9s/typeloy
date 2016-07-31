@@ -173,10 +173,10 @@ export function readConfig(configPath:string) : Config {
       return ConfigParser.parse(filepath);
     }
   }
-  var possibleConfigFiles:Array<string> = ['typeloy.config.js', 'typeloy.config.json', 'typeloy.json', 'mup.json'];
+  let possibleConfigFiles:Array<string> = ['typeloy.js', 'typeloy.json', 'typeloy.config.json', 'mup.json'];
   for (var i = 0; i < possibleConfigFiles.length ; i++) {
-    var fn = possibleConfigFiles[i];
-    var filepath : string = path.resolve(fn);
+    let fn = possibleConfigFiles[i];
+    let filepath : string = path.resolve(fn);
     if (fs.existsSync(filepath)) {
       return ConfigParser.parse(filepath);
     }
