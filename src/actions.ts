@@ -75,8 +75,11 @@ function hasSummaryMapErrors(summaryMap) {
 }
 
 export default class Actions {
+
   public cwd:string;
+
   public config:Config;
+
   public sessionsMap;
 
   protected pluginRunner:PluginRunner;
@@ -109,7 +112,7 @@ export default class Actions {
   private _createSessionsMap(config:Config) {
     var sessionsMap = {};
 
-    config.servers.forEach(function(server) {
+    config.servers.forEach((server) => {
       var host = server.host;
       var auth:any = { username: server.username };
 
@@ -124,7 +127,8 @@ export default class Actions {
         keepAlive: true
       };
 
-      if(!sessionsMap[server.os]) {
+      // Create os => taskListBuilder map
+      if (!sessionsMap[server.os]) {
         switch (server.os) {
           case "linux":
             sessionsMap[server.os] = {
@@ -139,8 +143,6 @@ export default class Actions {
             };
             break;
         }
-
-
       }
 
       var session = nodemiral.session(host, auth, nodemiralOptions);
@@ -216,9 +218,10 @@ export default class Actions {
     console.log('Meteor Path: ' + meteorBinary);
     console.log('Building Started: ' + this.config.app);
 
-    this.whenBeforeBuilding(deployment);
 
-    buildApp(appPath, meteorBinary, buildLocation, bundlePath, (err) => {
+    buildApp(appPath, meteorBinary, buildLocation, bundlePath, () => {
+      this.whenBeforeBuilding(deployment);
+    } , (err) => {
       if (err) {
         process.exit(1);
         return;
@@ -298,8 +301,10 @@ export default class Actions {
 
   public logs(options) {
     var self = this;
-    var tailOptions = options.tail || '';
-
+    var tailOptions = [];
+    if (options.tail) {
+      tailOptions.push('-f');
+    }
     for (var os in self.sessionsMap) {
       var sessionsInfo = self.sessionsMap[os];
       sessionsInfo.sessions.forEach(function(session) {
@@ -314,9 +319,9 @@ export default class Actions {
         };
 
         if(os == 'linux') {
-          var command = 'sudo tail ' + tailOptions + ' /var/log/upstart/' + self.config.appName + '.log';
+          var command = 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + self.config.appName + '.log';
         } else if(os == 'sunos') {
-          var command = 'sudo tail ' + tailOptions +
+          var command = 'sudo tail ' + tailOptions.join(' ') +
             ' /var/svc/log/site-' + self.config.appName + '\\:default.log';
         }
         session.execute(command, opts);
@@ -361,23 +366,25 @@ export default class Actions {
   * Right now we don't have things to do, just exit the process with the error
   * code.
   */
-  whenAfterCompleted(deployment : Deployment, error, summaryMaps) : number {
+  async whenAfterCompleted(deployment : Deployment, error, summaryMaps) {
     this.pluginRunner.whenAfterCompleted(deployment);
     var errorCode = error || haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
     if (errorCode != 0) {
-      this.whenFailure(deployment, error, summaryMaps);
+      await this.whenFailure(deployment, error, summaryMaps);
     } else {
-      this.whenSuccess(deployment, error, summaryMaps);
+      await this.whenSuccess(deployment, error, summaryMaps);
     }
-    return errorCode;
+    process.exit(errorCode);
   }
 
-  public whenSuccess(deployment : Deployment, error, summaryMaps) {
-    this.pluginRunner.whenSuccess(deployment);
+  public async whenSuccess(deployment : Deployment, error, summaryMaps) {
+    let promise = this.pluginRunner.whenSuccess(deployment);
+    await promise;
   }
 
-  public whenFailure(deployment : Deployment, error, summaryMaps) {
-    this.pluginRunner.whenFailure(deployment);
+  public async whenFailure(deployment : Deployment, error, summaryMaps) {
+    let promise = this.pluginRunner.whenFailure(deployment);
+    await promise;
   }
 
   /**

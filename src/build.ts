@@ -10,19 +10,24 @@ type Path = string;
 /**
  * @param {Function(err)} callback
  */
-export function buildApp(appPath:Path, meteorBinary:Path, buildLocation:Path, bundlePath:Path, callback) {
-  callback = _.once(callback);
+export function buildApp(appPath:Path, meteorBinary:Path, buildLocation:Path, bundlePath:Path,
+                         start,
+                         done) {
+
+  start = _.once(start);
+  done = _.once(done);
   bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
   if (fs.existsSync(bundlePath)) {
     console.log("Found existing bundle file: " + bundlePath);
-    return callback();
+    return done();
   }
+  start();
   buildMeteorApp(appPath, meteorBinary, buildLocation, function(code) {
     if (code == 0) {
-      archiveIt(buildLocation, bundlePath, callback);
+      archiveIt(buildLocation, bundlePath, done);
     } else {
       console.log("\n=> Build Error. Check the logs printed above.");
-      callback(new Error("build-error"));
+      done(new Error("build-error"));
     }
   });
 }

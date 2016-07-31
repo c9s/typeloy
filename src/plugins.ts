@@ -154,7 +154,7 @@ export class SlackNotificationPlugin extends Plugin {
       "attachments":[
         this.createGitCommitAttachment(deployment.revInfo, {
           "color": "#db4545", 
-          "pretext": "The deployment of ${deployment.config.appName} was failed.",
+          "pretext": `The deployment of ${deployment.config.appName} was failed.`,
           "image_url": "https://media.giphy.com/media/a9xhxAxaqOfQs/giphy.gif",
         })
       ]
@@ -166,7 +166,7 @@ export class SlackNotificationPlugin extends Plugin {
 
   protected linkCommitHref(hash) {
     if (this.config.github) {
-      return `[${hash}](https://github.com/${this.config.github.org}/${this.config.github.repo}/commit/${hash})`;
+      return `<https://github.com/${this.config.github.org}/${this.config.github.repo}/commit/${hash}|${hash}>`;
     }
     return hash;
   }

@@ -46,6 +46,57 @@ The difference between **typeloy** and **meteor-up**:
 - [ ] Provide easy-to-use nodejs API.
 - [ ] Docker composer support
 
+### Config
+
+The typeloy config is compatible with `mup.json`.
+
+typeloy.js
+```
+var SlackNotificationPlugin = require('typeloy').SlackNotificationPlugin;
+module.exports = {
+  "servers": [
+    {
+      "host": "11.22.33.44",
+      "username": "root",
+      "password": "12341234",
+      "env": {
+        "ROOT_URL": "http://yoursite.com"
+      }
+    }
+  ],
+  "setupMongo": false,
+  "setupNode": true,
+  "nodeVersion": "0.10.44",
+  "setupPhantom": false,
+  "enableUploadProgressBar": true,
+  "appName": "shaka",
+  "app": "./app",
+  "deployCheckWaitTime": 30,
+  "plugins": [
+    new SlackNotificationPlugin({
+      hookUrl: 'https://hooks.slack.com/services/.../.../...',
+      username: 'typeloy',
+      channel: '#deploy',
+      github: {
+        org: "c9s",
+        repo: "typeloy"
+      },
+    })
+  ],
+  "env": {
+    "PORT": 80,
+    "MAIL_URL": "....",
+    "MONGO_URL": "...",
+    "MONGO_OPLOG_URL": "..."
+  }
+}
+```
+
+
+
+
+
+
 #### Production Quality Meteor Deployments
 
 Meteor Up (mup for short) is a command line tool that allows you to deploy any [Meteor](http://meteor.com) app to your own server. It supports only Debian/Ubuntu flavours and Open Solaris at the moments. (PRs are welcome)
