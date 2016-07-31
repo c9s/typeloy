@@ -46,6 +46,10 @@ The difference between **typeloy** and **meteor-up**:
 - [ ] Provide easy-to-use nodejs API.
 - [ ] Docker composer support
 
+### Installation
+
+    npm install -g typeloy
+
 ### Config
 
 The typeloy config is compatible with `mup.json`.
@@ -150,15 +154,12 @@ You can use install and use Meteor Up from Linux, Mac and Windows.
 * Secured MongoDB Installation (Optional)
 * Pre-Installed PhantomJS (Optional)
 
-### Installation
-
-    npm install -g mup
 
 ### Creating a Meteor Up Project
 
     mkdir ~/my-meteor-deployment
     cd ~/my-meteor-deployment
-    mup init
+    typeloy init
 
 This will create two files in your Meteor Up project directory:
 
