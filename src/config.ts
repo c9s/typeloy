@@ -181,7 +181,7 @@ export class ConfigParser {
 }
 
 export function readConfig(configPath:string) : Config {
-  if (configPath != null) {
+  if (configPath) {
     let filepath : string = path.resolve(configPath);
     if (fs.existsSync(filepath)) {
       return ConfigParser.parse(filepath);
