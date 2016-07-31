@@ -57,7 +57,7 @@ with `mup.json`.
 
 The config filename will be checked by this order:
 
-  ['typeloy.js', 'typeloy.json', 'typeloy.config.json', 'mup.json']
+`typeloy.js`, `typeloy.json`, `typeloy.config.json`, `mup.json`
 
 `typeloy.js` is used by when you have some node modules need to be integrated
 with typeloy, for example, SlackNotificationPlugin ...
