@@ -3,6 +3,7 @@
     "archiver": "registry:dt/archiver#0.15.0+20160709062918",
     "body-parser": "registry:dt/body-parser#0.0.0+20160619023215",
     "commander": "registry:dt/commander#2.3.0+20160317120654",
+    "debug": "registry:dt/debug#0.0.0+20160317120654",
     "express": "registry:dt/express#4.0.0+20160708185218",
     "express-serve-static-core": "registry:dt/express-serve-static-core#4.0.0+20160715232503",
     "fibers": "registry:dt/fibers#0.0.0+20160317120654",
