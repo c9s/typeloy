@@ -12,7 +12,7 @@ var async = require('async');
 import {Config, ServerConfig} from './config';
 import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
-import Deployment from './deployment';
+import Deployment from './Deployment';
 import {CmdDeployOptions} from './options';
 import {Plugin, PluginRunner, SlackNotificationPlugin} from './plugins';
 
