@@ -20,7 +20,8 @@
     "rimraf": "2.x.x",
     "simple-git": "^1.43.0",
     "underscore": "1.7.0",
-    "uuid": "1.4.x"
+    "uuid": "1.4.x",
+    "winston": "^2.2.0"
   },
   "bin": {
     "typeloy": "./lib/bin/typeloy.js"
