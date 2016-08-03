@@ -3,7 +3,8 @@ import path = require('path');
 import {readConfig} from '../config';
 import Actions from '../actions';
 import {CmdDeployOptions} from '../options';
-import Deployment from '../deployment';
+import Deployment from '../Deployment';
+import debug from '../Debug';
 require('colors');
 
 var prog = require('commander');

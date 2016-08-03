@@ -2,7 +2,7 @@
 import {Config} from "./config";
 import _ = require("underscore");
 import {GitRevCollector, GitRevInfo} from "./collectors";
-import Deployment from "./deployment";
+import Deployment from "./Deployment";
 
 export class PluginRunner {
 
