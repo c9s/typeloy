@@ -1,6 +1,7 @@
 /// <reference path="globals/archiver/index.d.ts" />
 /// <reference path="globals/body-parser/index.d.ts" />
 /// <reference path="globals/commander/index.d.ts" />
+/// <reference path="globals/debug/index.d.ts" />
 /// <reference path="globals/express-serve-static-core/index.d.ts" />
 /// <reference path="globals/express/index.d.ts" />
 /// <reference path="globals/fibers/index.d.ts" />
