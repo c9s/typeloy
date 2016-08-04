@@ -9,7 +9,7 @@ var format = require('util').format;
 var extend = require('util')._extend;
 var async = require('async');
 
-import {Config, ServerConfig} from './config';
+import {Config, AppConfig, ServerConfig} from './config';
 import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import Deployment from './Deployment';
@@ -224,8 +224,10 @@ export default class Actions {
     process.env.BUILD_LOCATION = buildLocation;
 
     var deployCheckWaitTime = this.config.deploy.checkDelay;
-    var appName = this.config.appName;
-    var appPath = this.config.app;
+
+    var appConfig = <AppConfig>this.config.app;
+    var appName = appConfig.name;
+    var appPath = appConfig.directory;
     var enableUploadProgressBar = this.config.enableUploadProgressBar;
     var meteorBinary = this.config.meteorBinary;
 

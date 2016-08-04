@@ -76,19 +76,24 @@ export interface Config {
   // We will convert servers into "_default_" => servers => [ .... ]
   sites?: SiteMapConfig;
 
+  app: AppConfig | string;
+  meteor: MeteorConfig;
+
   // legacy setup config
   setupNode: boolean;
   setupPhantom: boolean;
   setupMongo: boolean;
   nodeVersion?: string;
   servers?: Array<ServerConfig>;
+
+  appName: string;
+  meteorBinary?: string;
   // end of legacy setup config
 
+
+
   enableUploadProgressBar: boolean;
-  appName: string;
   env: Env;
-  meteorBinary?: string;
-  app: string;
   ssl?: SslConfig;
   deployCheckWaitTime?: number;
   plugins: Array<any>;
@@ -148,6 +153,18 @@ export class ConfigParser {
     if (typeof config.deployCheckWaitTime !== "undefined") {
       config.deploy.checkDelay = config.deployCheckWaitTime;
     }
+
+    // app was a string in legacy config format
+    if (typeof config.app === "string") {
+      (<AppConfig>config.app).directory = <string>(config.app);
+    }
+    if (typeof config.appName === "string") {
+      (<AppConfig>config.app).name = config.appName;
+    }
+    if (typeof config.meteorBinary === "string") {
+      config.meteor.binary = config.meteorBinary;
+    }
+
     // Transfer the default servers to "_default_" site If site name is not
     // defined, we will use _default_ as the default site list.
     if (typeof config.servers !== "undefined") {
@@ -163,13 +180,19 @@ export class ConfigParser {
     config.setup = config.setup || {} as SetupConfig;
     config.deploy = config.deploy || {} as DeployConfig;
     config.sites = config.sites || {} as SiteMapConfig;
+    config.meteor = config.meteor || {} as MeteorConfig;
+    config.app = config.app || {} as AppConfig;
 
     config = this.convertLegacyConfig(config);
 
-    config.meteorBinary = (config.meteorBinary) ? canonicalizePath(config.meteorBinary) : 'meteor';
-    if (typeof config.appName === "undefined") {
-      config.appName = "meteor";
+    config.meteor.binary = (config.meteor.binary) ? canonicalizePath(config.meteor.binary) : 'meteor';
+    if (typeof (<AppConfig>config.app).name === "undefined") {
+      (<AppConfig>config.app).name = "meteor";
     }
+    if (typeof (<AppConfig>config.app).directory === "undefined") {
+      (<AppConfig>config.app).directory = ".";
+    }
+
     if (typeof config.enableUploadProgressBar === "undefined") {
       config.enableUploadProgressBar = true;
     }
@@ -197,7 +220,7 @@ export class ConfigParser {
     });
 
     // rewrite ~ with $HOME
-    config.app = expandPath(config.app);
+    (<AppConfig>config.app).directory = expandPath((<AppConfig>config.app).directory);
     if (config.ssl) {
       config.ssl.backendPort = config.ssl.backendPort || 80;
       config.ssl.pem = path.resolve(expandPath(config.ssl.pem));
@@ -241,7 +264,7 @@ export class ConfigParser {
       });
     });
 
-    if (!config.app) {
+    if (!(<AppConfig>config.app).directory) {
       fatal('Path to app does not exist');
     }
     if (config.ssl) {
