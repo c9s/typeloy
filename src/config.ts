@@ -156,7 +156,9 @@ export class ConfigParser {
 
     // app was a string in legacy config format
     if (typeof config.app === "string") {
-      (<AppConfig>config.app).directory = <string>(config.app);
+      let appDir = <string>(config.app);
+      config.app = {} as AppConfig;
+      (<AppConfig>config.app).directory = appDir;
     }
     if (typeof config.appName === "string") {
       (<AppConfig>config.app).name = config.appName;
