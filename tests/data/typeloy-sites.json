@@ -1,0 +1,30 @@
+{
+  "sites": {
+    "dev": {
+        "servers": [
+            {
+                "host": "11.22.33.44",
+                "username": "root",
+                "password": "123123",
+                "env": { "ROOT_URL": "http://dev" }
+            }
+        ]
+    }
+  },
+  "setup": {
+      "mongo": false,
+      "node": "0.10.44",
+      "phantom": false
+  },
+  "enableUploadProgressBar": true,
+  "deploy": {
+    "checkDelay": 30
+  },
+  "appName": "myapp",
+  "app": "./",
+  "env": {
+    "PORT": 80,
+    "MAIL_URL": "smtp://support@dev:account@pass@smtp.gmail.com:465/",
+    "MONGO_URL": "mongodb://localhost:27017/local"
+  }
+}

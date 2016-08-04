@@ -42,6 +42,22 @@ interface SslConfig {
   pem: string;
 }
 
+type MeteorSettings = any;
+
+export interface AppConfig {
+  // name is required
+  name: string;
+
+  // the path of the app, the default value can be "."
+  directory?: string;
+
+  settings?: string|MeteorSettings;
+}
+
+export interface MeteorConfig {
+  // originally config.meteorBinary
+  binary: string;
+}
 
 export interface SetupConfig {
   node?: boolean|string;

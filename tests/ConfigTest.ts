@@ -7,6 +7,12 @@ import {ConfigParser} from "../src/Config";
 
 describe('Config', () => {
   describe('#parse', () => {
+
+    it('should parse new sites config', () => {
+      let config = ConfigParser.parse('tests/data/typeloy-sites.json');
+      console.log(config);
+    });
+
     it('should parse legacy mup.json', () => {
       let config = ConfigParser.parse('tests/data/mup.json');
       expect(config.sites['_default_']).to.be.ok;
