@@ -9,5 +9,9 @@
     "outDir": "lib"
   },
   "exclude": ["node_modules"],
-  "files": ["typings/index.d.ts", "src/bin/typeloy.ts"]
+  "files": [
+    "typings/index.d.ts",
+    "src/bin/typeloy.ts",
+    "tests/ConfigTest.ts"
+  ]
 }
