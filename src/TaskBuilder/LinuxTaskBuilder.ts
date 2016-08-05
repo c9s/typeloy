@@ -11,9 +11,14 @@ var TEMPLATES_DIR = path.resolve(__dirname, '../../templates/linux');
 
 const DEPLOY_PREFIX = "/opt";
 
-export default class LinuxTaskBuilder {
 
-  public static setupNodeJs(taskList, config:Config) {
+abstract class SetupTask {
+  public static build(taskList, config:Config) {}
+}
+
+
+class NodeJsSetupTask extends SetupTask {
+  public static build(taskList, config:Config) {
     taskList.executeScript('Installing Node.js: ' + (config.setup.node || config.nodeVersion), {
       script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
       vars: {
@@ -23,13 +28,11 @@ export default class LinuxTaskBuilder {
     });
   }
 
-  public static setupPhantom(taskList, config:Config) {
-    taskList.executeScript('Installing PhantomJS', {
-      script: path.resolve(SCRIPT_DIR, 'install-phantomjs.sh')
-    });
-  }
+}
 
-  public static setupEnvVars(taskList, config:Config) {
+class EnvVarsSetupTask extends SetupTask {
+
+  public static build(taskList, config:Config) {
     taskList.executeScript('Setting up environment variable script', {
       script: path.resolve(SCRIPT_DIR, 'setup-env.sh'),
       vars: {
@@ -39,7 +42,21 @@ export default class LinuxTaskBuilder {
     });
   }
 
-  public static setupMongo(taskList, config:Config) {
+}
+
+class PhantomJsSetupTask extends SetupTask {
+
+  public static build(taskList, config:Config) {
+    taskList.executeScript('Installing PhantomJS', {
+      script: path.resolve(SCRIPT_DIR, 'install-phantomjs.sh')
+    });
+  }
+
+}
+
+class MongoSetupTask extends SetupTask {
+
+  public static build(taskList, config:Config) {
     // If the user prefers some mongodb config, read the option
     taskList.copy('Copying MongoDB configuration', {
       src: path.resolve(TEMPLATES_DIR, 'mongodb.conf'),
@@ -50,12 +67,58 @@ export default class LinuxTaskBuilder {
     });
   }
 
-  public static setupSsl(taskList, config:Config) {
+}
+
+class SslSetupTask extends SetupTask {
+
+  public static build(taskList, config:Config) {
     this.installStud(taskList);
     this.configureStud(taskList, config.ssl.pem, config.ssl.backendPort);
   }
 
-  public static setupUpstart(taskList, config:Config) {
+  public static installStud(taskList) {
+    taskList.executeScript('Installing Stud', {
+      script: path.resolve(SCRIPT_DIR, 'install-stud.sh')
+    });
+  }
+
+  public static configureStud(taskList, pemFilePath, port) {
+    var backend = {host: '127.0.0.1', port: port};
+
+    taskList.copy('Configuring Stud for Upstart', {
+      src: path.resolve(TEMPLATES_DIR, 'stud.init.conf'),
+      dest: '/etc/init/stud.conf'
+    });
+
+    taskList.copy('Configuring SSL', {
+      src: pemFilePath,
+      dest: DEPLOY_PREFIX + '/stud/ssl.pem'
+    });
+
+
+    taskList.copy('Configuring Stud', {
+      src: path.resolve(TEMPLATES_DIR, 'stud.conf'),
+      dest: DEPLOY_PREFIX + '/stud/stud.conf',
+      vars: {
+        backend: util.format('[%s]:%d', backend.host, backend.port)
+      }
+    });
+
+    taskList.execute('Verifying SSL Configurations (ssl.pem)', {
+      command: `stud --test --config=${DEPLOY_PREFIX}/stud/stud.conf`
+    });
+
+    //restart stud
+    taskList.execute('Starting Stud', {
+      command: '(sudo stop stud || :) && (sudo start stud || :)'
+    });
+  }
+
+}
+
+class UpstartSetupTask extends SetupTask {
+
+  public static build(taskList, config:Config) {
     var upstartConfig = '/etc/init/' + config.appName + '.conf';
     taskList.copy('Configuring upstart: ' + upstartConfig, {
       src: path.resolve(TEMPLATES_DIR, 'meteor.conf'),
@@ -67,29 +130,33 @@ export default class LinuxTaskBuilder {
     });
   }
 
+}
+
+export default class LinuxTaskBuilder {
+
   public static setup(config) {
     var taskList = nodemiral.taskList('Setup (linux)');
 
     // Installation
     if (config.setup && config.setup.node) {
-      this.setupNodeJs(taskList, config);
+      NodeJsSetupTask.build(taskList, config);
     }
 
     if (config.setup && config.setup.phantom) {
-      this.setupPhantom(taskList, config);
+      PhantomJsSetupTask.build(taskList, config);
     }
 
-    this.setupEnvVars(taskList, config);
+    EnvVarsSetupTask.build(taskList, config);
 
     if (config.setup.mongo) {
-      this.setupMongo(taskList, config);
+      MongoSetupTask.build(taskList, config);
     }
 
     if (config.ssl) {
-      this.setupSsl(taskList, config);
+      SslSetupTask.build(taskList, config);
     }
 
-    this.setupUpstart(taskList, config);
+    UpstartSetupTask.build(taskList, config);
     return taskList;
   }
 
@@ -202,42 +269,5 @@ export default class LinuxTaskBuilder {
     return taskList;
   }
 
-  public static installStud(taskList) {
-    taskList.executeScript('Installing Stud', {
-      script: path.resolve(SCRIPT_DIR, 'install-stud.sh')
-    });
-  }
-
-  public static configureStud(taskList, pemFilePath, port) {
-    var backend = {host: '127.0.0.1', port: port};
-
-    taskList.copy('Configuring Stud for Upstart', {
-      src: path.resolve(TEMPLATES_DIR, 'stud.init.conf'),
-      dest: '/etc/init/stud.conf'
-    });
-
-    taskList.copy('Configuring SSL', {
-      src: pemFilePath,
-      dest: DEPLOY_PREFIX + '/stud/ssl.pem'
-    });
-
-
-    taskList.copy('Configuring Stud', {
-      src: path.resolve(TEMPLATES_DIR, 'stud.conf'),
-      dest: DEPLOY_PREFIX + '/stud/stud.conf',
-      vars: {
-        backend: util.format('[%s]:%d', backend.host, backend.port)
-      }
-    });
-
-    taskList.execute('Verifying SSL Configurations (ssl.pem)', {
-      command: `stud --test --config=${DEPLOY_PREFIX}/stud/stud.conf`
-    });
-
-    //restart stud
-    taskList.execute('Starting Stud', {
-      command: '(sudo stop stud || :) && (sudo start stud || :)'
-    });
-  }
 }
 
