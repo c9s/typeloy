@@ -12,17 +12,33 @@ var TEMPLATES_DIR = path.resolve(__dirname, '../../templates/linux');
 const DEPLOY_PREFIX = "/opt";
 
 
-abstract class SetupTask {
-  public static build(taskList, config:Config) {}
+abstract class Task {
+
+  protected config:Config;
+
+  constructor(config:Config) {
+    this.config = config;
+  }
+
+  public build(taskList) {}
 }
 
+class AptGetUpdateTask extends Task {
+  public build(taskList) {
+    taskList.executeScript('Updating package index', {
+      script: path.resolve(SCRIPT_DIR, 'apt-update.sh'), vars: { }
+    });
+  }
+}
+
+abstract class SetupTask extends Task { }
 
 class NodeJsSetupTask extends SetupTask {
-  public static build(taskList, config:Config) {
-    taskList.executeScript('Installing Node.js: ' + (config.setup.node || config.nodeVersion), {
+  public build(taskList) {
+    taskList.executeScript('Installing Node.js: ' + (this.config.setup.node || this.config.nodeVersion), {
       script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
       vars: {
-        nodeVersion: config.nodeVersion,
+        nodeVersion: this.config.nodeVersion,
         deployPrefix: DEPLOY_PREFIX
       }
     });
@@ -32,11 +48,11 @@ class NodeJsSetupTask extends SetupTask {
 
 class EnvVarsSetupTask extends SetupTask {
 
-  public static build(taskList, config:Config) {
+  public build(taskList) {
     taskList.executeScript('Setting up environment variable script', {
       script: path.resolve(SCRIPT_DIR, 'setup-env.sh'),
       vars: {
-        appName: config.appName,
+        appName: this.config.appName,
         deployPrefix: DEPLOY_PREFIX
       }
     });
@@ -46,7 +62,7 @@ class EnvVarsSetupTask extends SetupTask {
 
 class PhantomJsSetupTask extends SetupTask {
 
-  public static build(taskList, config:Config) {
+  public build(taskList) {
     taskList.executeScript('Installing PhantomJS', {
       script: path.resolve(SCRIPT_DIR, 'install-phantomjs.sh')
     });
@@ -56,7 +72,7 @@ class PhantomJsSetupTask extends SetupTask {
 
 class MongoSetupTask extends SetupTask {
 
-  public static build(taskList, config:Config) {
+  public build(taskList) {
     // If the user prefers some mongodb config, read the option
     taskList.copy('Copying MongoDB configuration', {
       src: path.resolve(TEMPLATES_DIR, 'mongodb.conf'),
@@ -71,18 +87,18 @@ class MongoSetupTask extends SetupTask {
 
 class SslSetupTask extends SetupTask {
 
-  public static build(taskList, config:Config) {
+  public build(taskList) {
     this.installStud(taskList);
-    this.configureStud(taskList, config.ssl.pem, config.ssl.backendPort);
+    this.configureStud(taskList, this.config.ssl.pem, this.config.ssl.backendPort);
   }
 
-  public static installStud(taskList) {
+  public installStud(taskList) {
     taskList.executeScript('Installing Stud', {
       script: path.resolve(SCRIPT_DIR, 'install-stud.sh')
     });
   }
 
-  public static configureStud(taskList, pemFilePath, port) {
+  public configureStud(taskList, pemFilePath, port) {
     var backend = {host: '127.0.0.1', port: port};
 
     taskList.copy('Configuring Stud for Upstart', {
@@ -117,19 +133,17 @@ class SslSetupTask extends SetupTask {
 }
 
 class UpstartSetupTask extends SetupTask {
-
-  public static build(taskList, config:Config) {
-    var upstartConfig = '/etc/init/' + config.appName + '.conf';
+  public build(taskList) {
+    var upstartConfig = '/etc/init/' + this.config.appName + '.conf';
     taskList.copy('Configuring upstart: ' + upstartConfig, {
       src: path.resolve(TEMPLATES_DIR, 'meteor.conf'),
       dest: upstartConfig,
       vars: {
         deployPrefix: DEPLOY_PREFIX,
-        appName: config.appName
+        appName: this.config.appName
       }
     });
   }
-
 }
 
 export default class LinuxTaskBuilder {
@@ -137,26 +151,31 @@ export default class LinuxTaskBuilder {
   public static setup(config) {
     var taskList = nodemiral.taskList('Setup (linux)');
 
+    var builders = [];
+
     // Installation
     if (config.setup && config.setup.node) {
-      NodeJsSetupTask.build(taskList, config);
+      builders.push(new NodeJsSetupTask(config));
     }
 
     if (config.setup && config.setup.phantom) {
-      PhantomJsSetupTask.build(taskList, config);
+      builders.push(new PhantomJsSetupTask(config));
     }
 
-    EnvVarsSetupTask.build(taskList, config);
+    builders.push(new EnvVarsSetupTask(config));
 
     if (config.setup.mongo) {
-      MongoSetupTask.build(taskList, config);
+      builders.push(new MongoSetupTask(config));
     }
 
     if (config.ssl) {
-      SslSetupTask.build(taskList, config);
+      builders.push(new SslSetupTask(config));
     }
+    builders.push(new UpstartSetupTask(config));
 
-    UpstartSetupTask.build(taskList, config);
+    builders.forEach((builder) => {
+      builder.build(taskList);
+    });
     return taskList;
   }
 

@@ -7,9 +7,6 @@ sudo rm /var/cache/apt/archives/lock > /dev/null
 sudo dpkg --configure -a
 set -e
 
-# Required to update system
-sudo apt-get update
-
 # Install Node.js - either nodeVersion or which works with latest Meteor release
 <% if (nodeVersion) { %>
   NODE_VERSION=<%= nodeVersion %>
