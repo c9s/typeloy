@@ -151,7 +151,9 @@ export default class LinuxTaskBuilder {
   public static setup(config) {
     var taskList = nodemiral.taskList('Setup (linux)');
 
-    var builders = [];
+    let builders : Array<Task> = [];
+
+    builders.push(new AptGetUpdateTask(config));
 
     // Installation
     if (config.setup && config.setup.node) {
