@@ -22,6 +22,13 @@ import {buildApp} from './build';
 var os = require('os');
 require('colors');
 
+
+interface LogOptions {
+  tail?: boolean;
+}
+
+
+
 /*
 Session {
   _host: '...',
@@ -182,7 +189,7 @@ export default class Actions {
     }
   }
 
-  private _executePararell(actionName:string, deployment, args) {
+  private _executePararell(actionName:string, deployment : Deployment, args) {
     var self = this;
     var sessionInfoList = _.values(self.sessionsMap);
     async.map(
@@ -199,12 +206,12 @@ export default class Actions {
     );
   }
 
-  public setup(deployment:Deployment) {
+  public setup(deployment : Deployment) {
     this._showKadiraLink();
     this._executePararell("setup", deployment, [this.config]);
   }
 
-  public deploy(deployment:Deployment, sites:Array<string>, options:CmdDeployOptions) {
+  public deploy(deployment : Deployment, sites:Array<string>, options:CmdDeployOptions) {
     var self = this;
     self._showKadiraLink();
 
@@ -302,19 +309,19 @@ export default class Actions {
     );
   }
 
-  public restart(deployment: Deployment) {
+  public restart(deployment : Deployment) {
     this._executePararell("restart", deployment, [this.config.appName]);
   }
 
-  public stop(deployment: Deployment) {
+  public stop(deployment : Deployment) {
     this._executePararell("stop", deployment, [this.config.appName]);
   };
 
-  public start(deployment: Deployment) {
+  public start(deployment : Deployment) {
     this._executePararell("start", deployment, [this.config.appName]);
   }
 
-  public logs(options) {
+  public logs(options:LogOptions) {
     var self = this;
     var tailOptions = [];
     if (options.tail) {
