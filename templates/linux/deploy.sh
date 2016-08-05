@@ -36,10 +36,10 @@ gyp_rebuild_inside_node_modules () {
       echo " > $npmModule: npm install due to binary npm modules"
       rm -rf node_modules
       if [ -f binding.gyp ]; then
-        sudo npm install --update-binary
-        sudo node-gyp rebuild || :
+        npm install --update-binary
+        node-gyp rebuild || :
       else
-        sudo npm install --update-binary
+        npm install --update-binary
       fi
     fi
 
