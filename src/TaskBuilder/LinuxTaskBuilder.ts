@@ -3,34 +3,33 @@ var fs = require('fs');
 var path = require('path');
 var util = require('util');
 
+import {Config} from "../config";
+
 var SCRIPT_DIR = path.resolve(__dirname, '../../scripts/linux');
 var TEMPLATES_DIR = path.resolve(__dirname, '../../templates/linux');
+
 
 const DEPLOY_PREFIX = "/opt";
 
 export default class LinuxTaskBuilder {
 
-  public static setup(config) {
-    var taskList = nodemiral.taskList('Setup (linux)');
+  public static setupNodeJs(taskList, config:Config) {
+    taskList.executeScript('Installing Node.js: ' + (config.setup.node || config.nodeVersion), {
+      script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
+      vars: {
+        nodeVersion: config.nodeVersion,
+        deployPrefix: DEPLOY_PREFIX
+      }
+    });
+  }
 
-    // Installation
-    if (config.setup && config.setup.node) {
-      // let nodeVersion = 
-      taskList.executeScript('Installing Node.js: ' + config.nodeVersion, {
-        script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
-        vars: {
-          nodeVersion: config.nodeVersion,
-          deployPrefix: DEPLOY_PREFIX
-        }
-      });
-    }
+  public static setupPhantom(taskList, config:Config) {
+    taskList.executeScript('Installing PhantomJS', {
+      script: path.resolve(SCRIPT_DIR, 'install-phantomjs.sh')
+    });
+  }
 
-    if (config.setup && config.setup.phantom) {
-      taskList.executeScript('Installing PhantomJS', {
-        script: path.resolve(SCRIPT_DIR, 'install-phantomjs.sh')
-      });
-    }
-
+  public static setupEnvVars(taskList, config:Config) {
     taskList.executeScript('Setting up environment variable script', {
       script: path.resolve(SCRIPT_DIR, 'setup-env.sh'),
       vars: {
@@ -38,23 +37,25 @@ export default class LinuxTaskBuilder {
         deployPrefix: DEPLOY_PREFIX
       }
     });
+  }
 
-    if (config.setup.mongo) {
-      // If the user prefers some mongodb config, read the option
-      taskList.copy('Copying MongoDB configuration', {
-        src: path.resolve(TEMPLATES_DIR, 'mongodb.conf'),
-        dest: '/etc/mongodb.conf'
-      });
-      taskList.executeScript('Installing MongoDB', {
-        script: path.resolve(SCRIPT_DIR, 'install-mongodb.sh')
-      });
-    }
+  public static setupMongo(taskList, config:Config) {
+    // If the user prefers some mongodb config, read the option
+    taskList.copy('Copying MongoDB configuration', {
+      src: path.resolve(TEMPLATES_DIR, 'mongodb.conf'),
+      dest: '/etc/mongodb.conf'
+    });
+    taskList.executeScript('Installing MongoDB', {
+      script: path.resolve(SCRIPT_DIR, 'install-mongodb.sh')
+    });
+  }
 
-    if (config.ssl) {
-      this.installStud(taskList);
-      this.configureStud(taskList, config.ssl.pem, config.ssl.backendPort);
-    }
+  public static setupSsl(taskList, config:Config) {
+    this.installStud(taskList);
+    this.configureStud(taskList, config.ssl.pem, config.ssl.backendPort);
+  }
 
+  public static setupUpstart(taskList, config:Config) {
     var upstartConfig = '/etc/init/' + config.appName + '.conf';
     taskList.copy('Configuring upstart: ' + upstartConfig, {
       src: path.resolve(TEMPLATES_DIR, 'meteor.conf'),
@@ -64,7 +65,31 @@ export default class LinuxTaskBuilder {
         appName: config.appName
       }
     });
+  }
 
+  public static setup(config) {
+    var taskList = nodemiral.taskList('Setup (linux)');
+
+    // Installation
+    if (config.setup && config.setup.node) {
+      this.setupNodeJs(taskList, config);
+    }
+
+    if (config.setup && config.setup.phantom) {
+      this.setupPhantom(taskList, config);
+    }
+
+    this.setupEnvVars(taskList, config);
+
+    if (config.setup.mongo) {
+      this.setupMongo(taskList, config);
+    }
+
+    if (config.ssl) {
+      this.setupSsl(taskList, config);
+    }
+
+    this.setupUpstart(taskList, config);
     return taskList;
   }
 
