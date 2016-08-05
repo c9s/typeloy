@@ -199,7 +199,7 @@ export default class Actions {
     );
   }
 
-  public setup(deployment) {
+  public setup(deployment:Deployment) {
     this._showKadiraLink();
     this._executePararell("setup", deployment, [this.config]);
   }
@@ -228,7 +228,6 @@ export default class Actions {
     var appConfig = <AppConfig>this.config.app;
     var appName = appConfig.name;
     var appPath = appConfig.directory;
-    var enableUploadProgressBar = this.config.enableUploadProgressBar;
     var meteorBinary = this.config.meteorBinary;
 
     console.log('Meteor Path: ' + meteorBinary);
@@ -264,8 +263,9 @@ export default class Actions {
 
           // Build deploy tasks
           var taskList = taskListsBuilder.deploy(
+                          this.config,
                           bundlePath, env,
-                          deployCheckWaitTime, appName, enableUploadProgressBar);
+                          deployCheckWaitTime, appName);
           taskList.run(session, (summaryMap) => {
             callback(null, summaryMap);
           });

@@ -3,7 +3,7 @@ var fs = require('fs');
 var path = require('path');
 var util = require('util');
 
-import {Config} from "../config";
+import {Config, AppConfig} from "../config";
 
 var SCRIPT_DIR = path.resolve(__dirname, '../../scripts/linux');
 var TEMPLATES_DIR = path.resolve(__dirname, '../../templates/linux');
@@ -16,26 +16,40 @@ abstract class Task {
 
   protected config:Config;
 
+
   constructor(config:Config) {
     this.config = config;
   }
 
-  public build(taskList) {}
+  public abstract describe();
+
+  public abstract build(taskList);
 }
 
+abstract class SetupTask extends Task { }
+
 class AptGetUpdateTask extends Task {
+
+  public describe() : string {
+    return 'Updating package index';
+  }
+
   public build(taskList) {
-    taskList.executeScript('Updating package index', {
+    taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'apt-update.sh'), vars: { }
     });
   }
 }
 
-abstract class SetupTask extends Task { }
 
 class NodeJsSetupTask extends SetupTask {
+
+  public describe() : string {
+    return 'Installing Node.js: ' + (this.config.setup.node || this.config.nodeVersion);
+  }
+
   public build(taskList) {
-    taskList.executeScript('Installing Node.js: ' + (this.config.setup.node || this.config.nodeVersion), {
+    taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
       vars: {
         nodeVersion: this.config.nodeVersion,
@@ -48,8 +62,12 @@ class NodeJsSetupTask extends SetupTask {
 
 class EnvVarsSetupTask extends SetupTask {
 
+  public describe() : string {
+    return 'Setting up environment variable script';
+  }
+
   public build(taskList) {
-    taskList.executeScript('Setting up environment variable script', {
+    taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'setup-env.sh'),
       vars: {
         appName: this.config.appName,
@@ -62,8 +80,12 @@ class EnvVarsSetupTask extends SetupTask {
 
 class PhantomJsSetupTask extends SetupTask {
 
+  public describe() : string {
+    return 'Installing PhantomJS';
+  }
+  
   public build(taskList) {
-    taskList.executeScript('Installing PhantomJS', {
+    taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'install-phantomjs.sh')
     });
   }
@@ -72,9 +94,13 @@ class PhantomJsSetupTask extends SetupTask {
 
 class MongoSetupTask extends SetupTask {
 
+  public describe() : string {
+    return 'Copying MongoDB configuration';
+  }
+
   public build(taskList) {
     // If the user prefers some mongodb config, read the option
-    taskList.copy('Copying MongoDB configuration', {
+    taskList.copy(this.describe(), {
       src: path.resolve(TEMPLATES_DIR, 'mongodb.conf'),
       dest: '/etc/mongodb.conf'
     });
@@ -86,6 +112,10 @@ class MongoSetupTask extends SetupTask {
 }
 
 class SslSetupTask extends SetupTask {
+
+  public describe() : string {
+    return 'Setting up ssl';
+  }
 
   public build(taskList) {
     this.installStud(taskList);
@@ -121,27 +151,69 @@ class SslSetupTask extends SetupTask {
     });
 
     taskList.execute('Verifying SSL Configurations (ssl.pem)', {
-      command: `stud --test --config=${DEPLOY_PREFIX}/stud/stud.conf`
+      'command': `stud --test --config=${DEPLOY_PREFIX}/stud/stud.conf`
     });
 
     //restart stud
     taskList.execute('Starting Stud', {
-      command: '(sudo stop stud || :) && (sudo start stud || :)'
+      'command': '(sudo stop stud || :) && (sudo start stud || :)'
     });
   }
 
 }
 
 class UpstartSetupTask extends SetupTask {
+
+
+  public describe() : string {
+    return 'Configuring upstart: ' + this.getUpstartConfigPath();
+  }
+
+  protected getUpstartConfigPath() : string {
+    return '/etc/init/' + (<AppConfig>this.config.app).name + '.conf';
+  }
+
+  protected getAppName() : string {
+    return (<AppConfig>this.config.app).name;
+  }
+
   public build(taskList) {
-    var upstartConfig = '/etc/init/' + this.config.appName + '.conf';
-    taskList.copy('Configuring upstart: ' + upstartConfig, {
+    var upstartConfig : string = this.getUpstartConfigPath();
+    taskList.copy(this.describe(), {
       src: path.resolve(TEMPLATES_DIR, 'meteor.conf'),
       dest: upstartConfig,
       vars: {
         deployPrefix: DEPLOY_PREFIX,
-        appName: this.config.appName
+        appName: this.getAppName()
       }
+    });
+  }
+}
+
+
+abstract class DeployTask extends Task { }
+
+class CopyBundleDeployTask extends DeployTask {
+
+  protected bundlePath : string;
+
+  constructor(config:Config, bundlePath:string) {
+    super(config);
+    this.bundlePath = bundlePath;
+  }
+
+  public describe() : string {
+    return 'Uploading bundle: ' + this.bundlePath;
+  }
+
+  public build(taskList) {
+    let appName = (<AppConfig>this.config.app).name;
+    const remoteBundlePath = DEPLOY_PREFIX + '/' + appName + '/tmp/bundle.tar.gz'
+    console.log("Transfering " + this.bundlePath + ' => ' + remoteBundlePath);
+    taskList.copy(this.describe(), {
+      src: this.bundlePath,
+      dest: DEPLOY_PREFIX + '/' + appName + '/tmp/bundle.tar.gz',
+      progressBar: this.config.enableUploadProgressBar
     });
   }
 }
@@ -151,46 +223,41 @@ export default class LinuxTaskBuilder {
   public static setup(config) {
     var taskList = nodemiral.taskList('Setup (linux)');
 
-    let builders : Array<Task> = [];
-
-    builders.push(new AptGetUpdateTask(config));
+    let tasks : Array<Task> = [];
+    tasks.push(new AptGetUpdateTask(config));
 
     // Installation
     if (config.setup && config.setup.node) {
-      builders.push(new NodeJsSetupTask(config));
+      tasks.push(new NodeJsSetupTask(config));
     }
 
     if (config.setup && config.setup.phantom) {
-      builders.push(new PhantomJsSetupTask(config));
+      tasks.push(new PhantomJsSetupTask(config));
     }
 
-    builders.push(new EnvVarsSetupTask(config));
+    tasks.push(new EnvVarsSetupTask(config));
 
     if (config.setup.mongo) {
-      builders.push(new MongoSetupTask(config));
+      tasks.push(new MongoSetupTask(config));
     }
 
     if (config.ssl) {
-      builders.push(new SslSetupTask(config));
+      tasks.push(new SslSetupTask(config));
     }
-    builders.push(new UpstartSetupTask(config));
+    tasks.push(new UpstartSetupTask(config));
 
-    builders.forEach((builder) => {
-      builder.build(taskList);
+    // build tasks into taskList
+    tasks.forEach((t:Task) => {
+      t.build(taskList);
     });
     return taskList;
   }
 
-  public static deploy(bundlePath, env, checkDelay, appName, enableUploadProgressBar) {
+  public static deploy(config:Config, bundlePath:string, env, checkDelay, appName) {
     var taskList = nodemiral.taskList("Deploy app '" + appName + "' (linux)");
 
-    const remoteBundlePath = DEPLOY_PREFIX + '/' + appName + '/tmp/bundle.tar.gz'
-    console.log("Transfering " + bundlePath + ' => ' + remoteBundlePath);
-    taskList.copy('Uploading bundle', {
-      src: bundlePath,
-      dest: DEPLOY_PREFIX + '/' + appName + '/tmp/bundle.tar.gz',
-      progressBar: enableUploadProgressBar
-    });
+    let copyBundle = new CopyBundleDeployTask(config, bundlePath);
+    copyBundle.build(taskList);
 
     var bashenv = {};
     for (var key in env) {
