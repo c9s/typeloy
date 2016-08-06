@@ -18,7 +18,7 @@
     "node-slack": "0.0.7",
     "nodemiral": "^1.1.1",
     "request": "^2.74.0",
-    "rimraf": "2.x.x",
+    "rimraf": "^2.5.4",
     "simple-git": "^1.43.0",
     "underscore": "^1.7.0",
     "uuid": "^1.4.2",

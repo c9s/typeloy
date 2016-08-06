@@ -3,7 +3,7 @@ var path = require('path');
 var fs = require('fs');
 var format = require('util').format;
 
-import _ = require('underscore');
+import _ from 'underscore';
 import 'colors';
 
 interface Env {
