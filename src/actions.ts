@@ -14,7 +14,10 @@ import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import Deployment from './Deployment';
 import {CmdDeployOptions} from './options';
-import {Plugin, PluginRunner, SlackNotificationPlugin} from './plugins';
+
+import {Plugin} from "./Plugin";
+import {PluginRunner} from "./PluginRunner";
+import {SlackNotificationPlugin} from './PluginRunner';
 
 import _ = require('underscore');
 import {buildApp} from './build';
