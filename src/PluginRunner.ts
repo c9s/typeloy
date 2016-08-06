@@ -1,8 +1,8 @@
-
 import {Config} from "./config";
 import _ = require("underscore");
 import {GitRevCollector, GitRevInfo} from "./collectors";
 import Deployment from "./Deployment";
+import {Plugin} from "./Plugin";
 
 export class PluginRunner {
 
@@ -55,21 +55,6 @@ export class PluginRunner {
 
 
 
-export abstract class Plugin {
-
-  public async whenSuccess(deployment:Deployment) { }
-
-  public async whenFailure(deployment:Deployment) { }
-
-  public whenBeforeBuilding(deployment:Deployment) { }
-
-  public whenBeforeDeploying(deployment:Deployment) { }
-
-  public whenAfterCompleted(deployment:Deployment) { }
-
-  public whenAfterDeployed(deployment:Deployment) { }
-
-}
 
 
 var slack = require('node-slack');
