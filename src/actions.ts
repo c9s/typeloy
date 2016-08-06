@@ -18,7 +18,7 @@ import {Plugin} from "./Plugin";
 import {PluginRunner} from "./PluginRunner";
 import {SlackNotificationPlugin} from './PluginRunner';
 
-import _ = require('underscore');
+import _ from 'underscore';
 import {buildApp} from './build';
 
 var os = require('os');

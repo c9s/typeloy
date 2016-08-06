@@ -1,5 +1,5 @@
 import {Config} from "./config";
-import _ = require("underscore");
+import _ from "underscore";
 import {GitRevCollector, GitRevInfo} from "./collectors";
 import Deployment from "./Deployment";
 import {Plugin} from "./Plugin";
