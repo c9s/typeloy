@@ -62,14 +62,6 @@ interface Session {
 
 const kadiraRegex = /^meteorhacks:kadira/m;
 
-function storeLastNChars(vars, field, limit, color) {
-  return function(data) {
-    vars[field] += data.toString();
-    if(vars[field].length > 1000) {
-      vars[field] = vars[field].substring(vars[field].length - 1000);
-    }
-  };
-}
 
 
 
