@@ -11,5 +11,6 @@
 /// <reference path="globals/node/index.d.ts" />
 /// <reference path="globals/serve-static/index.d.ts" />
 /// <reference path="globals/underscore/index.d.ts" />
+/// <reference path="globals/uuid/index.d.ts" />
 /// <reference path="globals/winston/index.d.ts" />
 /// <reference path="modules/object-assign/index.d.ts" />
