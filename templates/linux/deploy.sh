@@ -1,4 +1,5 @@
 #!/bin/bash
+# vim:sw=2:ts=2:sts=2:
 DEPLOY_PREFIX="<%= deployPrefix %>"
 APP_NAME="<%= appName %>"
 APP_ROOT=$DEPLOY_PREFIX/$APP_NAME
@@ -35,14 +36,13 @@ gyp_rebuild_inside_node_modules () {
     if [ $isBinaryModule = "yes" ]; then
       echo " > $npmModule: npm install due to binary npm modules"
       rm -rf node_modules
+      npm install --update-binary
+      # always rebuild because the node version might be different.
+      npm rebuild
       if [ -f binding.gyp ]; then
-        npm install --update-binary
         node-gyp rebuild || :
-      else
-        npm install --update-binary
       fi
     fi
-
     cd ..
   done
 }
