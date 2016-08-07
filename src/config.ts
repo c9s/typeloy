@@ -2,8 +2,7 @@ var cjson = require('cjson');
 var path = require('path');
 var fs = require('fs');
 var format = require('util').format;
-
-import _ from 'underscore';
+import _ = require('underscore');
 import 'colors';
 
 interface Env {

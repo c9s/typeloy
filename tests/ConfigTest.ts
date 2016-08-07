@@ -10,7 +10,8 @@ describe('Config', () => {
 
     it('should parse new sites config', () => {
       let config = ConfigParser.parse('tests/data/typeloy-sites.json');
-      console.log(config);
+      expect(config.sites).to.be.not.null;
+      expect(config.sites['dev']).to.be.not.null;
     });
 
     it('should parse legacy mup.json', () => {

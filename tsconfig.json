@@ -12,6 +12,7 @@
   "files": [
     "typings/index.d.ts",
     "src/bin/typeloy.ts",
-    "tests/ConfigTest.ts"
+    "tests/ConfigTest.ts",
+    "tests/GitSyncTest.ts"
   ]
 }
