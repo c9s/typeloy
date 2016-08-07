@@ -158,22 +158,23 @@ export class SlackNotificationPlugin extends Plugin {
   }
 
   protected createGitCommitAttachment(revInfo: GitRevInfo, extra) {
+    let latestCommit = revInfo.latestCommit();
     var attachment = {
       "fallback": "The attachement isn't supported.",
       "title": "Commit Message",
       "author_name": process.env['USER'],
-      "text": revInfo.commit.message,
+      "text": latestCommit.message,
       "fields": [{
           "title": "Commit",
-          "value": this.linkCommitHref(revInfo.commit.hash),
+          "value": this.linkCommitHref(revInfo.latestCommit().hash),
           "short": true
         }, {
           "title": "Author",
-          "value": revInfo.commit.author_name,
+          "value": latestCommit.author.name,
           "short": true
         }, {
           "title": "Date",
-          "value": revInfo.commit.date,
+          "value": latestCommit.date,
           "short": true
         }, {
           "title": "Latest Tag",

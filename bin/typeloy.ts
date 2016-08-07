@@ -29,9 +29,8 @@ prog.command('deploy [tag] [sites...]')
     if (!deploymentTag) {
       deploymentTag = "v" + (new Date).getTime();
     }
-    Deployment.create(config, cwd, deploymentTag).then((deployment:Deployment) => {
-      actions.deploy(deployment, sites, options);
-    });
+    let deployment = Deployment.create(config, cwd, deploymentTag);
+    actions.deploy(deployment, sites, options);
   })
   ;
 

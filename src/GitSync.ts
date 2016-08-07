@@ -1,4 +1,5 @@
 var child_process = require('child_process');
+var _ = require('underscore');
 
 export class GitAuthor {
   name: string;
@@ -26,6 +27,32 @@ const GitCommitHashRegExp = new RegExp("(\\w{40})");
 const GitCommitAuthorRegExp = new RegExp("^Author: (.*)\\s+<(.*?)>");
 const GitCommitDateRegExp = new RegExp("^Date: (.*)$");
 const EmptyLineRegExp = new RegExp("^\\s+$");
+
+
+
+
+function commandOptions(defs, options) : Array<string> {
+  let opts : Array<string> = [];
+  _.each(defs, (def, key:string) => {
+    let val = options[key];
+    if (typeof val !== "undefined") {
+      opts.push(def[0]);
+      switch (def[1]) {
+        case Number:
+          opts.push(val);
+          break;
+        case String;
+          opts.push(q(val));
+          break;
+        case Boolean;
+          break;
+      }
+    }
+  });
+  return opts;
+}
+
+
 
 export class GitSync {
   constructor() {
@@ -70,27 +97,15 @@ export class GitSync {
 
 
   public logOf(ref, options) {
-    let cmdopts = [];
     let val;
-    if (val = options.maxCount) {
-      cmdopts.push('--max-count', val);
-    }
-    if (val = options.skip) {
-      cmdopts.push('--skip', val);
-    }
-    if (val = options.until) {
-      cmdopts.push('--until', val);
-    }
-    if (val = options.author) {
-      cmdopts.push('--author', val);
-    }
-    if (val = options.committer) {
-      cmdopts.push('--committer', val);
-    }
-    if (val = options.grep) {
-      cmdopts.push('--grep', val);
-    }
-
+    const cmdopts = commandOptions({
+      maxCount: ["--max-count", Number],
+      skip: ["--skip", Number],
+      until: ["--until", String],
+      author: ["--author", String],
+      committer: ["--committer", String],
+      grep: ["--grep", String],
+    }, options);
     let output = child_process.execSync(`git log ${ref} ${cmdopts.join(' ')}`, {
       "encoding": "utf8"
     });

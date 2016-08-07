@@ -27,8 +27,11 @@ describe('GitSync', () => {
     it('should return a commit list', () => {
       let git = new GitSync;
       let commits = git.logOf('master', { maxCount: 3 });
-      console.log(commits);
+      // console.log(commits);
       expect(commits.length).to.equal(3);
+      expect(commits[0].author).to.be.not.null;
+      expect(commits[0].date).to.be.not.null;
+      expect(commits[0].hash).to.be.a('string');
     });
   });
 
