@@ -22,10 +22,10 @@ function q(val : string) : string {
 }
 
 const GitCommitSpliter = new RegExp('^commit\\s(?=\\w{40})', 'gm');
-
 const GitCommitHashRegExp = new RegExp("(\\w{40})");
 const GitCommitAuthorRegExp = new RegExp("^Author: (.*)\\s+<(.*?)>");
 const GitCommitDateRegExp = new RegExp("^Date: (.*)$");
+const EmptyLineRegExp = new RegExp("^\\s+$");
 
 export class GitSync {
   constructor() {
@@ -59,7 +59,7 @@ export class GitSync {
         commit.date = new Date(matches[1]);
       }
       lines.shift(); // ignore first empty line
-      while (lines[lines.length - 1].match(/^\s*$/)) {
+      while (lines[lines.length - 1].match(EmptyLineRegExp)) {
         lines.pop();
       }
       commit.message = lines.map((line:string) => line.replace(/^\s{4}/,'') ).join("\n");
