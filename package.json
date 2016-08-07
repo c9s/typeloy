@@ -25,7 +25,7 @@
     "winston": "^2.2.0"
   },
   "bin": {
-    "typeloy": "./lib/bin/typeloy.js"
+    "typeloy": "./lib/src/bin/typeloy.js"
   },
   "author": "Yo-An Lin <yoanlin93@gmail.com>",
   "repository": {

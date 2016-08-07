@@ -23,7 +23,7 @@ prog.command('deploy [tag] [sites...]')
   .option("--bundle-file <file>", 'the bundle file you have already built with meteor build.')
   .option("--build-dir <dir>", 'the meteor build directory.')
   .option("-C, --no-clean", 'whether to clean up the bundle files.')
-  .action((deploymentTag:string, sites:Array<string>, options:CmdDeployOptions) => {
+  .action((deploymentTag : string, sites : Array<string>, options : CmdDeployOptions) => {
     let config = readConfig(prog.config);
     let actions = new Actions(config, cwd);
     if (!deploymentTag) {
