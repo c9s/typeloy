@@ -169,7 +169,7 @@ export default class Actions {
   }
 
   private _showKadiraLink() {
-    var versionsFile = path.join(this.config.app.directory, '.meteor/versions');
+    var versionsFile = path.join((<AppConfig>this.config.app).directory, '.meteor/versions');
     if (fs.existsSync(versionsFile)) {
       var packages = fs.readFileSync(versionsFile, 'utf-8');
       var hasKadira = kadiraRegex.test(packages);

@@ -68,6 +68,26 @@ export interface DeployConfig {
   checkDelay?: number;
 }
 
+
+interface LegacyConfig {
+  // common options
+  servers?: Array<ServerConfig>;
+  env: Env;
+  ssl?: SslConfig;
+  enableUploadProgressBar: boolean;
+
+  // legacy options
+  app: string;
+  appName: string;
+  meteorBinary: string;
+  deployCheckWaitTime?: number;
+
+  setupNode: boolean;
+  setupPhantom: boolean;
+  setupMongo: boolean;
+  nodeVersion?: string;
+}
+
 export interface Config {
   setup?: SetupConfig;
   deploy?: DeployConfig;
@@ -75,7 +95,7 @@ export interface Config {
   // We will convert servers into "_default_" => servers => [ .... ]
   sites?: SiteMapConfig;
 
-  app: AppConfig | string;
+  app: AppConfig;
   meteor: MeteorConfig;
 
   // legacy setup config
@@ -84,11 +104,9 @@ export interface Config {
   setupMongo: boolean;
   nodeVersion?: string;
   servers?: Array<ServerConfig>;
-
   appName: string;
   meteorBinary?: string;
   // end of legacy setup config
-
 
 
   enableUploadProgressBar: boolean;
@@ -124,7 +142,7 @@ function canonicalizePath(loc:string) : string {
 export class ConfigParser {
 
   public static parse(configPath:string) : Config {
-    var config:Config;
+    var config : LegacyConfig;
     if (configPath.match(/\.json$/)) {
       config = cjson.load(configPath);
     } else if (configPath.match(/\.js$/)) {
@@ -133,37 +151,38 @@ export class ConfigParser {
       // fallback to json parsing
       config = cjson.load(configPath);
     }
-    config = this.preprocess(config);
-    this.validate(config);
-    return config;
+
+    let newconfig = this.preprocess(config);
+    this.validate(newconfig);
+    return newconfig;
   }
 
-  public static convertLegacyConfig(config:Config) : Config {
+  public static convertLegacyConfig(config:Config, _config:LegacyConfig) : Config {
     // Convert legacy setup configs to new SetupConfig
-    if (typeof config.setupNode !== "undefined") {
+    if (typeof _config.setupNode !== "undefined") {
       config.setup.node = config.nodeVersion || true;
     }
-    if (typeof config.setupPhantom !== "undefined") {
+    if (typeof _config.setupPhantom !== "undefined") {
       config.setup.phantom = true;
     }
-    if (typeof config.setupMongo !== "undefined") {
+    if (typeof _config.setupMongo !== "undefined") {
       config.setup.mongo = true;
     }
-    if (typeof config.deployCheckWaitTime !== "undefined") {
+    if (typeof _config.deployCheckWaitTime !== "undefined") {
       config.deploy.checkDelay = config.deployCheckWaitTime;
     }
 
     // app was a string in legacy config format
-    if (typeof config.app === "string") {
-      let appDir = <string>(config.app);
+    if (typeof _config.app === "string") {
+      let appDir = _config.app;
       config.app = {} as AppConfig;
-      (<AppConfig>config.app).directory = appDir;
+      config.app.directory = appDir;
     }
     if (typeof config.appName === "string") {
       (<AppConfig>config.app).name = config.appName;
     }
-    if (typeof config.meteorBinary === "string") {
-      config.meteor.binary = config.meteorBinary;
+    if (typeof _config.meteorBinary === "string") {
+      config.meteor.binary = _config.meteorBinary;
     }
 
     // Transfer the default servers to "_default_" site If site name is not
@@ -176,7 +195,9 @@ export class ConfigParser {
     return config;
   }
 
-  public static preprocess(config:Config) : Config {
+  public static preprocess(_config) : Config {
+    // cast legacy config to typeloy config
+    let config = <Config>_config;
     config.env = config.env || {};
     config.setup = config.setup || {} as SetupConfig;
     config.deploy = config.deploy || {} as DeployConfig;
@@ -184,14 +205,14 @@ export class ConfigParser {
     config.meteor = config.meteor || {} as MeteorConfig;
     config.app = config.app || {} as AppConfig;
 
-    config = this.convertLegacyConfig(config);
+    config = this.convertLegacyConfig(config, _config);
 
     config.meteor.binary = (config.meteor.binary) ? canonicalizePath(config.meteor.binary) : 'meteor';
-    if (typeof (<AppConfig>config.app).name === "undefined") {
-      (<AppConfig>config.app).name = "meteor";
+    if (typeof config.app.name === "undefined") {
+      config.app.name = "meteor";
     }
-    if (typeof (<AppConfig>config.app).directory === "undefined") {
-      (<AppConfig>config.app).directory = ".";
+    if (typeof config.app.directory === "undefined") {
+      config.app.directory = ".";
     }
 
     if (typeof config.enableUploadProgressBar === "undefined") {
