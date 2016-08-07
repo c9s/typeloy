@@ -41,10 +41,10 @@ function commandOptions(defs, options) : Array<string> {
         case Number:
           opts.push(val);
           break;
-        case String;
+        case String:
           opts.push(q(val));
           break;
-        case Boolean;
+        case Boolean:
           break;
       }
     }
@@ -97,7 +97,6 @@ export class GitSync {
 
 
   public logOf(ref, options) {
-    let val;
     const cmdopts = commandOptions({
       maxCount: ["--max-count", Number],
       skip: ["--skip", Number],
@@ -134,6 +133,24 @@ export class GitSync {
     });
     return output.trim();
   }
+
+  public describe(options) {
+    const cmdopts = commandOptions({
+      'dirty': ["--dirty", Boolean],
+      'all': ["--all", Boolean],
+      'tags': ["--tags", Boolean],
+      'contains': ["--contains", Boolean],
+      'abbrev': ["--abbrev", Number],
+      'long': ["--long", Boolean],
+      'match': ["--match", String],
+    }, options);
+    const output = child_process.execSync(`git describe ${cmdopts.join(' ')}`, {
+      "encoding": "utf8"
+    });
+    return output.trim();
+  }
+
+
 
   public tags() {
     let output = child_process.execSync("git tag", {
