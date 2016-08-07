@@ -33,16 +33,26 @@ export class PluginRunner {
     _.each(this.plugins, (p) => { p.whenBeforeDeploying(deployment); });
   }
 
-  public async whenSuccess(deployment:Deployment) {
+  public whenSuccess(deployment:Deployment) : Array<Promise<any>> {
+    let allPromises = [];
     for (const p of this.plugins) {
-      await p.whenSuccess(deployment);
+      let promise = p.whenSuccess(deployment);
+      if (promise) {
+        allPromises.push(promise);
+      }
     }
+    return allPromises;
   }
 
-  public async whenFailure(deployment:Deployment) {
+  public whenFailure(deployment:Deployment) : Array<Promise<any>> {
+    let allPromises = [];
     for (const p of this.plugins) {
-      await p.whenFailure(deployment);
+      let promise = p.whenFailure(deployment);
+      if (promise) {
+        allPromises.push(promise);
+      }
     }
+    return allPromises;
   }
 
   public whenAfterCompleted(deployment:Deployment) {
@@ -63,7 +73,6 @@ var slack = require('node-slack');
 /***
  * 
  */
-
 interface SlackNotificationPluginGitHubConfig {
   org  : string;
   repo : string;
@@ -116,7 +125,7 @@ export class SlackNotificationPlugin extends Plugin {
     });
   }
 
-  public async whenSuccess(deployment:Deployment) {
+  public whenSuccess(deployment:Deployment) : Promise<any> {
     // Convert "deferred promise to ES6 Promise"
     var promise = this.send({
       "text": `Succeed!!!`,
@@ -133,7 +142,7 @@ export class SlackNotificationPlugin extends Plugin {
     });
   }
 
-  public async whenFailure(deployment:Deployment) {
+  public whenFailure(deployment:Deployment) : Promise<any> {
     // Convert "deferred promise to ES6 Promise"
     var promise = this.send({
       "text": `Failed............................`,
