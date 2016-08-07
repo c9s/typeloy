@@ -232,7 +232,7 @@ export default class Actions {
     var meteorBinary = this.config.meteor.binary;
 
     console.log('Meteor Path: ' + meteorBinary);
-    console.log('Building Started: ' + this.config.app);
+    console.log('Building Started: ' + this.config.app.name);
 
     buildApp(appPath, meteorBinary, buildLocation, bundlePath, () => {
       this.whenBeforeBuilding(deployment);

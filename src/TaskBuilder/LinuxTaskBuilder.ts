@@ -5,8 +5,8 @@ var util = require('util');
 
 import {Config, AppConfig} from "../config";
 
-var SCRIPT_DIR = path.resolve(__dirname, '../../scripts/linux');
-var TEMPLATES_DIR = path.resolve(__dirname, '../../templates/linux');
+var SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/linux');
+var TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/linux');
 
 
 const DEPLOY_PREFIX = "/opt";
