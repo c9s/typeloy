@@ -19,8 +19,8 @@ export default class Deployment {
     this.revInfo = revInfo;
   }
 
-  public static async create(config:Config, cwd:string, tag:string) {
-    let revInfo = await GitRevCollector.collect(cwd);
+  public static create(config:Config, cwd:string, tag:string) : Deployment {
+    let revInfo = GitRevCollector.collect(cwd);
     return new Deployment(config, tag, revInfo);
   }
 }

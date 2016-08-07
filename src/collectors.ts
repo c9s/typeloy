@@ -1,49 +1,30 @@
-var GitRepo = require('simple-git');
 
-interface GitCommit {
-  hash : string;
-  date : string;
-  message : string;
-  author_name: string;
-  author_email : string;
-}
+import {GitSync, GitCommit, GitAuthor} from "./GitSync";
 
-export interface GitRevInfo {
-  commit : GitCommit;
-  commitsAfterLatestTag : any;
-  latestTag : string;
-  numberOfCommitsAfterLatestTag : number;
-  diff : any;
-  diffStats : any;
+export class GitRevInfo {
+  public commits : Array<GitCommit>;
+  public latestTag : string;
+  public describe : string;
+  public latestCommit() : GitCommit {
+    return this.commits[0];
+  }
 }
 
 export interface RevCollector { }
 
-async function parseGitRepo(cwd:string) {
-  return new Promise<any>(resolve => {
-    let repo = GitRepo(cwd);
-    let info:GitRevInfo = {} as GitRevInfo;
-    repo.tags((err:any, tags:any) => {
-      info.latestTag = tags.latest;
-      repo.log({ from: tags.latest, to: 'HEAD' }, (err, ret) => {
-        info.commit = <GitCommit>ret.latest;
-        info.commitsAfterLatestTag = ret.all;
-        info.numberOfCommitsAfterLatestTag = ret.total;
-      }).diff((err, diff) => {
-        info.diff = diff;
-      }).diffSummary((err, diffStats) => {
-        info.diffStats = diffStats;
-      }).then(() => {
-        resolve(info);
-      });
-      ;
-    });
-  });
+function parseGitRepo(cwd:string) : GitRevInfo {
+  let repo = new GitSync;
+  let latestTag = repo.describeTags(0);
+  let commits = repo.logSince(latestTag, 'HEAD');
+  return {
+    latestTag: latestTag,
+    commits: commits,
+    describe: repo.describeAll()
+  } as GitRevInfo;
 }
 
 export class GitRevCollector implements RevCollector {
-
-  public static async collect(cwd:string) {
-    return await parseGitRepo(cwd);
+  public static collect(cwd:string) {
+    return parseGitRepo(cwd);
   }
 }
