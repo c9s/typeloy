@@ -169,7 +169,7 @@ export default class Actions {
   }
 
   private _showKadiraLink() {
-    var versionsFile = path.join(this.config.app, '.meteor/versions');
+    var versionsFile = path.join(this.config.app.directory, '.meteor/versions');
     if (fs.existsSync(versionsFile)) {
       var packages = fs.readFileSync(versionsFile, 'utf-8');
       var hasKadira = kadiraRegex.test(packages);
@@ -229,11 +229,10 @@ export default class Actions {
     var appConfig = <AppConfig>this.config.app;
     var appName = appConfig.name;
     var appPath = appConfig.directory;
-    var meteorBinary = this.config.meteorBinary;
+    var meteorBinary = this.config.meteor.binary;
 
     console.log('Meteor Path: ' + meteorBinary);
     console.log('Building Started: ' + this.config.app);
-
 
     buildApp(appPath, meteorBinary, buildLocation, bundlePath, () => {
       this.whenBeforeBuilding(deployment);
@@ -385,22 +384,23 @@ export default class Actions {
   async whenAfterCompleted(deployment : Deployment, error, summaryMaps) {
     this.pluginRunner.whenAfterCompleted(deployment);
     var errorCode = error || haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
+    let promises;
     if (errorCode != 0) {
-      await this.whenFailure(deployment, error, summaryMaps);
+      promises = this.whenFailure(deployment, error, summaryMaps);
     } else {
-      await this.whenSuccess(deployment, error, summaryMaps);
+      promises = this.whenSuccess(deployment, error, summaryMaps);
     }
-    process.exit(errorCode);
+    Promise.all(promises).then(() => {
+      process.exit(errorCode);
+    });
   }
 
-  public async whenSuccess(deployment : Deployment, error, summaryMaps) {
-    let promise = this.pluginRunner.whenSuccess(deployment);
-    await promise;
+  public whenSuccess(deployment : Deployment, error, summaryMaps) {
+    return this.pluginRunner.whenSuccess(deployment);
   }
 
-  public async whenFailure(deployment : Deployment, error, summaryMaps) {
-    let promise = this.pluginRunner.whenFailure(deployment);
-    await promise;
+  public whenFailure(deployment : Deployment, error, summaryMaps) {
+    return this.pluginRunner.whenFailure(deployment);
   }
 
   /**
