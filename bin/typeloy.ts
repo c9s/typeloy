@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import path = require('path');
-import {readConfig} from '../config';
-import Actions from '../actions';
-import {CmdDeployOptions} from '../options';
-import Deployment from '../Deployment';
-import debug from '../Debug';
+import {readConfig} from '../src/config';
+import Actions from '../src/actions';
+import {CmdDeployOptions} from '../src/options';
+import Deployment from '../src/Deployment';
+import debug from '../src/Debug';
 require('colors');
 
 var prog = require('commander');
