@@ -129,15 +129,15 @@ export class DeployAction {
 
 export default class Actions {
 
-  public cwd:string;
+  public cwd : string;
 
-  public config:Config;
+  public config : Config;
 
   public sessionsMap : SessionsMap;
 
-  protected pluginRunner:PluginRunner;
+  protected pluginRunner : PluginRunner;
 
-  constructor(config:Config, cwd:string) {
+  constructor(config : Config, cwd : string) {
     this.cwd = cwd;
     this.config = config;
     this.sessionsMap = this._createSiteSessionsMap(config, null);
@@ -151,7 +151,7 @@ export default class Actions {
     // https://themeteorchef.com/snippets/making-use-of-settings-json/#tmc-using-settingsjson
     //
     // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
-    var setttingsJsonPath = path.resolve(this.cwd, 'settings.json');
+    let setttingsJsonPath = path.resolve(this.cwd, 'settings.json');
     if (fs.existsSync(setttingsJsonPath)) {
       this.config.env['METEOR_SETTINGS'] = JSON.stringify(require(setttingsJsonPath));
     }
@@ -169,11 +169,11 @@ export default class Actions {
    *
   * @param {object} config (the mup config object)
   */
-  private _createSiteSessionsMap(config:Config, siteName:string) : SessionsMap {
+  private _createSiteSessionsMap(config : Config, siteName : string) : SessionsMap {
     let sessionsMap : SessionsMap = {} as SessionsMap;
 
     if (!siteName) {
-      siteName = "_default_";
+      siteName = "default";
     }
     config.sites[siteName].servers.forEach((server:ServerConfig) => {
       let session = SessionManager.create(server);

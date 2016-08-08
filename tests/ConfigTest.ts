@@ -16,7 +16,7 @@ describe('Config', () => {
 
     it('should parse legacy mup.json', () => {
       let config = ConfigParser.parse('tests/data/mup.json');
-      expect(config.sites['_default_']).to.be.ok;
+      expect(config.sites['default']).to.be.ok;
       expect(config.deploy.checkDelay).to.equal(120);
       expect(config.setup.node).to.equal('0.10.44');
       expect(config.setup.phantom).to.be.true;
