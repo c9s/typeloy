@@ -11,11 +11,10 @@ var TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/linux');
 
 const DEPLOY_PREFIX = "/opt";
 
+import {BaseTaskBuilder} from "./BaseTaskBuilder";
 
 abstract class Task {
-
   protected config:Config;
-
 
   constructor(config:Config) {
     this.config = config;
