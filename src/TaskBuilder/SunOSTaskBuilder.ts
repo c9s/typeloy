@@ -5,6 +5,8 @@ var path = require('path');
 var SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/sunos');
 var TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/sunos');
 
+import {BaseTaskBuilder} from "./BaseTaskBuilder";
+
 function reconfig(taskList, appName, env) {
   taskList.copy('Setting up environment variables', {
     src: path.resolve(TEMPLATES_DIR, 'env.sh'),

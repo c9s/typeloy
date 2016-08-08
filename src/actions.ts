@@ -10,6 +10,7 @@ var async = require('async');
 import {Config, AppConfig, ServerConfig} from './config';
 import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
+import {BaseTaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
 import Deployment from './Deployment';
 import {CmdDeployOptions} from './options';
 import {SessionManager} from './SessionManager';
@@ -29,7 +30,20 @@ interface LogOptions {
   tail?: boolean;
 }
 
-interface SessionsMap { }
+/**
+ * Return the task builder by operating system name.
+ */
+function getTaskBuilderByOs(os:string) : BaseTaskBuilder {
+  switch (os) {
+    case "linux":
+      return LinuxTaskBuilder;
+    case "sunos":
+      return SunOSTaskBuilder;
+    default:
+      throw new Error("Unsupported operating system.");
+  }
+}
+
 
 
 /*
@@ -172,7 +186,7 @@ export default class Actions {
       sessionInfoList,
       // callback: the trigger method
       (sessionsInfo, callback) => {
-        var taskList = sessionsInfo.taskListsBuilder[actionName]
+        let taskList = sessionsInfo.taskListsBuilder[actionName]
           .apply(sessionsInfo.taskListsBuilder, args);
         taskList.run(sessionsInfo.sessions, function(summaryMap) {
           callback(deployment, null, summaryMap);
