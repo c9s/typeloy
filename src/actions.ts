@@ -1,4 +1,3 @@
-var nodemiral = require('nodemiral');
 import path = require('path');
 import fs = require('fs');
 var rimraf = require('rimraf');
@@ -13,6 +12,7 @@ import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import Deployment from './Deployment';
 import {CmdDeployOptions} from './options';
+import {SessionManager} from './SessionManager';
 
 import {Plugin} from "./Plugin";
 import {PluginRunner} from "./PluginRunner";
@@ -29,6 +29,7 @@ interface LogOptions {
   tail?: boolean;
 }
 
+interface SessionsMap { }
 
 
 /*
@@ -88,7 +89,7 @@ export default class Actions {
   constructor(config:Config, cwd:string) {
     this.cwd = cwd;
     this.config = config;
-    this.sessionsMap = this._createSessionsMap(config, null);
+    this.sessionsMap = this._createSiteSessionsMap(config, null);
 
     this.pluginRunner = new PluginRunner(config, cwd);
 
@@ -117,30 +118,14 @@ export default class Actions {
    *
   * @param {object} config (the mup config object)
   */
-  private _createSessionsMap(config:Config, siteName:string) {
+  private _createSiteSessionsMap(config:Config, siteName:string) : any {
     var sessionsMap = {};
 
     if (!siteName) {
       siteName = "_default_";
     }
     config.sites[siteName].servers.forEach((server:ServerConfig) => {
-      var host = server.host;
-
-      /// The auth object is used for nodemiral to connect ssh servers.
-      var auth:any = {
-        username: server.username
-      };
-      if (server.pem) {
-        auth.pem = fs.readFileSync(path.resolve(server.pem), 'utf8');
-      } else {
-        auth.password = server.password;
-      }
-
-      // create options for nodemiral
-      var nodemiralOptions = {
-        ssh: server.sshOptions,
-        keepAlive: true
-      };
+      let session = SessionManager.create(server);
 
       // Create os => taskListBuilder map
       if (!sessionsMap[server.os]) {
@@ -159,9 +144,6 @@ export default class Actions {
             break;
         }
       }
-
-      var session = nodemiral.session(host, auth, nodemiralOptions);
-      session._serverConfig = server;
       sessionsMap[server.os].sessions.push(session);
     });
 
