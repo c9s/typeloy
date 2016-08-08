@@ -1,8 +1,15 @@
 
 import {Config, AppConfig, ServerConfig} from './config';
+import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
+
 var fs = require('fs');
 var nodemiral = require('nodemiral');
 var path = require('path');
+
+export interface SessionsInfo {
+  sessions: Array<any>;
+  taskListsBuilder: TaskBuilder;
+}
 
 export interface SshAuthOptions {
   username: string;
