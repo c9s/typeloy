@@ -1,10 +1,27 @@
-
-import {Config, AppConfig, ServerConfig} from './config';
-import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
-
+var _ = require('underscore');
 var fs = require('fs');
 var nodemiral = require('nodemiral');
 var path = require('path');
+
+import {Config, AppConfig, ServerConfig} from './config';
+import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
+import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
+import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
+
+/**
+ * Return the task builder by operating system name.
+ */
+function getTaskBuilderByOs(os:string) : TaskBuilder {
+  switch (os) {
+    case "linux":
+      return new LinuxTaskBuilder;
+    case "sunos":
+      return new SunOSTaskBuilder;
+    default:
+      throw new Error("Unsupported operating system.");
+  }
+}
+
 
 export interface SessionsInfo {
   os: string;
@@ -16,6 +33,10 @@ export interface SshAuthOptions {
   username: string;
   pem?: string;
   password?: string;
+}
+
+export interface SessionsMap {
+  [os:string]: SessionsInfo;
 }
 
 export class SessionManager {
@@ -40,5 +61,34 @@ export class SessionManager {
     let session = nodemiral.session(host, auth, nodemiralOptions);
     session._serverConfig = server;
     return session;
+  }
+
+  public static createOsMap(servers : Array<ServerConfig>) : SessionsMap {
+    let sessionsMap : SessionsMap = {} as SessionsMap;
+    _.each(servers, (server:ServerConfig) => {
+      let session = SessionManager.create(server);
+
+      // Create os => taskListBuilder map
+      if (!sessionsMap[server.os]) {
+        switch (server.os) {
+          case "linux":
+            sessionsMap[server.os] = {
+              "os": server.os,
+              "sessions": [],
+              "taskListsBuilder": getTaskBuilderByOs(server.os)
+            } as SessionsInfo;
+            break;
+          case "sunos":
+            sessionsMap[server.os] = {
+              "os": server.os,
+              "sessions": [],
+              "taskListsBuilder": getTaskBuilderByOs(server.os)
+            } as SessionsInfo;
+            break;
+        }
+      }
+      sessionsMap[server.os].sessions.push(session);
+    });
+    return sessionsMap;
   }
 }
