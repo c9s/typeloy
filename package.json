@@ -14,6 +14,7 @@
     "colors": "0.6.x",
     "commander": "^2.9.0",
     "debug": "^2.2.0",
+    "es6-promise": "^3.2.1",
     "fibers": "^1.0.13",
     "node-slack": "0.0.7",
     "nodemiral": "^1.1.1",

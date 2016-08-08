@@ -2,9 +2,9 @@ import Deployment from "./Deployment";
 
 export abstract class Plugin {
 
-  public async whenSuccess(deployment:Deployment) { }
+  public whenSuccess(deployment:Deployment) { }
 
-  public async whenFailure(deployment:Deployment) { }
+  public whenFailure(deployment:Deployment) { }
 
   public whenBeforeBuilding(deployment:Deployment) { }
 
