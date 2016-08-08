@@ -90,6 +90,23 @@ function hasSummaryMapErrors(summaryMap) {
   });
 }
 
+
+/*
+ // For later refactoring
+export class DeployAction {
+  protected deployment : Deployment;
+
+  constructor(deployment : Deployment) {
+    this.deployment = deployment;
+  }
+
+  public run(sites : Array<string>, options:CmdDeployOptions) {
+
+  }
+}
+*/
+
+
 export default class Actions {
 
   public cwd:string;
@@ -348,6 +365,7 @@ export default class Actions {
     var destSettingsJson = path.resolve('settings.json');
     if (fs.existsSync(destConfigJson) || fs.existsSync(destSettingsJson)) {
       console.error('A Project Already Exists');
+      // XXX:
       process.exit(1);
     }
 
@@ -387,6 +405,7 @@ export default class Actions {
       promises = this.whenSuccess(deployment, error, summaryMaps);
     }
     Promise.all(promises).then(() => {
+      // XXX:
       process.exit(errorCode);
     });
   }
