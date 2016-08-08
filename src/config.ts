@@ -30,7 +30,7 @@ export interface ServerConfig {
   username: string;
   password: string;
   app?: string;
-  os?: string;
+  os?: string; // linux or sunos
   pem?: string;
   env: Env;
   sshOptions: SshOptions;
