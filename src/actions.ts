@@ -13,7 +13,7 @@ import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
 import Deployment from './Deployment';
 import {CmdDeployOptions} from './options';
-import {SessionManager, SessionsInfo} from './SessionManager';
+import {SessionManager, SessionsInfo, SessionsMap} from './SessionManager';
 
 import {Plugin} from "./Plugin";
 import {PluginRunner} from "./PluginRunner";
@@ -26,9 +26,6 @@ var os = require('os');
 require('colors');
 
 
-interface SessionsMap {
-  [os:string]: SessionsInfo;
-}
 
 
 interface LogOptions {
@@ -170,37 +167,11 @@ export default class Actions {
   * @param {object} config (the mup config object)
   */
   private _createSiteSessionsMap(config : Config, siteName : string) : SessionsMap {
-    let sessionsMap : SessionsMap = {} as SessionsMap;
 
     if (!siteName) {
       siteName = "default";
     }
-    config.sites[siteName].servers.forEach((server:ServerConfig) => {
-      let session = SessionManager.create(server);
-
-      // Create os => taskListBuilder map
-      if (!sessionsMap[server.os]) {
-        switch (server.os) {
-          case "linux":
-            sessionsMap[server.os] = {
-              os: server.os,
-              sessions: [],
-              taskListsBuilder: getTaskBuilderByOs(server.os)
-            } as SessionsInfo;
-            break;
-          case "sunos":
-            sessionsMap[server.os] = {
-              os: server.os,
-              sessions: [],
-              taskListsBuilder: getTaskBuilderByOs(server.os)
-            } as SessionsInfo;
-            break;
-        }
-      }
-      sessionsMap[server.os].sessions.push(session);
-    });
-
-    return sessionsMap;
+    return SessionManager.createOsMap(config.sites[siteName].servers);
   }
 
   private _showKadiraLink() {
