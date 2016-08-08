@@ -68,9 +68,24 @@ Session {
      os: 'linux' } }
 */
 interface Session {
+  /**
+   * copy data from src to dest
+   */
   copy(src, dest, options, callback)
+
+  /**
+   * execute shell command on remote server
+   */
   execute(shellCommand, options, callback)
+
+  /**
+   * execute script on remote server
+   */
   executeScript(scriptFile, options, callback)
+
+  /**
+   * close the connection.
+   */
   close()
 }
 
@@ -219,8 +234,7 @@ export default class Actions {
   }
 
   public deploy(deployment : Deployment, sites:Array<string>, options:CmdDeployOptions) {
-    var self = this;
-    self._showKadiraLink();
+    this._showKadiraLink();
 
     const getDefaultBuildDirName = function(appName:string, tag:string) : string {
       return (appName || "meteor-") + "-" + (tag || uuid.v4());
@@ -254,7 +268,7 @@ export default class Actions {
         throw err;
       }
       var sessionsData = [];
-      _.forEach(self.sessionsMap, (sessionsInfo:any) => {
+      _.forEach(this.sessionsMap, (sessionsInfo:any) => {
         var taskListsBuilder = sessionsInfo.taskListsBuilder;
         _.forEach(sessionsInfo.sessions, (session) => {
           sessionsData.push({
@@ -270,12 +284,12 @@ export default class Actions {
       async.mapSeries(
         sessionsData,
         (sessionData, callback) => {
-          var session = sessionData.session;
-          var taskListsBuilder = sessionData.taskListsBuilder;
-          var env = _.extend({}, this.config.env, session._serverConfig.env);
+          let session = sessionData.session;
+          let taskListsBuilder = sessionData.taskListsBuilder;
+          let env = _.extend({}, this.config.env, session._serverConfig.env);
 
           // Build deploy tasks
-          var taskList = taskListsBuilder.deploy(
+          let taskList = taskListsBuilder.deploy(
                           this.config,
                           bundlePath, env,
                           deployCheckWaitTime, appName);
@@ -303,11 +317,11 @@ export default class Actions {
         });
       });
     }
-
     async.mapSeries(
       sessionInfoList,
       (sessionInfo, callback) => {
-        sessionInfo.taskList.run(sessionInfo.session, function(summaryMap) {
+        sessionInfo.taskList.run(sessionInfo.session, (summaryMap) => {
+          console.log(summaryMap);
           callback(deployment, null, summaryMap);
         });
       },
@@ -395,7 +409,7 @@ export default class Actions {
   * Right now we don't have things to do, just exit the process with the error
   * code.
   */
-  async whenAfterCompleted(deployment : Deployment, error, summaryMaps) {
+  whenAfterCompleted(deployment : Deployment, error, summaryMaps) {
     this.pluginRunner.whenAfterCompleted(deployment);
     var errorCode = error || haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
     let promises;
