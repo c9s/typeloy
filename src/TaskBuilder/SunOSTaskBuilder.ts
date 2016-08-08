@@ -20,7 +20,7 @@ function reconfig(taskList, appName, env) {
   });
 }
 
-export default class SunosTasks implements TaskBuilder {
+export default class SunOSTaskBuilder implements TaskBuilder {
 
   public setup(config:Config) {
     let installMongo = config.setup.mongo;
@@ -30,7 +30,7 @@ export default class SunosTasks implements TaskBuilder {
     let appName = config.app.name;
     
     // installMongo, setupNode, nodeVersion, setupPhantom, appName) {
-    var taskList = nodemiral.taskList('Setup (sunos)');
+    let taskList = nodemiral.taskList('Setup (sunos)');
 
     // Installation
     if (setupNode) {
