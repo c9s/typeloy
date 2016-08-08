@@ -26,6 +26,10 @@ var os = require('os');
 require('colors');
 
 
+interface SessionsMap {
+  [os:string]: SessionsInfo;
+}
+
 
 interface LogOptions {
   tail?: boolean;
@@ -129,7 +133,7 @@ export default class Actions {
 
   public config:Config;
 
-  public sessionsMap;
+  public sessionsMap : SessionsMap;
 
   protected pluginRunner:PluginRunner;
 
@@ -165,8 +169,8 @@ export default class Actions {
    *
   * @param {object} config (the mup config object)
   */
-  private _createSiteSessionsMap(config:Config, siteName:string) : any {
-    var sessionsMap = {};
+  private _createSiteSessionsMap(config:Config, siteName:string) : SessionsMap {
+    let sessionsMap : SessionsMap = {} as SessionsMap;
 
     if (!siteName) {
       siteName = "_default_";
@@ -179,15 +183,17 @@ export default class Actions {
         switch (server.os) {
           case "linux":
             sessionsMap[server.os] = {
+              os: server.os,
               sessions: [],
               taskListsBuilder: getTaskBuilderByOs(server.os)
-            };
+            } as SessionsInfo;
             break;
           case "sunos":
             sessionsMap[server.os] = {
+              os: server.os,
               sessions: [],
               taskListsBuilder: getTaskBuilderByOs(server.os)
-            };
+            } as SessionsInfo;
             break;
         }
       }
@@ -213,8 +219,7 @@ export default class Actions {
   }
 
   private _executePararell(actionName:string, deployment : Deployment, args) {
-    var self = this;
-    var sessionInfoList = _.values(self.sessionsMap);
+    var sessionInfoList = _.values(this.sessionsMap);
     async.map(
       sessionInfoList,
       // callback: the trigger method
