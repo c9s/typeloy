@@ -7,6 +7,7 @@ var nodemiral = require('nodemiral');
 var path = require('path');
 
 export interface SessionsInfo {
+  os: string;
   sessions: Array<any>;
   taskListsBuilder: TaskBuilder;
 }
