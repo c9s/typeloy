@@ -10,10 +10,10 @@ var async = require('async');
 import {Config, AppConfig, ServerConfig} from './config';
 import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
-import {BaseTaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
+import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
 import Deployment from './Deployment';
 import {CmdDeployOptions} from './options';
-import {SessionManager} from './SessionManager';
+import {SessionManager, SessionsInfo} from './SessionManager';
 
 import {Plugin} from "./Plugin";
 import {PluginRunner} from "./PluginRunner";
@@ -26,6 +26,7 @@ var os = require('os');
 require('colors');
 
 
+
 interface LogOptions {
   tail?: boolean;
 }
@@ -33,12 +34,12 @@ interface LogOptions {
 /**
  * Return the task builder by operating system name.
  */
-function getTaskBuilderByOs(os:string) : BaseTaskBuilder {
+function getTaskBuilderByOs(os:string) : TaskBuilder {
   switch (os) {
     case "linux":
-      return LinuxTaskBuilder;
+      return new LinuxTaskBuilder;
     case "sunos":
-      return SunOSTaskBuilder;
+      return new SunOSTaskBuilder;
     default:
       throw new Error("Unsupported operating system.");
   }
@@ -179,13 +180,13 @@ export default class Actions {
           case "linux":
             sessionsMap[server.os] = {
               sessions: [],
-              taskListsBuilder: LinuxTaskBuilder
+              taskListsBuilder: getTaskBuilderByOs(server.os)
             };
             break;
           case "sunos":
             sessionsMap[server.os] = {
               sessions: [],
-              taskListsBuilder: SunOSTaskBuilder
+              taskListsBuilder: getTaskBuilderByOs(server.os)
             };
             break;
         }
@@ -217,7 +218,7 @@ export default class Actions {
     async.map(
       sessionInfoList,
       // callback: the trigger method
-      (sessionsInfo, callback) => {
+      (sessionsInfo:SessionsInfo, callback) => {
         let taskList = sessionsInfo.taskListsBuilder[actionName]
           .apply(sessionsInfo.taskListsBuilder, args);
         taskList.run(sessionsInfo.sessions, function(summaryMap) {
@@ -253,7 +254,7 @@ export default class Actions {
 
     var deployCheckWaitTime = this.config.deploy.checkDelay;
 
-    var appConfig = <AppConfig>this.config.app;
+    var appConfig = this.config.app;
     var appName = appConfig.name;
     var appPath = appConfig.directory;
     var meteorBinary = this.config.meteor.binary;
@@ -268,7 +269,7 @@ export default class Actions {
         throw err;
       }
       var sessionsData = [];
-      _.forEach(this.sessionsMap, (sessionsInfo:any) => {
+      _.forEach(this.sessionsMap, (sessionsInfo:SessionsInfo) => {
         var taskListsBuilder = sessionsInfo.taskListsBuilder;
         _.forEach(sessionsInfo.sessions, (session) => {
           sessionsData.push({
@@ -284,6 +285,8 @@ export default class Actions {
       async.mapSeries(
         sessionsData,
         (sessionData, callback) => {
+          console.log('sessionData', sessionData);
+
           let session = sessionData.session;
           let taskListsBuilder = sessionData.taskListsBuilder;
           let env = _.extend({}, this.config.env, session._serverConfig.env);
@@ -291,7 +294,8 @@ export default class Actions {
           // Build deploy tasks
           let taskList = taskListsBuilder.deploy(
                           this.config,
-                          bundlePath, env,
+                          bundlePath,
+                          env,
                           deployCheckWaitTime, appName);
           taskList.run(session, (summaryMap) => {
             callback(null, summaryMap);
@@ -307,7 +311,7 @@ export default class Actions {
     var self = this;
     var sessionInfoList = [];
     for (var os in this.sessionsMap) {
-      var sessionsInfo = this.sessionsMap[os];
+      let sessionsInfo : SessionsInfo = this.sessionsMap[os];
       sessionsInfo.sessions.forEach((session) => {
         var env = _.extend({}, this.config.env, session._serverConfig.env);
         var taskList = sessionsInfo.taskListsBuilder.reconfig(env, this.config.appName);
@@ -347,8 +351,8 @@ export default class Actions {
     if (options.tail) {
       tailOptions.push('-f');
     }
-    for (var os in self.sessionsMap) {
-      var sessionsInfo = self.sessionsMap[os];
+    for (var os in this.sessionsMap) {
+      var sessionsInfo : SessionsInfo = this.sessionsMap[os];
       sessionsInfo.sessions.forEach(function(session) {
         var hostPrefix = '[' + session._host + '] ';
         var opts = {
@@ -360,7 +364,7 @@ export default class Actions {
           }
         };
 
-        if(os == 'linux') {
+        if (os == 'linux') {
           var command = 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + self.config.appName + '.log';
         } else if(os == 'sunos') {
           var command = 'sudo tail ' + tailOptions.join(' ') +

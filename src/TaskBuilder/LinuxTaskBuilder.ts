@@ -11,7 +11,7 @@ var TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/linux');
 
 const DEPLOY_PREFIX = "/opt";
 
-import {BaseTaskBuilder} from "./BaseTaskBuilder";
+import {TaskBuilder} from "./BaseTaskBuilder";
 
 abstract class Task {
   protected config:Config;
@@ -217,9 +217,9 @@ class CopyBundleDeployTask extends DeployTask {
   }
 }
 
-export default class LinuxTaskBuilder {
+export default class LinuxTaskBuilder implements TaskBuilder {
 
-  public static setup(config) {
+  public setup(config:Config) {
     var taskList = nodemiral.taskList('Setup (linux)');
 
     let tasks : Array<Task> = [];
@@ -252,7 +252,7 @@ export default class LinuxTaskBuilder {
     return taskList;
   }
 
-  public static deploy(config:Config, bundlePath:string, env, checkDelay, appName) {
+  public deploy(config:Config, bundlePath:string, env, checkDelay, appName) {
     var taskList = nodemiral.taskList("Deploy app '" + appName + "' (linux)");
 
     let copyBundle = new CopyBundleDeployTask(config, bundlePath);
@@ -303,7 +303,7 @@ export default class LinuxTaskBuilder {
     return taskList;
   };
 
-  public static reconfig(env, appName) {
+  public reconfig(env, appName) {
     var taskList = nodemiral.taskList("Updating configurations (linux)");
 
     taskList.copy('Setting up Environment Variables', {
@@ -323,7 +323,7 @@ export default class LinuxTaskBuilder {
     return taskList;
   }
 
-  public static restart(appName) {
+  public restart(appName) {
     var taskList = nodemiral.taskList("Restarting Application (linux)");
 
     //restarting
@@ -334,7 +334,7 @@ export default class LinuxTaskBuilder {
     return taskList;
   }
 
-  public static stop(appName) {
+  public stop(appName) {
     var taskList = nodemiral.taskList("Stopping Application (linux)");
 
     //stopping
@@ -345,7 +345,7 @@ export default class LinuxTaskBuilder {
     return taskList;
   }
 
-  public static start(appName) {
+  public start(appName) {
     var taskList = nodemiral.taskList("Starting Application (linux)");
 
     //starting
