@@ -92,7 +92,7 @@ export interface Config {
   setup?: SetupConfig;
   deploy?: DeployConfig;
 
-  // We will convert servers into "_default_" => servers => [ .... ]
+  // We will convert servers into "default" => servers => [ .... ]
   sites?: SiteMapConfig;
 
   app: AppConfig;
@@ -185,10 +185,10 @@ export class ConfigParser {
       config.meteor.binary = _config.meteorBinary;
     }
 
-    // Transfer the default servers to "_default_" site If site name is not
-    // defined, we will use _default_ as the default site list.
+    // Transfer the default servers to "default" site If site name is not
+    // defined, we will use default as the default site list.
     if (typeof config.servers !== "undefined") {
-      config.sites["_default_"] = {
+      config.sites["default"] = {
         "servers": config.servers
       };
     }
