@@ -41,11 +41,6 @@ export interface SessionsInfo {
   taskListsBuilder: TaskBuilder;
 }
 
-export interface ExecutedResult {
-  // deployment : Deployment;
-  summary: any;
-}
-
 export interface SshAuthOptions {
   username: string;
   pem?: string;

@@ -13,7 +13,7 @@ import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
 import Deployment from './Deployment';
 import {CmdDeployOptions} from './options';
-import {SessionManager, SessionManagerConfig, SessionsInfo, SessionsMap, SummaryMapResult, SummaryMap, ExecutedResult} from './SessionManager';
+import {SessionManager, SessionManagerConfig, SessionsInfo, SessionsMap, SummaryMapResult, SummaryMap} from './SessionManager';
 import {Session} from './Session';
 
 import {Plugin} from "./Plugin";
@@ -137,24 +137,23 @@ export class Actions {
     }
   }
 
-  protected _executePararell(actionName:string, deployment : Deployment, args) : Promise<Array<ExecutedResult>> {
+  protected _executePararell(actionName:string, deployment : Deployment, args) : Promise<Array<SummaryMap>> {
     let sessionsMap = this.createSiteSessionsMap(this.config, null);
     let sessionInfoList = _.values(sessionsMap);
     let promises = _.map(sessionInfoList,
       (sessionsInfo:SessionsInfo) => {
-        return new Promise<ExecutedResult>(resolve => {
+        return new Promise<SummaryMap>(resolve => {
           let taskListsBuilder = getTaskBuilderByOs(sessionsInfo.os);
           let taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
-          taskList.run(sessionsInfo.sessions, (summaryMap:SummaryMapResult) => {
-            resolve({ summary: summaryMap } as ExecutedResult);
+          taskList.run(sessionsInfo.sessions, (summaryMap:SummaryMap) => {
+            resolve(summaryMap);
           });
         });
       });
-    return new Promise<Array<ExecutedResult>>(resolveCompleted => {
-      Promise.all(promises).then((mapResult : Array<ExecutedResult>) => {
-        let res = mapResult[0];
-        this.whenAfterCompleted(deployment, res.summary);
-        resolveCompleted(mapResult);
+    return new Promise<Array<SummaryMap>>(resolveCompleted => {
+      Promise.all(promises).then((mapResults : Array<SummaryMap>) => {
+        this.whenAfterCompleted(deployment, mapResults);
+        resolveCompleted(mapResults);
       });
     });
   }
@@ -176,15 +175,14 @@ export class Actions {
       });
     }
     let promises = _.map(sessionInfoList, (sessionInfo) => {
-      return new Promise<ExecutedResult>(resolve => {
+      return new Promise<SummaryMap>(resolve => {
         sessionInfo.taskList.run(sessionInfo.session, (summaryMap : SummaryMap) => {
-          resolve({ summary: summaryMap } as ExecutedResult);
+          resolve(summaryMap);
         });
       });
     });
-    return Promise.all(promises).then((mapResult : Array<ExecutedResult>) => {
-      let res = mapResult[0];
-      this.whenAfterCompleted(deployment, res.summary);
+    return Promise.all(promises).then((mapResult : Array<SummaryMap>) => {
+      this.whenAfterCompleted(deployment, mapResult);
     });
   }
 
@@ -261,7 +259,7 @@ export class Actions {
   /**
    * Return a callback, which is used when after deployed, clean up the files.
    */
-  public whenAfterDeployed(deployment : Deployment, summaryMaps) {
+  public whenAfterDeployed(deployment : Deployment, summaryMaps : Array<SummaryMap>) {
     return this.whenAfterCompleted(deployment, summaryMaps);
   }
 }
@@ -364,10 +362,10 @@ export class DeployAction extends Actions {
         this.whenBeforeDeploying(deployment);
         
         let sessionsMap = this.createSiteSessionsMap(this.config, null);
-        // An array of Promise<ExecutedResult>
-        let pendingTasks : Array<Promise<ExecutedResult>>
+        // An array of Promise<SummaryMap>
+        let pendingTasks : Array<Promise<SummaryMap>>
           = _.map(sessionsMap, (sessionsInfo : SessionsInfo) => {
-            return new Promise<ExecutedResult>( (resolveTask, rejectTask) => {
+            return new Promise<SummaryMap>( (resolveTask, rejectTask) => {
               let taskBuilder = getTaskBuilderByOs(sessionsInfo.os);
               let sessions = sessionsInfo.sessions;
 
@@ -378,14 +376,14 @@ export class DeployAction extends Actions {
                               env,
                               deployCheckWaitTime, appName);
               taskList.run(sessions, (summaryMap : SummaryMap) => {
-                resolveTask({ deployment: deployment, summary: summaryMap } as ExecutedResult);
+                resolveTask(summaryMap);
               });
             });
         });
 
         // whenAfterDeployed
-        Promise.all(pendingTasks).then( (results : Array<ExecutedResult>) => {
-          console.log("Array<ExecutedResult>", results);
+        Promise.all(pendingTasks).then( (results : Array<SummaryMap>) => {
+          console.log("Array<SummaryMap>", results);
           this.pluginRunner.whenAfterDeployed(deployment);
           if (options.clean) {
             console.log(`Cleaning up ${buildLocation}`);
