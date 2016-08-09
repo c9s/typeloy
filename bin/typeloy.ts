@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import path = require('path');
 import {readConfig} from '../src/config';
-import Actions from '../src/actions';
+import {Actions, DeployAction} from '../src/actions';
 import {CmdDeployOptions} from '../src/options';
 import {SessionManager, SessionsInfo, SessionsMap, SummaryMapResult, SummaryMap, ExecutedResult} from '../src/SessionManager';
 import Deployment from '../src/Deployment';
@@ -26,12 +26,12 @@ prog.command('deploy [tag] [sites...]')
   .option("-C, --no-clean", 'whether to clean up the bundle files.')
   .action((deploymentTag : string, sites : Array<string>, options : CmdDeployOptions) => {
     let config = readConfig(prog.config);
-    let actions = new Actions(config, cwd);
+    let action = new DeployAction(config, cwd);
     if (!deploymentTag) {
       deploymentTag = "v" + (new Date).getTime();
     }
     let deployment = Deployment.create(config, cwd, deploymentTag);
-    let afterDeploy = actions.deploy(deployment, sites, options);
+    let afterDeploy = action.run(deployment, sites, options);
     afterDeploy.then((res : ExecutedResult) => {
       console.log("After deploy", res);
     });

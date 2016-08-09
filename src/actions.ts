@@ -108,23 +108,9 @@ function hasSummaryMapErrors(summaryMap) {
 }
 
 
-/*
- // For later refactoring
-export class DeployAction {
-  protected deployment : Deployment;
-
-  constructor(deployment : Deployment) {
-    this.deployment = deployment;
-  }
-
-  public run(sites : Array<string>, options:CmdDeployOptions) {
-
-  }
-}
-*/
 
 
-export default class Actions {
+export class Actions {
 
   public cwd : string;
 
@@ -169,7 +155,7 @@ export default class Actions {
    *
   * @param {object} config (the mup config object)
   */
-  private _createSiteSessionsMap(config : Config, siteName : string) : SessionsMap {
+  protected createSiteSessionsMap(config : Config, siteName : string) : SessionsMap {
 
     if (!siteName) {
       siteName = "default";
@@ -177,7 +163,7 @@ export default class Actions {
     return this.sessionManager.createOsMap(config.sites[siteName].servers);
   }
 
-  private _showKadiraLink() {
+  protected _showKadiraLink() {
     var versionsFile = path.join((<AppConfig>this.config.app).directory, '.meteor/versions');
     if (fs.existsSync(versionsFile)) {
       var packages = fs.readFileSync(versionsFile, 'utf-8');
@@ -192,8 +178,8 @@ export default class Actions {
     }
   }
 
-  private _executePararell(actionName:string, deployment : Deployment, args) : Promise<ExecutedResult> {
-    let sessionsMap = this._createSiteSessionsMap(this.config, null);
+  protected _executePararell(actionName:string, deployment : Deployment, args) : Promise<ExecutedResult> {
+    let sessionsMap = this.createSiteSessionsMap(this.config, null);
     let sessionInfoList = _.values(sessionsMap);
     let promises = _.map(sessionInfoList,
       (sessionsInfo:SessionsInfo) => {
@@ -221,105 +207,10 @@ export default class Actions {
     return this._executePararell("setup", deployment, [this.config]);
   }
 
-  public deploy(deployment : Deployment, sites:Array<string>, options:CmdDeployOptions) {
-    this._showKadiraLink();
-    const getDefaultBuildDirName = function(appName:string, tag:string) : string {
-      return (appName || "meteor-") + "-" + (tag || uuid.v4());
-    };
-
-    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, deployment.tag));
-    const bundlePath = options.bundleFile || path.resolve(buildLocation, 'bundle.tar.gz');
-
-    console.log('Deployment Tag:', deployment.tag);
-    console.log('Build Location:', buildLocation);
-    console.log('Bundle Path:', bundlePath);
-
-    // spawn inherits env vars from process.env
-    // so we can simply set them like this
-    process.env.BUILD_LOCATION = buildLocation;
-
-    var deployCheckWaitTime = this.config.deploy.checkDelay;
-
-    var appConfig = this.config.app;
-    var appName = appConfig.name;
-    var appPath = appConfig.directory;
-    var meteorBinary = this.config.meteor.binary;
-
-    console.log('Meteor Path: ' + meteorBinary);
-    console.log('Building Started: ' + this.config.app.name);
-
-    // Handle build
-    let afterBuild = new Promise( (resolveBuild, rejectBuild) => {
-      buildApp(appPath, meteorBinary, buildLocation, bundlePath, () => {
-        this.whenBeforeBuilding(deployment);
-      }, (err:Error) => {
-        if (err) {
-          rejectBuild(err);
-        }
-        resolveBuild();
-      });
-    });
-
-    let afterDeploy = new Promise( (resolveDeploy, rejectDeploy) => {
-
-      afterBuild.catch( (reason) => {
-        console.error("rejectDeploy", reason);
-        rejectDeploy(reason);
-      });
-
-      afterBuild.then(() => {
-
-        // We only want to fire once for now.
-        this.whenBeforeDeploying(deployment);
-        
-        let sessionsMap = this._createSiteSessionsMap(this.config, null);
-        // An array of Promise<ExecutedResult>
-        let pendingTasks : Array<Promise<ExecutedResult>>
-          = _.map(sessionsMap, (sessionsInfo : SessionsInfo) => {
-            return new Promise<ExecutedResult>( (resolveTask, rejectTask) => {
-              let taskBuilder = getTaskBuilderByOs(sessionsInfo.os);
-              let sessions = sessionsInfo.sessions;
-
-              let env = _.extend({}, this.config.env);
-              let taskList = taskBuilder.deploy(
-                              this.config,
-                              bundlePath,
-                              env,
-                              deployCheckWaitTime, appName);
-              taskList.run(sessions, (summaryMap : SummaryMap) => {
-                resolveTask({ deployment: deployment, error: null, summary: summaryMap } as ExecutedResult);
-              });
-            });
-        });
-
-        // whenAfterDeployed
-        Promise.all(pendingTasks).then( (results : Array<ExecutedResult>) => {
-          console.log("Array<ExecutedResult>", results);
-          let res = results[0];
-          let error = res.error;
-          let summaryMaps = res.summary;
-          /*
-          this.pluginRunner.whenAfterDeployed(deployment);
-          if (options.clean) {
-            console.log(`Cleaning up ${buildLocation}`);
-            rimraf.sync(buildLocation);
-          }
-          this.whenAfterDeployed(deployment, buildLocation, options);
-          */
-          resolveDeploy(res);
-        }).catch( (reason) => {
-          rejectDeploy(reason);
-          console.error("Failed", reason);
-        });
-      });
-    });
-    return afterDeploy;
-  }
-
   public reconfig(deployment: Deployment) {
     var self = this;
     let sessionInfoList = [];
-    let sessionsMap = this._createSiteSessionsMap(this.config, null);
+    let sessionsMap = this.createSiteSessionsMap(this.config, null);
     for (let os in sessionsMap) {
       let sessionsInfo : SessionsInfo = sessionsMap[os];
       sessionsInfo.sessions.forEach( (session) => {
@@ -374,7 +265,7 @@ export default class Actions {
       }
     }
 
-    let sessionsMap = this._createSiteSessionsMap(this.config, null);
+    let sessionsMap = this.createSiteSessionsMap(this.config, null);
     for (let os in sessionsMap) {
       let sessionsInfo : SessionsInfo = sessionsMap[os];
       sessionsInfo.sessions.forEach(function(session) {
@@ -457,3 +348,102 @@ export default class Actions {
   }
 }
 
+
+
+
+export class DeployAction extends Actions {
+  public run(deployment : Deployment, sites:Array<string>, options:CmdDeployOptions) {
+    this._showKadiraLink();
+    const getDefaultBuildDirName = function(appName:string, tag:string) : string {
+      return (appName || "meteor-") + "-" + (tag || uuid.v4());
+    };
+
+    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, deployment.tag));
+    const bundlePath = options.bundleFile || path.resolve(buildLocation, 'bundle.tar.gz');
+
+    console.log('Deployment Tag:', deployment.tag);
+    console.log('Build Location:', buildLocation);
+    console.log('Bundle Path:', bundlePath);
+
+    // spawn inherits env vars from process.env
+    // so we can simply set them like this
+    process.env.BUILD_LOCATION = buildLocation;
+
+    var deployCheckWaitTime = this.config.deploy.checkDelay;
+
+    var appConfig = this.config.app;
+    var appName = appConfig.name;
+    var appPath = appConfig.directory;
+    var meteorBinary = this.config.meteor.binary;
+
+    console.log('Meteor Path: ' + meteorBinary);
+    console.log('Building Started: ' + this.config.app.name);
+
+    // Handle build
+    let afterBuild = new Promise( (resolveBuild, rejectBuild) => {
+      buildApp(appPath, meteorBinary, buildLocation, bundlePath, () => {
+        this.whenBeforeBuilding(deployment);
+      }, (err:Error) => {
+        if (err) {
+          rejectBuild(err);
+        }
+        resolveBuild();
+      });
+    });
+
+    let afterDeploy = new Promise( (resolveDeploy, rejectDeploy) => {
+
+      afterBuild.catch( (reason) => {
+        console.error("rejectDeploy", reason);
+        rejectDeploy(reason);
+      });
+
+      afterBuild.then(() => {
+
+        // We only want to fire once for now.
+        this.whenBeforeDeploying(deployment);
+        
+        let sessionsMap = this.createSiteSessionsMap(this.config, null);
+        // An array of Promise<ExecutedResult>
+        let pendingTasks : Array<Promise<ExecutedResult>>
+          = _.map(sessionsMap, (sessionsInfo : SessionsInfo) => {
+            return new Promise<ExecutedResult>( (resolveTask, rejectTask) => {
+              let taskBuilder = getTaskBuilderByOs(sessionsInfo.os);
+              let sessions = sessionsInfo.sessions;
+
+              let env = _.extend({}, this.config.env);
+              let taskList = taskBuilder.deploy(
+                              this.config,
+                              bundlePath,
+                              env,
+                              deployCheckWaitTime, appName);
+              taskList.run(sessions, (summaryMap : SummaryMap) => {
+                resolveTask({ deployment: deployment, error: null, summary: summaryMap } as ExecutedResult);
+              });
+            });
+        });
+
+        // whenAfterDeployed
+        Promise.all(pendingTasks).then( (results : Array<ExecutedResult>) => {
+          console.log("Array<ExecutedResult>", results);
+          let res = results[0];
+          let error = res.error;
+          let summaryMaps = res.summary;
+          /*
+          this.pluginRunner.whenAfterDeployed(deployment);
+          if (options.clean) {
+            console.log(`Cleaning up ${buildLocation}`);
+            rimraf.sync(buildLocation);
+          }
+          this.whenAfterDeployed(deployment, buildLocation, options);
+          */
+          resolveDeploy(res);
+        }).catch( (reason) => {
+          rejectDeploy(reason);
+          console.error("Failed", reason);
+        });
+      });
+    });
+    return afterDeploy;
+  }
+}
