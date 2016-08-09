@@ -1,5 +1,6 @@
 
 
+import {ServerConfig} from "./config";
 /*
 Session {
   _host: '...',
@@ -22,6 +23,10 @@ Session {
      os: 'linux' } }
 */
 export interface Session {
+
+  _serverConfig: ServerConfig;
+
+
   /**
    * copy data from src to dest
    */

@@ -387,14 +387,12 @@ export class DeployAction extends Actions {
         // whenAfterDeployed
         Promise.all(pendingTasks).then( (results : Array<ExecutedResult>) => {
           console.log("Array<ExecutedResult>", results);
-          let res = results[0];
-          let summaryMaps = res.summary;
           this.pluginRunner.whenAfterDeployed(deployment);
           if (options.clean) {
             console.log(`Cleaning up ${buildLocation}`);
             rimraf.sync(buildLocation);
           }
-          resolveDeploy(res);
+          resolveDeploy(results);
         }).catch( (reason) => {
           rejectDeploy(reason);
           console.error("Failed", reason);

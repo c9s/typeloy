@@ -8,9 +8,7 @@ import Deployment from "./Deployment";
 import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
-
-
-
+import {Session} from "./Session";
 
 export interface SummaryMap {
   // summaryMap[session._host] = {error: err, history: history};
@@ -76,7 +74,7 @@ export class SessionManager {
     this.config = config;
   }
 
-  public create(server : ServerConfig) {
+  public create(server : ServerConfig) : Session {
     const host = server.host;
 
     /// The auth object is used for nodemiral to connect ssh servers.
@@ -96,7 +94,7 @@ export class SessionManager {
       nodemiralOptions['ssh'] = _.extend(this.config.ssh || {}, server.sshOptions);
     }
 
-    let session = nodemiral.session(host, auth, nodemiralOptions);
+    let session : Session = nodemiral.session(host, auth, nodemiralOptions);
     session._serverConfig = server;
     return session;
   }
