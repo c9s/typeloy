@@ -86,6 +86,7 @@ export class BaseAction {
     return this.sessionManager.createOsMap(config.sites[siteName].servers);
   }
 
+  // Extract this to Kadira plugin
   protected _showKadiraLink() {
     var versionsFile = path.join((<AppConfig>this.config.app).directory, '.meteor/versions');
     if (fs.existsSync(versionsFile)) {
@@ -101,7 +102,7 @@ export class BaseAction {
     }
   }
 
-  protected _executePararell(actionName:string, deployment : Deployment, args) : Promise<Array<SummaryMap>> {
+  protected executePararell(actionName:string, deployment : Deployment, args) : Promise<Array<SummaryMap>> {
     let sessionsMap = this.createSiteSessionsMap(this.config, null);
     let sessionInfoList = _.values(sessionsMap);
     let promises = _.map(sessionInfoList,
@@ -122,33 +123,6 @@ export class BaseAction {
     });
   }
 
-  public reconfig(deployment: Deployment) {
-    var self = this;
-    let sessionInfoList = [];
-    let sessionsMap = this.createSiteSessionsMap(this.config, null);
-    for (let os in sessionsMap) {
-      let sessionGroup : SessionGroup = sessionsMap[os];
-      sessionGroup.sessions.forEach( (session) => {
-        var env = _.extend({}, this.config.env, session._serverConfig.env);
-        let taskListsBuilder = this.getTaskBuilderByOs(sessionGroup.os);
-        var taskList = taskListsBuilder.reconfig(env, this.config.appName);
-        sessionInfoList.push({
-          'taskList': taskList,
-          'session': session
-        });
-      });
-    }
-    let promises = _.map(sessionInfoList, (sessionInfo) => {
-      return new Promise<SummaryMap>(resolve => {
-        sessionInfo.taskList.run(sessionInfo.session, (summaryMap : SummaryMap) => {
-          resolve(summaryMap);
-        });
-      });
-    });
-    return Promise.all(promises).then((mapResult : Array<SummaryMap>) => {
-      this.whenAfterCompleted(deployment, mapResult);
-    });
-  }
 
 
 
