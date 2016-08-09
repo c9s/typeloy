@@ -20,24 +20,8 @@ var os = require('os');
 require('colors');
 
 
-/**
- * Return the task builder by operating system name.
- */
-export function getTaskBuilderByOs(os:string) : TaskBuilder {
-  switch (os) {
-    case "linux":
-      return new LinuxTaskBuilder;
-    case "sunos":
-      return new SunOSTaskBuilder;
-    default:
-      throw new Error("Unsupported operating system.");
-  }
-}
 
 const kadiraRegex = /^meteorhacks:kadira/m;
-
-
-
 
 
 export class Actions {
@@ -74,6 +58,19 @@ export class Actions {
   }
 
 
+  /**
+  * Return the task builder by operating system name.
+  */
+  protected getTaskBuilderByOs(os:string) : TaskBuilder {
+    switch (os) {
+      case "linux":
+        return new LinuxTaskBuilder;
+      case "sunos":
+        return new SunOSTaskBuilder;
+      default:
+        throw new Error("Unsupported operating system.");
+    }
+  }
 
   /**
    * Create sessions maps for only one site. It's possible to have more than
@@ -114,7 +111,7 @@ export class Actions {
     let promises = _.map(sessionInfoList,
       (sessionsInfo:SessionsInfo) => {
         return new Promise<SummaryMap>(resolve => {
-          let taskListsBuilder = getTaskBuilderByOs(sessionsInfo.os);
+          let taskListsBuilder = this.getTaskBuilderByOs(sessionsInfo.os);
           let taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
           taskList.run(sessionsInfo.sessions, (summaryMap:SummaryMap) => {
             resolve(summaryMap);
@@ -137,7 +134,7 @@ export class Actions {
       let sessionsInfo : SessionsInfo = sessionsMap[os];
       sessionsInfo.sessions.forEach( (session) => {
         var env = _.extend({}, this.config.env, session._serverConfig.env);
-        let taskListsBuilder = getTaskBuilderByOs(sessionsInfo.os);
+        let taskListsBuilder = this.getTaskBuilderByOs(sessionsInfo.os);
         var taskList = taskListsBuilder.reconfig(env, this.config.appName);
         sessionInfoList.push({
           'taskList': taskList,
@@ -224,14 +221,10 @@ export class Actions {
   }
 }
 
-export class RestartAction extends Actions {
-  public run(deployment : Deployment) {
-    return this._executePararell("restart", deployment, [this.config.appName]);
-  }
-}
 
 export * from "./actions/StartAction";
 export * from "./actions/StopAction";
+export * from "./actions/RestartAction";
 export * from "./actions/LogsAction";
 export * from "./actions/SetupAction";
 export * from "./actions/DeployAction";
