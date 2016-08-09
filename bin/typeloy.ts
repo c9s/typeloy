@@ -1,15 +1,11 @@
 #!/usr/bin/env node
 import path = require('path');
 import {readConfig} from '../src/config';
-import {
-  Actions,
-  DeployAction,
-  SetupAction,
-  LogsAction,
-  RestartAction,
-  StopAction,
-  StartAction
-} from '../src/actions';
+
+import { BaseAction, DeployAction, SetupAction, StartAction, RestartAction, StopAction, LogsAction} from '../src/actions';
+
+
+
 import {CmdDeployOptions} from '../src/options';
 import {SessionManager, SessionsInfo, SessionsMap} from '../src/SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../src/SummaryMap";
@@ -36,16 +32,19 @@ prog.command('deploy [tag] [sites...]')
   .option("-C, --no-clean", 'whether to clean up the bundle files.')
   .action((deploymentTag : string, sites : Array<string>, options : CmdDeployOptions) => {
     let config = readConfig(prog.config);
-    let action = new DeployAction(config, cwd);
+    let a = new DeployAction(config, cwd);
     if (!deploymentTag) {
       deploymentTag = "v" + (new Date).getTime();
     }
     let deployment = Deployment.create(config, cwd, deploymentTag);
-    let afterDeploy = action.run(deployment, sites, options);
+    let afterDeploy = a.run(deployment, sites, options);
     afterDeploy.then((mapResult : Array<SummaryMap>) => {
       console.log("After deploy", mapResult);
       console.log(JSON.stringify(mapResult, null, "  "));
-      var errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
+      // var errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
+    });
+    afterDeploy.catch( (res) => {
+      console.error(res);
     });
   })
   ;
@@ -72,7 +71,7 @@ prog.command('init')
   .description('init the mup.json config.')
   .action( (env, options) => {
     let config = readConfig(prog.config);
-    let actions = new Actions(config, cwd);
+    let actions = new BaseAction(config, cwd);
     actions.init();
   });
 

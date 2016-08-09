@@ -1,4 +1,4 @@
-import {Actions} from '../actions';
+import {BaseAction} from './BaseAction';
 import {Config} from '../config';
 import Deployment from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionsInfo, SessionsMap} from '../SessionManager';
@@ -7,7 +7,7 @@ interface LogOptions {
   tail?: boolean;
 }
 
-export class LogsAction extends Actions {
+export class LogsAction extends BaseAction {
   public run(options:LogOptions) {
     var self = this;
     var tailOptions = [];
