@@ -1,9 +1,10 @@
 import {Config} from "./config";
-import _ = require('underscore');
 
 import {GitRevCollector, GitRevInfo} from "./collectors";
 import Deployment from "./Deployment";
 import {Plugin} from "./Plugin";
+
+var _ = require('underscore');
 
 export class PluginRunner {
 
@@ -25,34 +26,34 @@ export class PluginRunner {
     }
   }
 
-  public whenBeforeBuilding(deployment:Deployment) {
+  public whenBeforeBuilding(deployment : Deployment) {
     _.each(this.plugins, (p) => { p.whenBeforeBuilding(deployment); });
   }
 
-  public whenBeforeDeploying(deployment:Deployment) {
+  public whenBeforeDeploying(deployment : Deployment) {
     _.each(this.plugins, (p) => { p.whenBeforeDeploying(deployment); });
   }
 
-  public whenSuccess(deployment:Deployment) : Array<Promise<any>> {
-    let allPromises = [];
-    for (const p of this.plugins) {
-      let promise = p.whenSuccess(deployment);
-      if (promise) {
-        allPromises.push(promise);
-      }
+  public whenSuccess(deployment : Deployment) : Promise<any> {
+    console.log("whenSuccess");
+    let promises = _.map(this.plugins, (p) => {
+      return p.whenSuccess(deployment);
+    }).compact();
+    if (promises.length == 0) {
+      return;
     }
-    return allPromises;
+    return Promise.all(promises);
   }
 
-  public whenFailure(deployment:Deployment) : Array<Promise<any>> {
-    let allPromises = [];
-    for (const p of this.plugins) {
-      let promise = p.whenFailure(deployment);
-      if (promise) {
-        allPromises.push(promise);
-      }
+  public whenFailure(deployment:Deployment) : Promise<any> {
+    console.log("whenFailure");
+    let promises = _.map(this.plugins, (p) => {
+      return p.whenFailure(deployment);
+    }).compact();
+    if (promises.length == 0) {
+      return;
     }
-    return allPromises;
+    return Promise.all(promises);
   }
 
   public whenAfterCompleted(deployment:Deployment) {
