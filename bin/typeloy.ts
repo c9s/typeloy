@@ -3,6 +3,7 @@ import path = require('path');
 import {readConfig} from '../src/config';
 import Actions from '../src/actions';
 import {CmdDeployOptions} from '../src/options';
+import {SessionManager, SessionsInfo, SessionsMap, SummaryMapResult, SummaryMap, ExecutedResult} from '../src/SessionManager';
 import Deployment from '../src/Deployment';
 import debug from '../src/Debug';
 require('colors');
@@ -30,7 +31,10 @@ prog.command('deploy [tag] [sites...]')
       deploymentTag = "v" + (new Date).getTime();
     }
     let deployment = Deployment.create(config, cwd, deploymentTag);
-    actions.deploy(deployment, sites, options);
+    let afterDeploy = actions.deploy(deployment, sites, options);
+    afterDeploy.then((res : ExecutedResult) => {
+      console.log("After deploy", res);
+    });
   })
   ;
 
