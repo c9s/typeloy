@@ -43,7 +43,6 @@ export interface SessionsInfo {
 
 export interface ExecutedResult {
   deployment : Deployment;
-  error : any;
   summary: any;
 }
 
