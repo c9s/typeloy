@@ -13,7 +13,7 @@ import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
 import Deployment from './Deployment';
 import {CmdDeployOptions} from './options';
-import {SessionManager, SessionsInfo, SessionsMap} from './SessionManager';
+import {SessionManager, SessionManagerConfig, SessionsInfo, SessionsMap, SummaryMapResult, SummaryMap, ExecutedResult} from './SessionManager';
 
 import {Plugin} from "./Plugin";
 import {PluginRunner} from "./PluginRunner";
@@ -132,11 +132,18 @@ export default class Actions {
 
   public sessionsMap : SessionsMap;
 
+  protected sessionManager : SessionManager;
+
   protected pluginRunner : PluginRunner;
 
   constructor(config : Config, cwd : string) {
     this.cwd = cwd;
     this.config = config;
+
+    this.sessionManager = new SessionManager({
+      "keepAlive": false
+    } as SessionManagerConfig);
+
     this.sessionsMap = this._createSiteSessionsMap(config, null);
 
     this.pluginRunner = new PluginRunner(config, cwd);
@@ -171,7 +178,7 @@ export default class Actions {
     if (!siteName) {
       siteName = "default";
     }
-    return SessionManager.createOsMap(config.sites[siteName].servers);
+    return this.sessionManager.createOsMap(config.sites[siteName].servers);
   }
 
   private _showKadiraLink() {
@@ -189,30 +196,36 @@ export default class Actions {
     }
   }
 
-  private _executePararell(actionName:string, deployment : Deployment, args) {
-    var sessionInfoList = _.values(this.sessionsMap);
-    async.map(
-      sessionInfoList,
-      // callback: the trigger method
-      (sessionsInfo:SessionsInfo, callback) => {
-        let taskList = sessionsInfo.taskListsBuilder[actionName]
-          .apply(sessionsInfo.taskListsBuilder, args);
-        taskList.run(sessionsInfo.sessions, function(summaryMap) {
-          callback(deployment, null, summaryMap);
+  private _executePararell(actionName:string, deployment : Deployment, args) : Promise<ExecutedResult> {
+    let sessionInfoList = _.values(this.sessionsMap);
+    let promises = _.map(sessionInfoList,
+      (sessionsInfo:SessionsInfo) => {
+        return new Promise<ExecutedResult>(resolve => {
+          // let taskList = getTaskBuilderByO(sessionsInfo.os);
+          let taskList = sessionsInfo.taskListsBuilder[actionName].apply(sessionsInfo.taskListsBuilder, args);
+          taskList.run(sessionsInfo.sessions, (summaryMap:SummaryMapResult) => {
+            resolve({ deployment: deployment,
+                      error: null,
+                      summary: summaryMap } as ExecutedResult);
+          });
         });
-      },
-      this.whenAfterCompleted
-    );
+      });
+    return new Promise<ExecutedResult>(resolveCompleted => {
+      Promise.all(promises).then((mapResult : Array<ExecutedResult>) => {
+        let res = mapResult[0];
+        this.whenAfterCompleted(res.deployment, res.error, res.summary);
+        resolveCompleted(res);
+      });
+    });
   }
 
-  public setup(deployment : Deployment) {
+  public setup(deployment : Deployment) : Promise<any> {
     this._showKadiraLink();
-    this._executePararell("setup", deployment, [this.config]);
+    return this._executePararell("setup", deployment, [this.config]);
   }
 
   public deploy(deployment : Deployment, sites:Array<string>, options:CmdDeployOptions) {
     this._showKadiraLink();
-
     const getDefaultBuildDirName = function(appName:string, tag:string) : string {
       return (appName || "meteor-") + "-" + (tag || uuid.v4());
     };
@@ -238,87 +251,110 @@ export default class Actions {
     console.log('Meteor Path: ' + meteorBinary);
     console.log('Building Started: ' + this.config.app.name);
 
-    buildApp(appPath, meteorBinary, buildLocation, bundlePath, () => {
-      this.whenBeforeBuilding(deployment);
-    } , (err:Error) => {
-      if (err) {
-        throw err;
-      }
-      var sessionsData = [];
-      _.forEach(this.sessionsMap, (sessionsInfo:SessionsInfo) => {
-        var taskListsBuilder = sessionsInfo.taskListsBuilder;
-        _.forEach(sessionsInfo.sessions, (session) => {
-          sessionsData.push({
-            taskListsBuilder: taskListsBuilder,
-            session: session
-          });
-        });
+    // Handle build
+    let afterBuild = new Promise( (resolveBuild, rejectBuild) => {
+      buildApp(appPath, meteorBinary, buildLocation, bundlePath, () => {
+        this.whenBeforeBuilding(deployment);
+      }, (err:Error) => {
+        if (err) {
+          rejectBuild(err);
+        }
+        resolveBuild();
+      });
+    });
+
+    let afterDeploy = new Promise( (resolveDeploy, rejectDeploy) => {
+
+      afterBuild.catch( (reason) => {
+        console.error("rejectDeploy", reason);
+        rejectDeploy(reason);
       });
 
-      // We only want to fire once for now.
-      this.whenBeforeDeploying(deployment);
+      afterBuild.then(() => {
 
-      async.mapSeries(
-        sessionsData,
-        (sessionData, callback) => {
-          console.log('sessionData', sessionData);
+        // We only want to fire once for now.
+        this.whenBeforeDeploying(deployment);
+        
+        // An array of Promise<ExecutedResult>
+        let pendingTasks : Array<Promise<ExecutedResult>>
+          = _.map(this.sessionsMap, (sessionsInfo : SessionsInfo) => {
+            return new Promise<ExecutedResult>( (resolveTask, rejectTask) => {
+              let taskBuilder = getTaskBuilderByOs(sessionsInfo.os);
+              let sessions = sessionsInfo.sessions;
 
-          let session = sessionData.session;
-          let taskListsBuilder = sessionData.taskListsBuilder;
-          let env = _.extend({}, this.config.env, session._serverConfig.env);
+              let env = _.extend({}, this.config.env);
+              let taskList = taskBuilder.deploy(
+                              this.config,
+                              bundlePath,
+                              env,
+                              deployCheckWaitTime, appName);
+              taskList.run(sessions, (summaryMap : SummaryMap) => {
+                resolveTask({ deployment: deployment, error: null, summary: summaryMap } as ExecutedResult);
+              });
+            });
+        });
 
-          // Build deploy tasks
-          let taskList = taskListsBuilder.deploy(
-                          this.config,
-                          bundlePath,
-                          env,
-                          deployCheckWaitTime, appName);
-          taskList.run(session, (summaryMap) => {
-            callback(null, summaryMap);
-          });
-        },
-        // When all deployment was done, this method will be triggered.
-        this.whenAfterDeployed(deployment, buildLocation, options)
-      );
+        // whenAfterDeployed
+        Promise.all(pendingTasks).then( (results : Array<ExecutedResult>) => {
+          console.log("Array<ExecutedResult>", results);
+          let res = results[0];
+          let error = res.error;
+          let summaryMaps = res.summary;
+          /*
+          this.pluginRunner.whenAfterDeployed(deployment);
+          if (options.clean) {
+            console.log(`Cleaning up ${buildLocation}`);
+            rimraf.sync(buildLocation);
+          }
+          this.whenAfterDeployed(deployment, buildLocation, options);
+          */
+          resolveDeploy(res);
+        }).catch( (reason) => {
+          rejectDeploy(reason);
+          console.error("Failed", reason);
+        });
+      });
     });
+    return afterDeploy;
   }
 
   public reconfig(deployment: Deployment) {
     var self = this;
-    var sessionInfoList = [];
-    for (var os in this.sessionsMap) {
+    let sessionInfoList = [];
+    for (let os in this.sessionsMap) {
       let sessionsInfo : SessionsInfo = this.sessionsMap[os];
-      sessionsInfo.sessions.forEach((session) => {
+      sessionsInfo.sessions.forEach( (session) => {
         var env = _.extend({}, this.config.env, session._serverConfig.env);
         var taskList = sessionsInfo.taskListsBuilder.reconfig(env, this.config.appName);
         sessionInfoList.push({
-          taskList: taskList,
-          session: session
+          'taskList': taskList,
+          'session': session
         });
       });
     }
-    async.mapSeries(
-      sessionInfoList,
-      (sessionInfo, callback) => {
-        sessionInfo.taskList.run(sessionInfo.session, (summaryMap) => {
-          console.log(summaryMap);
-          callback(deployment, null, summaryMap);
+    let promises = _.map(sessionInfoList, (sessionInfo) => {
+      return new Promise<ExecutedResult>(resolve => {
+        sessionInfo.taskList.run(sessionInfo.session, (summaryMap : SummaryMap) => {
+          resolve({ deployment: deployment, error: null, summary: summaryMap } as ExecutedResult);
         });
-      },
-      this.whenAfterCompleted
-    );
+      });
+    });
+    return Promise.all(promises).then((mapResult : Array<ExecutedResult>) => {
+      let res = mapResult[0];
+      this.whenAfterCompleted(res.deployment, res.error, res.summary);
+    });
   }
 
   public restart(deployment : Deployment) {
-    this._executePararell("restart", deployment, [this.config.appName]);
+    return this._executePararell("restart", deployment, [this.config.appName]);
   }
 
   public stop(deployment : Deployment) {
-    this._executePararell("stop", deployment, [this.config.appName]);
+    return this._executePararell("stop", deployment, [this.config.appName]);
   };
 
   public start(deployment : Deployment) {
-    this._executePararell("start", deployment, [this.config.appName]);
+    return this._executePararell("start", deployment, [this.config.appName]);
   }
 
   public logs(options:LogOptions) {
@@ -327,26 +363,31 @@ export default class Actions {
     if (options.tail) {
       tailOptions.push('-f');
     }
-    for (var os in this.sessionsMap) {
-      var sessionsInfo : SessionsInfo = this.sessionsMap[os];
+
+    function tailCommand(os : string, config : Config, tailOptions) {
+      if (os == 'linux') {
+        return 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + config.appName + '.log';
+      } else if (os == 'sunos') {
+        return 'sudo tail ' + tailOptions.join(' ') +
+          ' /var/svc/log/site-' + config.appName + '\\:default.log';
+      } else {
+        throw new Error("Unsupported OS.");
+      }
+    }
+
+    for (let os in this.sessionsMap) {
+      let sessionsInfo : SessionsInfo = this.sessionsMap[os];
       sessionsInfo.sessions.forEach(function(session) {
-        var hostPrefix = '[' + session._host + '] ';
-        var opts = {
-          onStdout: function(data) {
+        let hostPrefix = '[' + session._host + '] ';
+        let command = tailCommand(os, this.config, tailOptions);
+        session.execute(command, {
+          onStdout: (data) => {
             process.stdout.write(hostPrefix + data.toString());
           },
-          onStderr: function(data) {
+          onStderr: (data) => {
             process.stderr.write(hostPrefix + data.toString());
           }
-        };
-
-        if (os == 'linux') {
-          var command = 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + self.config.appName + '.log';
-        } else if(os == 'sunos') {
-          var command = 'sudo tail ' + tailOptions.join(' ') +
-            ' /var/svc/log/site-' + self.config.appName + '\\:default.log';
-        }
-        session.execute(command, opts);
+        });
       });
     }
   }
@@ -363,8 +404,8 @@ export default class Actions {
       process.exit(1);
     }
 
-    var exampleJson = path.resolve(__dirname, '../example/typeloy.json');
-    var exampleSettingsJson = path.resolve(__dirname, '../example/settings.json');
+    let exampleJson = path.resolve(__dirname, '../example/typeloy.json');
+    let exampleSettingsJson = path.resolve(__dirname, '../example/settings.json');
 
     copyFile(exampleJson, destConfigJson);
     copyFile(exampleSettingsJson, destSettingsJson);
@@ -375,12 +416,12 @@ export default class Actions {
     }
   }
 
-  whenBeforeBuilding(deployment : Deployment) {
-    this.pluginRunner.whenBeforeBuilding(deployment);
+  protected whenBeforeBuilding(deployment : Deployment) {
+    return this.pluginRunner.whenBeforeBuilding(deployment);
   }
 
-  whenBeforeDeploying(deployment : Deployment) {
-    this.pluginRunner.whenBeforeDeploying(deployment);
+  protected whenBeforeDeploying(deployment : Deployment) {
+    return this.pluginRunner.whenBeforeDeploying(deployment);
   }
 
   /**
@@ -389,19 +430,15 @@ export default class Actions {
   * Right now we don't have things to do, just exit the process with the error
   * code.
   */
-  whenAfterCompleted(deployment : Deployment, error, summaryMaps) {
+  protected whenAfterCompleted(deployment : Deployment, error, summaryMaps) {
     this.pluginRunner.whenAfterCompleted(deployment);
     var errorCode = error || haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
     let promises;
     if (errorCode != 0) {
-      promises = this.whenFailure(deployment, error, summaryMaps);
+      this.whenFailure(deployment, error, summaryMaps);
     } else {
-      promises = this.whenSuccess(deployment, error, summaryMaps);
+      this.whenSuccess(deployment, error, summaryMaps);
     }
-    Promise.all(promises).then(() => {
-      // XXX:
-      process.exit(errorCode);
-    });
   }
 
   public whenSuccess(deployment : Deployment, error, summaryMaps) {
@@ -415,15 +452,8 @@ export default class Actions {
   /**
    * Return a callback, which is used when after deployed, clean up the files.
    */
-  whenAfterDeployed(deployment : Deployment, buildLocation:string, options:CmdDeployOptions) {
-    return (error, summaryMaps) => {
-      this.pluginRunner.whenAfterDeployed(deployment);
-      if (options.clean) {
-        console.log(`Cleaning up ${buildLocation}`);
-        rimraf.sync(buildLocation);
-      }
-      return this.whenAfterCompleted(deployment, error, summaryMaps);
-    };
+  whenAfterDeployed(deployment : Deployment, error, summaryMaps) {
+    return this.whenAfterCompleted(deployment, error, summaryMaps);
   }
 }
 

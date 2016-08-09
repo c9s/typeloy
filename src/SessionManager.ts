@@ -4,9 +4,21 @@ var nodemiral = require('nodemiral');
 var path = require('path');
 
 import {Config, AppConfig, ServerConfig} from './config';
+import Deployment from "./Deployment";
 import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
+
+
+export interface SummaryMap {
+  // summaryMap[session._host] = {error: err, history: history};
+  [host: string] : SummaryMapResult
+}
+
+export interface SummaryMapResult {
+  error: any;
+  history: any;
+}
 
 /**
  * Return the task builder by operating system name.
@@ -29,6 +41,12 @@ export interface SessionsInfo {
   taskListsBuilder: TaskBuilder;
 }
 
+export interface ExecutedResult {
+  deployment : Deployment;
+  error : any;
+  summary: any;
+}
+
 export interface SshAuthOptions {
   username: string;
   pem?: string;
@@ -39,8 +57,25 @@ export interface SessionsMap {
   [os:string]: SessionsInfo;
 }
 
+
+
+export interface SessionManagerConfig {
+  ssh? : any;
+  keepAlive? : boolean;
+}
+
 export class SessionManager {
-  public static create(server : ServerConfig) {
+
+  protected config : SessionManagerConfig;
+
+  /**
+   * @param config session config
+   */
+  constructor(config : SessionManagerConfig) {
+    this.config = config;
+  }
+
+  public create(server : ServerConfig) {
     const host = server.host;
 
     /// The auth object is used for nodemiral to connect ssh servers.
@@ -54,19 +89,21 @@ export class SessionManager {
     }
 
     // create options for nodemiral
-    const nodemiralOptions = {
-      ssh: server.sshOptions,
-      keepAlive: true
-    };
+    const nodemiralOptions = _.extend(this.config, { });
+
+    if (server.sshOptions) {
+      nodemiralOptions['ssh'] = _.extend(this.config.ssh || {}, server.sshOptions);
+    }
+
     let session = nodemiral.session(host, auth, nodemiralOptions);
     session._serverConfig = server;
     return session;
   }
 
-  public static createOsMap(servers : Array<ServerConfig>) : SessionsMap {
+  public createOsMap(servers : Array<ServerConfig>) : SessionsMap {
     let sessionsMap : SessionsMap = {} as SessionsMap;
     _.each(servers, (server:ServerConfig) => {
-      let session = SessionManager.create(server);
+      let session = this.create(server);
 
       // Create os => taskListBuilder map
       if (!sessionsMap[server.os]) {
