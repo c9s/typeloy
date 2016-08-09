@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import path = require('path');
 import {readConfig} from '../src/config';
-import {Actions, DeployAction} from '../src/actions';
+import {Actions, DeployAction, SetupAction, LogsAction} from '../src/actions';
 import {CmdDeployOptions} from '../src/options';
 import {SessionManager, SessionsInfo, SessionsMap, SummaryMapResult, SummaryMap, ExecutedResult} from '../src/SessionManager';
 import Deployment from '../src/Deployment';
@@ -42,8 +42,8 @@ prog.command('setup')
   .description('setup the requirements on the target server.')
   .action( (env, options) => {
     let config = readConfig(prog.config);
-    let actions = new Actions(config, cwd);
-    actions.setup(null);
+    let a = new SetupAction(config, cwd);
+    a.run(null);
   })
   ;
 
@@ -52,8 +52,8 @@ prog.command('logs')
   .option("-f, --tail", 'tail')
   .action((options) => {
     let config = readConfig(prog.config);
-    let actions = new Actions(config, cwd);
-    actions.logs(options);
+    let a = new LogsAction(config, cwd);
+    a.run(options);
   });
 
 prog.command('init')

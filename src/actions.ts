@@ -202,11 +202,6 @@ export class Actions {
     });
   }
 
-  public setup(deployment : Deployment) : Promise<any> {
-    this._showKadiraLink();
-    return this._executePararell("setup", deployment, [this.config]);
-  }
-
   public reconfig(deployment: Deployment) {
     var self = this;
     let sessionInfoList = [];
@@ -247,41 +242,6 @@ export class Actions {
     return this._executePararell("start", deployment, [this.config.appName]);
   }
 
-  public logs(options:LogOptions) {
-    var self = this;
-    var tailOptions = [];
-    if (options.tail) {
-      tailOptions.push('-f');
-    }
-
-    function tailCommand(os : string, config : Config, tailOptions) {
-      if (os == 'linux') {
-        return 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + config.appName + '.log';
-      } else if (os == 'sunos') {
-        return 'sudo tail ' + tailOptions.join(' ') +
-          ' /var/svc/log/site-' + config.appName + '\\:default.log';
-      } else {
-        throw new Error("Unsupported OS.");
-      }
-    }
-
-    let sessionsMap = this.createSiteSessionsMap(this.config, null);
-    for (let os in sessionsMap) {
-      let sessionsInfo : SessionsInfo = sessionsMap[os];
-      sessionsInfo.sessions.forEach(function(session) {
-        let hostPrefix = '[' + session._host + '] ';
-        let command = tailCommand(os, this.config, tailOptions);
-        session.execute(command, {
-          onStdout: (data) => {
-            process.stdout.write(hostPrefix + data.toString());
-          },
-          onStderr: (data) => {
-            process.stderr.write(hostPrefix + data.toString());
-          }
-        });
-      });
-    }
-  }
 
   /**
    * Initalize a project from example files.
@@ -348,8 +308,50 @@ export class Actions {
   }
 }
 
+export class LogsAction extends Actions {
+  public run(options:LogOptions) {
+    var self = this;
+    var tailOptions = [];
+    if (options.tail) {
+      tailOptions.push('-f');
+    }
 
+    function tailCommand(os : string, config : Config, tailOptions) {
+      if (os == 'linux') {
+        return 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + config.appName + '.log';
+      } else if (os == 'sunos') {
+        return 'sudo tail ' + tailOptions.join(' ') +
+          ' /var/svc/log/site-' + config.appName + '\\:default.log';
+      } else {
+        throw new Error("Unsupported OS.");
+      }
+    }
 
+    let sessionsMap = this.createSiteSessionsMap(this.config, null);
+    for (let os in sessionsMap) {
+      let sessionsInfo : SessionsInfo = sessionsMap[os];
+      sessionsInfo.sessions.forEach(function(session) {
+        let hostPrefix = '[' + session._host + '] ';
+        let command = tailCommand(os, this.config, tailOptions);
+        session.execute(command, {
+          onStdout: (data) => {
+            process.stdout.write(hostPrefix + data.toString());
+          },
+          onStderr: (data) => {
+            process.stderr.write(hostPrefix + data.toString());
+          }
+        });
+      });
+    }
+  }
+}
+
+export class SetupAction extends Actions {
+  public run(deployment : Deployment) : Promise<any> {
+    this._showKadiraLink();
+    return this._executePararell("setup", deployment, [this.config]);
+  }
+}
 
 export class DeployAction extends Actions {
   public run(deployment : Deployment, sites:Array<string>, options:CmdDeployOptions) {
