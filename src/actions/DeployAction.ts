@@ -1,4 +1,4 @@
-import {Actions, getTaskBuilderByOs} from '../actions';
+import {Actions} from '../actions';
 import {Config} from '../config';
 import Deployment from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionsInfo, SessionsMap} from '../SessionManager';
@@ -71,7 +71,7 @@ export class DeployAction extends Actions {
         let pendingTasks : Array<Promise<SummaryMap>>
           = _.map(sessionsMap, (sessionsInfo : SessionsInfo) => {
             return new Promise<SummaryMap>( (resolveTask, rejectTask) => {
-              let taskBuilder = getTaskBuilderByOs(sessionsInfo.os);
+              let taskBuilder = this.getTaskBuilderByOs(sessionsInfo.os);
               let sessions = sessionsInfo.sessions;
 
               let env = _.extend({}, this.config.env);
