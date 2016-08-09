@@ -2,7 +2,7 @@
   "name": "typeloy",
   "version": "1.2.0",
   "description": "friendly meteor deployments",
-  "main": "index.js",
+  "main": "lib/src/index.js",
   "scripts": {
     "test": "mocha lib/tests"
   },
@@ -34,7 +34,6 @@
     "url": "git://github.com/c9s/typeloy.git"
   },
   "files": [
-    "index.js",
     "lib/",
     "scripts/",
     "templates/"

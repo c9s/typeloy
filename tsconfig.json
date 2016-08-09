@@ -12,6 +12,7 @@
   "exclude": ["node_modules"],
   "files": [
     "typings/index.d.ts",
+    "src/index.ts",
     "bin/typeloy.ts",
     "tests/ConfigTest.ts",
     "tests/GitSyncTest.ts"
