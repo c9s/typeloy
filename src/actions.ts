@@ -97,12 +97,12 @@ const kadiraRegex = /^meteorhacks:kadira/m;
 
 
 
-function haveSummaryMapsErrors(summaryMaps) {
+function haveSummaryMapsErrors(summaryMaps : Array<SummaryMap>) : boolean {
   return _.some(summaryMaps, hasSummaryMapErrors);
 }
 
-function hasSummaryMapErrors(summaryMap) {
-  return _.some(summaryMap, (summary:any) => {
+function hasSummaryMapErrors(summaryMap : SummaryMap) : boolean {
+  return _.some(summaryMap, (summary : SummaryMapResult) => {
     return summary.error;
   });
 }
@@ -184,8 +184,8 @@ export class Actions {
     let promises = _.map(sessionInfoList,
       (sessionsInfo:SessionsInfo) => {
         return new Promise<ExecutedResult>(resolve => {
-          // let taskList = getTaskBuilderByO(sessionsInfo.os);
-          let taskList = sessionsInfo.taskListsBuilder[actionName].apply(sessionsInfo.taskListsBuilder, args);
+          let taskListsBuilder = getTaskBuilderByOs(sessionsInfo.os);
+          let taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
           taskList.run(sessionsInfo.sessions, (summaryMap:SummaryMapResult) => {
             resolve({ deployment: deployment,
                       summary: summaryMap } as ExecutedResult);
@@ -209,7 +209,8 @@ export class Actions {
       let sessionsInfo : SessionsInfo = sessionsMap[os];
       sessionsInfo.sessions.forEach( (session) => {
         var env = _.extend({}, this.config.env, session._serverConfig.env);
-        var taskList = sessionsInfo.taskListsBuilder.reconfig(env, this.config.appName);
+        let taskListsBuilder = getTaskBuilderByOs(sessionsInfo.os);
+        var taskList = taskListsBuilder.reconfig(env, this.config.appName);
         sessionInfoList.push({
           'taskList': taskList,
           'session': session
@@ -280,7 +281,7 @@ export class Actions {
   * Right now we don't have things to do, just exit the process with the error
   * code.
   */
-  protected whenAfterCompleted(deployment : Deployment, summaryMaps) {
+  public whenAfterCompleted(deployment : Deployment, summaryMaps : Array<SummaryMap>) {
     this.pluginRunner.whenAfterCompleted(deployment);
     var errorCode = haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
     let promises;
@@ -302,7 +303,7 @@ export class Actions {
   /**
    * Return a callback, which is used when after deployed, clean up the files.
    */
-  whenAfterDeployed(deployment : Deployment, summaryMaps) {
+  public whenAfterDeployed(deployment : Deployment, summaryMaps) {
     return this.whenAfterCompleted(deployment, summaryMaps);
   }
 }
@@ -333,10 +334,10 @@ export class LogsAction extends Actions {
         let hostPrefix = '[' + session._host + '] ';
         let command = tailCommand(os, this.config, tailOptions);
         session.execute(command, {
-          onStdout: (data) => {
+          "onStdout": (data) => {
             process.stdout.write(hostPrefix + data.toString());
           },
-          onStderr: (data) => {
+          "onStderr": (data) => {
             process.stderr.write(hostPrefix + data.toString());
           }
         });
