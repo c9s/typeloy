@@ -150,9 +150,6 @@ export class BaseAction {
     }
   }
 
-  protected whenBeforeBuilding(deployment : Deployment) {
-    return this.pluginRunner.whenBeforeBuilding(deployment);
-  }
 
   /**
   * After completed ....

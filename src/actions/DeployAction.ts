@@ -105,6 +105,10 @@ export class DeployAction extends BaseAction {
     return afterDeploy;
   }
 
+  protected whenBeforeBuilding(deployment : Deployment) {
+    return this.pluginRunner.whenBeforeBuilding(deployment);
+  }
+
   protected whenBeforeDeploying(deployment : Deployment) {
     return this.pluginRunner.whenBeforeDeploying(deployment);
   }
