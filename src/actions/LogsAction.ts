@@ -1,7 +1,7 @@
 import {BaseAction} from './BaseAction';
 import {Config} from '../config';
 import Deployment from '../Deployment';
-import {SessionManager, SessionManagerConfig, SessionsGroup, SessionsMap} from '../SessionManager';
+import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 
 interface LogOptions {
   tail?: boolean;
@@ -28,8 +28,8 @@ export class LogsAction extends BaseAction {
 
     let sessionsMap = this.createSiteSessionsMap(this.config, null);
     for (let os in sessionsMap) {
-      let sessionsInfo : SessionsGroup = sessionsMap[os];
-      sessionsInfo.sessions.forEach(function(session) {
+      let sessionGroup : SessionGroup = sessionsMap[os];
+      sessionGroup.sessions.forEach(function(session) {
         let hostPrefix = '[' + session._host + '] ';
         let command = tailCommand(os, this.config, tailOptions);
         session.execute(command, {
