@@ -102,7 +102,7 @@ export class SessionManager {
 
   public createOsMap(servers : Array<ServerConfig>) : SessionsMap {
     let sessionsMap : SessionsMap = {} as SessionsMap;
-    _.each(servers, (server:ServerConfig) => {
+    _.each(servers, (server : ServerConfig) => {
       let session = this.create(server);
 
       // Create os => taskListBuilder map
