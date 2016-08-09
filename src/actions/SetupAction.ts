@@ -6,6 +6,6 @@ import Deployment from '../Deployment';
 export class SetupAction extends BaseAction {
   public run(deployment : Deployment) : Promise<any> {
     this._showKadiraLink();
-    return this._executePararell("setup", deployment, [this.config]);
+    return this.executePararell("setup", deployment, [this.config]);
   }
 }

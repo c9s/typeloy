@@ -5,3 +5,4 @@ export * from "../src/actions/RestartAction";
 export * from "../src/actions/LogsAction";
 export * from "../src/actions/SetupAction";
 export * from "../src/actions/DeployAction";
+export * from "../src/actions/ReconfigAction";
