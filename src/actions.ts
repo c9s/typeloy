@@ -188,7 +188,6 @@ export class Actions {
           let taskList = sessionsInfo.taskListsBuilder[actionName].apply(sessionsInfo.taskListsBuilder, args);
           taskList.run(sessionsInfo.sessions, (summaryMap:SummaryMapResult) => {
             resolve({ deployment: deployment,
-                      error: null,
                       summary: summaryMap } as ExecutedResult);
           });
         });
@@ -196,7 +195,7 @@ export class Actions {
     return new Promise<ExecutedResult>(resolveCompleted => {
       Promise.all(promises).then((mapResult : Array<ExecutedResult>) => {
         let res = mapResult[0];
-        this.whenAfterCompleted(res.deployment, res.error, res.summary);
+        this.whenAfterCompleted(res.deployment, res.summary);
         resolveCompleted(res);
       });
     });
@@ -220,13 +219,13 @@ export class Actions {
     let promises = _.map(sessionInfoList, (sessionInfo) => {
       return new Promise<ExecutedResult>(resolve => {
         sessionInfo.taskList.run(sessionInfo.session, (summaryMap : SummaryMap) => {
-          resolve({ deployment: deployment, error: null, summary: summaryMap } as ExecutedResult);
+          resolve({ deployment: deployment, summary: summaryMap } as ExecutedResult);
         });
       });
     });
     return Promise.all(promises).then((mapResult : Array<ExecutedResult>) => {
       let res = mapResult[0];
-      this.whenAfterCompleted(res.deployment, res.error, res.summary);
+      this.whenAfterCompleted(res.deployment, res.summary);
     });
   }
 
@@ -281,30 +280,30 @@ export class Actions {
   * Right now we don't have things to do, just exit the process with the error
   * code.
   */
-  protected whenAfterCompleted(deployment : Deployment, error, summaryMaps) {
+  protected whenAfterCompleted(deployment : Deployment, summaryMaps) {
     this.pluginRunner.whenAfterCompleted(deployment);
-    var errorCode = error || haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
+    var errorCode = haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
     let promises;
     if (errorCode != 0) {
-      this.whenFailure(deployment, error, summaryMaps);
+      this.whenFailure(deployment, summaryMaps);
     } else {
-      this.whenSuccess(deployment, error, summaryMaps);
+      this.whenSuccess(deployment, summaryMaps);
     }
   }
 
-  public whenSuccess(deployment : Deployment, error, summaryMaps) {
+  public whenSuccess(deployment : Deployment, summaryMaps) {
     return this.pluginRunner.whenSuccess(deployment);
   }
 
-  public whenFailure(deployment : Deployment, error, summaryMaps) {
+  public whenFailure(deployment : Deployment, summaryMaps) {
     return this.pluginRunner.whenFailure(deployment);
   }
 
   /**
    * Return a callback, which is used when after deployed, clean up the files.
    */
-  whenAfterDeployed(deployment : Deployment, error, summaryMaps) {
-    return this.whenAfterCompleted(deployment, error, summaryMaps);
+  whenAfterDeployed(deployment : Deployment, summaryMaps) {
+    return this.whenAfterCompleted(deployment, summaryMaps);
   }
 }
 
@@ -420,7 +419,7 @@ export class DeployAction extends Actions {
                               env,
                               deployCheckWaitTime, appName);
               taskList.run(sessions, (summaryMap : SummaryMap) => {
-                resolveTask({ deployment: deployment, error: null, summary: summaryMap } as ExecutedResult);
+                resolveTask({ deployment: deployment, summary: summaryMap } as ExecutedResult);
               });
             });
         });
@@ -429,16 +428,12 @@ export class DeployAction extends Actions {
         Promise.all(pendingTasks).then( (results : Array<ExecutedResult>) => {
           console.log("Array<ExecutedResult>", results);
           let res = results[0];
-          let error = res.error;
           let summaryMaps = res.summary;
-          /*
           this.pluginRunner.whenAfterDeployed(deployment);
           if (options.clean) {
             console.log(`Cleaning up ${buildLocation}`);
             rimraf.sync(buildLocation);
           }
-          this.whenAfterDeployed(deployment, buildLocation, options);
-          */
           resolveDeploy(res);
         }).catch( (reason) => {
           rejectDeploy(reason);
