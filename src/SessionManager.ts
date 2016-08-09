@@ -27,10 +27,9 @@ function getTaskBuilderByOs(os:string) : TaskBuilder {
 }
 
 
-export interface SessionsInfo {
+export interface SessionsGroup {
   os: string;
   sessions: Array<any>;
-  taskListsBuilder: TaskBuilder;
 }
 
 export interface SshAuthOptions {
@@ -40,7 +39,7 @@ export interface SshAuthOptions {
 }
 
 export interface SessionsMap {
-  [os:string]: SessionsInfo;
+  [os:string]: SessionsGroup;
 }
 
 
@@ -95,9 +94,8 @@ export class SessionManager {
       if (!sessionsMap[server.os]) {
         sessionsMap[server.os] = {
           "os": server.os,
-          "sessions": [],
-          "taskListsBuilder": getTaskBuilderByOs(server.os)
-        } as SessionsInfo;
+          "sessions": []
+        } as SessionsGroup;
       }
       sessionsMap[server.os].sessions.push(session);
     });
