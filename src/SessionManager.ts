@@ -10,6 +10,8 @@ import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
 
 
+
+
 export interface SummaryMap {
   // summaryMap[session._host] = {error: err, history: history};
   [host: string] : SummaryMapResult
