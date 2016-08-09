@@ -17,7 +17,13 @@ export interface SummaryMap {
 
 export interface SummaryMapResult {
   error: any;
-  history: any;
+  history: Array<SummaryMapHistory>;
+}
+
+export interface SummaryMapHistory {
+  "task" : string;
+  "status" : string; // SUCCESS or FAILED
+  "error"? : string;
 }
 
 /**

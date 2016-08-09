@@ -34,6 +34,8 @@ prog.command('deploy [tag] [sites...]')
     let afterDeploy = action.run(deployment, sites, options);
     afterDeploy.then((mapResult : Array<SummaryMap>) => {
       console.log("After deploy", mapResult);
+
+      console.log(JSON.stringify(mapResult, null, "  "));
     });
   })
   ;
