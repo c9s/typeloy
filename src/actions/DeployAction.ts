@@ -1,4 +1,4 @@
-import {Actions} from '../actions';
+import {BaseAction} from './BaseAction';
 import {Config} from '../config';
 import Deployment from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionsInfo, SessionsMap} from '../SessionManager';
@@ -13,10 +13,13 @@ var path = require('path');
 var fs = require('fs');
 var os = require('os');
 var rimraf = require('rimraf');
+var _ = require('underscore');
 
-export class DeployAction extends Actions {
+export class DeployAction extends BaseAction {
   public run(deployment : Deployment, sites:Array<string>, options:CmdDeployOptions) {
+
     this._showKadiraLink();
+
     const getDefaultBuildDirName = function(appName:string, tag:string) : string {
       return (appName || "meteor-") + "-" + (tag || uuid.v4());
     };
@@ -48,7 +51,7 @@ export class DeployAction extends Actions {
         this.whenBeforeBuilding(deployment);
       }, (err:Error) => {
         if (err) {
-          rejectBuild(err);
+          return rejectBuild(err);
         }
         resolveBuild();
       });
@@ -62,11 +65,10 @@ export class DeployAction extends Actions {
       });
 
       afterBuild.then(() => {
-
         // We only want to fire once for now.
         this.whenBeforeDeploying(deployment);
-        
         let sessionsMap = this.createSiteSessionsMap(this.config, null);
+
         // An array of Promise<SummaryMap>
         let pendingTasks : Array<Promise<SummaryMap>>
           = _.map(sessionsMap, (sessionsInfo : SessionsInfo) => {
@@ -88,7 +90,6 @@ export class DeployAction extends Actions {
 
         // whenAfterDeployed
         Promise.all(pendingTasks).then( (results : Array<SummaryMap>) => {
-          console.log("Array<SummaryMap>", results);
           this.pluginRunner.whenAfterDeployed(deployment);
           if (options.clean) {
             console.log(`Cleaning up ${buildLocation}`);
@@ -96,11 +97,22 @@ export class DeployAction extends Actions {
           }
           resolveDeploy(results);
         }).catch( (reason) => {
-          rejectDeploy(reason);
           console.error("Failed", reason);
+          rejectDeploy(reason);
         });
       });
     });
     return afterDeploy;
+  }
+
+  protected whenBeforeDeploying(deployment : Deployment) {
+    return this.pluginRunner.whenBeforeDeploying(deployment);
+  }
+
+  /**
+   * Return a callback, which is used when after deployed, clean up the files.
+   */
+  public whenAfterDeployed(deployment : Deployment, summaryMaps : Array<SummaryMap>) {
+    return this.whenAfterCompleted(deployment, summaryMaps);
   }
 }

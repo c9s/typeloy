@@ -32,7 +32,7 @@ export function buildApp(appPath:Path, meteorBinary:Path, buildLocation:Path, bu
       console.log("Build succeed. Archiving the files...");
       archiveIt(buildLocation, bundlePath, done);
     } else {
-      console.log("\n=> Build Error. Check the logs printed above.");
+      console.error("\n=> Build Error. Check the logs printed above.");
       done(new Error("Build error. Please check the console log output."));
     }
   });
