@@ -130,8 +130,6 @@ export default class Actions {
 
   public config : Config;
 
-  public sessionsMap : SessionsMap;
-
   protected sessionManager : SessionManager;
 
   protected pluginRunner : PluginRunner;
@@ -143,8 +141,6 @@ export default class Actions {
     this.sessionManager = new SessionManager({
       "keepAlive": false
     } as SessionManagerConfig);
-
-    this.sessionsMap = this._createSiteSessionsMap(config, null);
 
     this.pluginRunner = new PluginRunner(config, cwd);
 
@@ -197,7 +193,8 @@ export default class Actions {
   }
 
   private _executePararell(actionName:string, deployment : Deployment, args) : Promise<ExecutedResult> {
-    let sessionInfoList = _.values(this.sessionsMap);
+    let sessionsMap = this._createSiteSessionsMap(this.config, null);
+    let sessionInfoList = _.values(sessionsMap);
     let promises = _.map(sessionInfoList,
       (sessionsInfo:SessionsInfo) => {
         return new Promise<ExecutedResult>(resolve => {
@@ -275,9 +272,10 @@ export default class Actions {
         // We only want to fire once for now.
         this.whenBeforeDeploying(deployment);
         
+        let sessionsMap = this._createSiteSessionsMap(this.config, null);
         // An array of Promise<ExecutedResult>
         let pendingTasks : Array<Promise<ExecutedResult>>
-          = _.map(this.sessionsMap, (sessionsInfo : SessionsInfo) => {
+          = _.map(sessionsMap, (sessionsInfo : SessionsInfo) => {
             return new Promise<ExecutedResult>( (resolveTask, rejectTask) => {
               let taskBuilder = getTaskBuilderByOs(sessionsInfo.os);
               let sessions = sessionsInfo.sessions;
@@ -321,8 +319,9 @@ export default class Actions {
   public reconfig(deployment: Deployment) {
     var self = this;
     let sessionInfoList = [];
-    for (let os in this.sessionsMap) {
-      let sessionsInfo : SessionsInfo = this.sessionsMap[os];
+    let sessionsMap = this._createSiteSessionsMap(this.config, null);
+    for (let os in sessionsMap) {
+      let sessionsInfo : SessionsInfo = sessionsMap[os];
       sessionsInfo.sessions.forEach( (session) => {
         var env = _.extend({}, this.config.env, session._serverConfig.env);
         var taskList = sessionsInfo.taskListsBuilder.reconfig(env, this.config.appName);
@@ -375,8 +374,9 @@ export default class Actions {
       }
     }
 
-    for (let os in this.sessionsMap) {
-      let sessionsInfo : SessionsInfo = this.sessionsMap[os];
+    let sessionsMap = this._createSiteSessionsMap(this.config, null);
+    for (let os in sessionsMap) {
+      let sessionsInfo : SessionsInfo = sessionsMap[os];
       sessionsInfo.sessions.forEach(function(session) {
         let hostPrefix = '[' + session._host + '] ';
         let command = tailCommand(os, this.config, tailOptions);
