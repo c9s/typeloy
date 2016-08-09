@@ -175,17 +175,6 @@ export class Actions {
     });
   }
 
-  public restart(deployment : Deployment) {
-    return this._executePararell("restart", deployment, [this.config.appName]);
-  }
-
-  public stop(deployment : Deployment) {
-    return this._executePararell("stop", deployment, [this.config.appName]);
-  };
-
-  public start(deployment : Deployment) {
-    return this._executePararell("start", deployment, [this.config.appName]);
-  }
 
 
   /**
@@ -250,6 +239,24 @@ export class Actions {
    */
   public whenAfterDeployed(deployment : Deployment, summaryMaps : Array<SummaryMap>) {
     return this.whenAfterCompleted(deployment, summaryMaps);
+  }
+}
+
+export class RestartAction extends Actions {
+  public run(deployment : Deployment) {
+    return this._executePararell("restart", deployment, [this.config.appName]);
+  }
+}
+
+export class StopAction extends Actions {
+  public run(deployment : Deployment) {
+    return this._executePararell("stop", deployment, [this.config.appName]);
+  };
+}
+
+export class StartAction extends Actions {
+  public run(deployment : Deployment) {
+    return this._executePararell("start", deployment, [this.config.appName]);
   }
 }
 

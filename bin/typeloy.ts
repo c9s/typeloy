@@ -1,7 +1,15 @@
 #!/usr/bin/env node
 import path = require('path');
 import {readConfig} from '../src/config';
-import {Actions, DeployAction, SetupAction, LogsAction} from '../src/actions';
+import {
+  Actions,
+  DeployAction,
+  SetupAction,
+  LogsAction,
+  RestartAction,
+  StopAction,
+  StartAction
+} from '../src/actions';
 import {CmdDeployOptions} from '../src/options';
 import {SessionManager, SessionsInfo, SessionsMap} from '../src/SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../src/SummaryMap";
@@ -72,8 +80,8 @@ prog.command('start')
   .description('start the app.')
   .action( (env, options) => {
     let config = readConfig(prog.config);
-    let actions = new Actions(config, cwd);
-    actions.start(null);
+    let actions = new StartAction(config, cwd);
+    actions.run(null);
   });
   ;
 
@@ -81,8 +89,8 @@ prog.command('stop')
   .description('stop the app.')
   .action( (env, options) => {
     let config = readConfig(prog.config);
-    let actions = new Actions(config, cwd);
-    actions.stop(null);
+    let actions = new StopAction(config, cwd);
+    actions.run(null);
   });
   ;
 
@@ -90,8 +98,8 @@ prog.command('restart')
   .description('restart the app.')
   .action( (env, options) => {
     let config = readConfig(prog.config);
-    let actions = new Actions(config, cwd);
-    actions.restart(null);
+    let actions = new RestartAction(config, cwd);
+    actions.run(null);
   });
   ;
 
