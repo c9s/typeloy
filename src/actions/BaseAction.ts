@@ -5,7 +5,7 @@ import LinuxTaskBuilder from "../TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "../TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "../TaskBuilder/BaseTaskBuilder";
 import Deployment from '../Deployment';
-import {SessionManager, SessionManagerConfig, SessionsGroup, SessionsMap} from '../SessionManager';
+import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
 import {Session} from '../Session';
 
@@ -105,11 +105,11 @@ export class BaseAction {
     let sessionsMap = this.createSiteSessionsMap(this.config, null);
     let sessionInfoList = _.values(sessionsMap);
     let promises = _.map(sessionInfoList,
-      (sessionsInfo:SessionsGroup) => {
+      (sessionGroup:SessionGroup) => {
         return new Promise<SummaryMap>(resolve => {
-          let taskListsBuilder = this.getTaskBuilderByOs(sessionsInfo.os);
+          let taskListsBuilder = this.getTaskBuilderByOs(sessionGroup.os);
           let taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
-          taskList.run(sessionsInfo.sessions, (summaryMap:SummaryMap) => {
+          taskList.run(sessionGroup.sessions, (summaryMap:SummaryMap) => {
             resolve(summaryMap);
           });
         });
@@ -127,10 +127,10 @@ export class BaseAction {
     let sessionInfoList = [];
     let sessionsMap = this.createSiteSessionsMap(this.config, null);
     for (let os in sessionsMap) {
-      let sessionsInfo : SessionsGroup = sessionsMap[os];
-      sessionsInfo.sessions.forEach( (session) => {
+      let sessionGroup : SessionGroup = sessionsMap[os];
+      sessionGroup.sessions.forEach( (session) => {
         var env = _.extend({}, this.config.env, session._serverConfig.env);
-        let taskListsBuilder = this.getTaskBuilderByOs(sessionsInfo.os);
+        let taskListsBuilder = this.getTaskBuilderByOs(sessionGroup.os);
         var taskList = taskListsBuilder.reconfig(env, this.config.appName);
         sessionInfoList.push({
           'taskList': taskList,
