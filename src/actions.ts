@@ -137,7 +137,7 @@ export class Actions {
     }
   }
 
-  protected _executePararell(actionName:string, deployment : Deployment, args) : Promise<ExecutedResult> {
+  protected _executePararell(actionName:string, deployment : Deployment, args) : Promise<Array<ExecutedResult>> {
     let sessionsMap = this.createSiteSessionsMap(this.config, null);
     let sessionInfoList = _.values(sessionsMap);
     let promises = _.map(sessionInfoList,
@@ -146,16 +146,15 @@ export class Actions {
           let taskListsBuilder = getTaskBuilderByOs(sessionsInfo.os);
           let taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
           taskList.run(sessionsInfo.sessions, (summaryMap:SummaryMapResult) => {
-            resolve({ deployment: deployment,
-                      summary: summaryMap } as ExecutedResult);
+            resolve({ summary: summaryMap } as ExecutedResult);
           });
         });
       });
-    return new Promise<ExecutedResult>(resolveCompleted => {
+    return new Promise<Array<ExecutedResult>>(resolveCompleted => {
       Promise.all(promises).then((mapResult : Array<ExecutedResult>) => {
         let res = mapResult[0];
-        this.whenAfterCompleted(res.deployment, res.summary);
-        resolveCompleted(res);
+        this.whenAfterCompleted(deployment, res.summary);
+        resolveCompleted(mapResult);
       });
     });
   }
@@ -179,13 +178,13 @@ export class Actions {
     let promises = _.map(sessionInfoList, (sessionInfo) => {
       return new Promise<ExecutedResult>(resolve => {
         sessionInfo.taskList.run(sessionInfo.session, (summaryMap : SummaryMap) => {
-          resolve({ deployment: deployment, summary: summaryMap } as ExecutedResult);
+          resolve({ summary: summaryMap } as ExecutedResult);
         });
       });
     });
     return Promise.all(promises).then((mapResult : Array<ExecutedResult>) => {
       let res = mapResult[0];
-      this.whenAfterCompleted(res.deployment, res.summary);
+      this.whenAfterCompleted(deployment, res.summary);
     });
   }
 

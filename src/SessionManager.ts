@@ -42,7 +42,7 @@ export interface SessionsInfo {
 }
 
 export interface ExecutedResult {
-  deployment : Deployment;
+  // deployment : Deployment;
   summary: any;
 }
 
