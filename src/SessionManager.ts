@@ -10,21 +10,7 @@ import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
 import {Session} from "./Session";
 
-export interface SummaryMap {
-  // summaryMap[session._host] = {error: err, history: history};
-  [host: string] : SummaryMapResult
-}
-
-export interface SummaryMapResult {
-  error: any;
-  history: Array<SummaryMapHistory>;
-}
-
-export interface SummaryMapHistory {
-  "task" : string;
-  "status" : string; // SUCCESS or FAILED
-  "error"? : string;
-}
+import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "./SummaryMap";
 
 /**
  * Return the task builder by operating system name.

@@ -3,7 +3,9 @@ import path = require('path');
 import {readConfig} from '../src/config';
 import {Actions, DeployAction, SetupAction, LogsAction} from '../src/actions';
 import {CmdDeployOptions} from '../src/options';
-import {SessionManager, SessionsInfo, SessionsMap, SummaryMapResult, SummaryMap} from '../src/SessionManager';
+import {SessionManager, SessionsInfo, SessionsMap} from '../src/SessionManager';
+import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../src/SummaryMap";
+
 import Deployment from '../src/Deployment';
 import debug from '../src/Debug';
 require('colors');
@@ -34,8 +36,8 @@ prog.command('deploy [tag] [sites...]')
     let afterDeploy = action.run(deployment, sites, options);
     afterDeploy.then((mapResult : Array<SummaryMap>) => {
       console.log("After deploy", mapResult);
-
       console.log(JSON.stringify(mapResult, null, "  "));
+      var errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
     });
   })
   ;

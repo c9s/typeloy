@@ -13,7 +13,8 @@ import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
 import Deployment from './Deployment';
 import {CmdDeployOptions} from './options';
-import {SessionManager, SessionManagerConfig, SessionsInfo, SessionsMap, SummaryMapResult, SummaryMap} from './SessionManager';
+import {SessionManager, SessionManagerConfig, SessionsInfo, SessionsMap} from './SessionManager';
+import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "./SummaryMap";
 import {Session} from './Session';
 
 import {Plugin} from "./Plugin";
@@ -53,18 +54,6 @@ function getTaskBuilderByOs(os:string) : TaskBuilder {
 
 const kadiraRegex = /^meteorhacks:kadira/m;
 
-
-
-
-function haveSummaryMapsErrors(summaryMaps : Array<SummaryMap>) : boolean {
-  return _.some(summaryMaps, hasSummaryMapErrors);
-}
-
-function hasSummaryMapErrors(summaryMap : SummaryMap) : boolean {
-  return _.some(summaryMap, (summary : SummaryMapResult) => {
-    return summary.error;
-  });
-}
 
 
 
