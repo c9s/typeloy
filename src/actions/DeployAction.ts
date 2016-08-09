@@ -1,7 +1,7 @@
 import {BaseAction} from './BaseAction';
 import {Config} from '../config';
 import Deployment from '../Deployment';
-import {SessionManager, SessionManagerConfig, SessionsInfo, SessionsMap} from '../SessionManager';
+import {SessionManager, SessionManagerConfig, SessionsGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
 import {CmdDeployOptions} from '../options';
 import {buildApp} from '../build';
@@ -71,7 +71,7 @@ export class DeployAction extends BaseAction {
 
         // An array of Promise<SummaryMap>
         let pendingTasks : Array<Promise<SummaryMap>>
-          = _.map(sessionsMap, (sessionsInfo : SessionsInfo) => {
+          = _.map(sessionsMap, (sessionsInfo : SessionsGroup) => {
             return new Promise<SummaryMap>( (resolveTask, rejectTask) => {
               let taskBuilder = this.getTaskBuilderByOs(sessionsInfo.os);
               let sessions = sessionsInfo.sessions;

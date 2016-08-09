@@ -7,7 +7,7 @@ import { BaseAction, DeployAction, SetupAction, StartAction, RestartAction, Stop
 
 
 import {CmdDeployOptions} from '../src/options';
-import {SessionManager, SessionsInfo, SessionsMap} from '../src/SessionManager';
+import {SessionManager, SessionsGroup, SessionsMap} from '../src/SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../src/SummaryMap";
 
 import Deployment from '../src/Deployment';
