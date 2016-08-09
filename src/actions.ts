@@ -1,12 +1,5 @@
 import path = require('path');
 import fs = require('fs');
-var rimraf = require('rimraf');
-import {spawn, exec} from 'child_process';
-var uuid = require('uuid');
-var format = require('util').format;
-var extend = require('util')._extend;
-var async = require('async');
-
 import {Config, AppConfig, ServerConfig} from './config';
 import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
@@ -22,22 +15,15 @@ import {PluginRunner} from "./PluginRunner";
 import {SlackNotificationPlugin} from './PluginRunner';
 
 import _ = require('underscore');
-import {buildApp} from './build';
 
 var os = require('os');
 require('colors');
 
 
-
-
-interface LogOptions {
-  tail?: boolean;
-}
-
 /**
  * Return the task builder by operating system name.
  */
-function getTaskBuilderByOs(os:string) : TaskBuilder {
+export function getTaskBuilderByOs(os:string) : TaskBuilder {
   switch (os) {
     case "linux":
       return new LinuxTaskBuilder;
@@ -47,10 +33,6 @@ function getTaskBuilderByOs(os:string) : TaskBuilder {
       throw new Error("Unsupported operating system.");
   }
 }
-
-
-
-
 
 const kadiraRegex = /^meteorhacks:kadira/m;
 
@@ -248,150 +230,9 @@ export class RestartAction extends Actions {
   }
 }
 
-export class StopAction extends Actions {
-  public run(deployment : Deployment) {
-    return this._executePararell("stop", deployment, [this.config.appName]);
-  };
-}
+export * from "./actions/StartAction";
+export * from "./actions/StopAction";
+export * from "./actions/LogsAction";
+export * from "./actions/SetupAction";
+export * from "./actions/DeployAction";
 
-export class StartAction extends Actions {
-  public run(deployment : Deployment) {
-    return this._executePararell("start", deployment, [this.config.appName]);
-  }
-}
-
-export class LogsAction extends Actions {
-  public run(options:LogOptions) {
-    var self = this;
-    var tailOptions = [];
-    if (options.tail) {
-      tailOptions.push('-f');
-    }
-
-    function tailCommand(os : string, config : Config, tailOptions) {
-      if (os == 'linux') {
-        return 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + config.appName + '.log';
-      } else if (os == 'sunos') {
-        return 'sudo tail ' + tailOptions.join(' ') +
-          ' /var/svc/log/site-' + config.appName + '\\:default.log';
-      } else {
-        throw new Error("Unsupported OS.");
-      }
-    }
-
-    let sessionsMap = this.createSiteSessionsMap(this.config, null);
-    for (let os in sessionsMap) {
-      let sessionsInfo : SessionsInfo = sessionsMap[os];
-      sessionsInfo.sessions.forEach(function(session) {
-        let hostPrefix = '[' + session._host + '] ';
-        let command = tailCommand(os, this.config, tailOptions);
-        session.execute(command, {
-          "onStdout": (data) => {
-            process.stdout.write(hostPrefix + data.toString());
-          },
-          "onStderr": (data) => {
-            process.stderr.write(hostPrefix + data.toString());
-          }
-        });
-      });
-    }
-  }
-}
-
-export class SetupAction extends Actions {
-  public run(deployment : Deployment) : Promise<any> {
-    this._showKadiraLink();
-    return this._executePararell("setup", deployment, [this.config]);
-  }
-}
-
-export class DeployAction extends Actions {
-  public run(deployment : Deployment, sites:Array<string>, options:CmdDeployOptions) {
-    this._showKadiraLink();
-    const getDefaultBuildDirName = function(appName:string, tag:string) : string {
-      return (appName || "meteor-") + "-" + (tag || uuid.v4());
-    };
-
-    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, deployment.tag));
-    const bundlePath = options.bundleFile || path.resolve(buildLocation, 'bundle.tar.gz');
-
-    console.log('Deployment Tag:', deployment.tag);
-    console.log('Build Location:', buildLocation);
-    console.log('Bundle Path:', bundlePath);
-
-    // spawn inherits env vars from process.env
-    // so we can simply set them like this
-    process.env.BUILD_LOCATION = buildLocation;
-
-    var deployCheckWaitTime = this.config.deploy.checkDelay;
-
-    var appConfig = this.config.app;
-    var appName = appConfig.name;
-    var appPath = appConfig.directory;
-    var meteorBinary = this.config.meteor.binary;
-
-    console.log('Meteor Path: ' + meteorBinary);
-    console.log('Building Started: ' + this.config.app.name);
-
-    // Handle build
-    let afterBuild = new Promise( (resolveBuild, rejectBuild) => {
-      buildApp(appPath, meteorBinary, buildLocation, bundlePath, () => {
-        this.whenBeforeBuilding(deployment);
-      }, (err:Error) => {
-        if (err) {
-          rejectBuild(err);
-        }
-        resolveBuild();
-      });
-    });
-
-    let afterDeploy = new Promise( (resolveDeploy, rejectDeploy) => {
-
-      afterBuild.catch( (reason) => {
-        console.error("rejectDeploy", reason);
-        rejectDeploy(reason);
-      });
-
-      afterBuild.then(() => {
-
-        // We only want to fire once for now.
-        this.whenBeforeDeploying(deployment);
-        
-        let sessionsMap = this.createSiteSessionsMap(this.config, null);
-        // An array of Promise<SummaryMap>
-        let pendingTasks : Array<Promise<SummaryMap>>
-          = _.map(sessionsMap, (sessionsInfo : SessionsInfo) => {
-            return new Promise<SummaryMap>( (resolveTask, rejectTask) => {
-              let taskBuilder = getTaskBuilderByOs(sessionsInfo.os);
-              let sessions = sessionsInfo.sessions;
-
-              let env = _.extend({}, this.config.env);
-              let taskList = taskBuilder.deploy(
-                              this.config,
-                              bundlePath,
-                              env,
-                              deployCheckWaitTime, appName);
-              taskList.run(sessions, (summaryMap : SummaryMap) => {
-                resolveTask(summaryMap);
-              });
-            });
-        });
-
-        // whenAfterDeployed
-        Promise.all(pendingTasks).then( (results : Array<SummaryMap>) => {
-          console.log("Array<SummaryMap>", results);
-          this.pluginRunner.whenAfterDeployed(deployment);
-          if (options.clean) {
-            console.log(`Cleaning up ${buildLocation}`);
-            rimraf.sync(buildLocation);
-          }
-          resolveDeploy(results);
-        }).catch( (reason) => {
-          rejectDeploy(reason);
-          console.error("Failed", reason);
-        });
-      });
-    });
-    return afterDeploy;
-  }
-}
