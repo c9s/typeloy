@@ -32,7 +32,7 @@ prog.command('deploy [tag] [sites...]')
     }
     let deployment = Deployment.create(config, cwd, deploymentTag);
     let afterDeploy = action.run(deployment, sites, options);
-    afterDeploy.then((res : ExecutedResult) => {
+    afterDeploy.then((res : Array<ExecutedResult>) => {
       console.log("After deploy", res);
     });
   })
