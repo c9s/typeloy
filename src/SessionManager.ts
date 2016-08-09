@@ -107,22 +107,11 @@ export class SessionManager {
 
       // Create os => taskListBuilder map
       if (!sessionsMap[server.os]) {
-        switch (server.os) {
-          case "linux":
-            sessionsMap[server.os] = {
-              "os": server.os,
-              "sessions": [],
-              "taskListsBuilder": getTaskBuilderByOs(server.os)
-            } as SessionsInfo;
-            break;
-          case "sunos":
-            sessionsMap[server.os] = {
-              "os": server.os,
-              "sessions": [],
-              "taskListsBuilder": getTaskBuilderByOs(server.os)
-            } as SessionsInfo;
-            break;
-        }
+        sessionsMap[server.os] = {
+          "os": server.os,
+          "sessions": [],
+          "taskListsBuilder": getTaskBuilderByOs(server.os)
+        } as SessionsInfo;
       }
       sessionsMap[server.os].sessions.push(session);
     });
