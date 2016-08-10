@@ -28,10 +28,7 @@ const GitCommitAuthorRegExp = new RegExp("^Author: (.*)\\s+<(.*?)>");
 const GitCommitDateRegExp = new RegExp("^Date: (.*)$");
 const EmptyLineRegExp = new RegExp("^\\s+$");
 
-
-
-
-function commandOptions(defs, options) : Array<string> {
+export function commandOptions(defs, options) : Array<string> {
   let opts : Array<string> = [];
   _.each(defs, (def, key:string) => {
     let val = options[key];
@@ -52,17 +49,55 @@ function commandOptions(defs, options) : Array<string> {
   return opts;
 }
 
+export class GitCommands {
 
+  protected repo;
 
-export class GitSync {
-  constructor() {
-
+  constructor(repo : string) {
+    this.repo = repo;
   }
+
+  public checkout(branch : string, options = {}) : Promise<any> {
+    const cmdopts = commandOptions({
+      "track": ["--track", String],
+    }, options);
+    return new Promise<any>(resolve => {
+      let process = child_process.exec(`git checkout ${cmdopts.join(' ')} ${branch}`, { cwd: this.repo }, (err, stdout, stderr) => {
+        resolve({ err, stdout, stderr });
+      });
+    });
+  }
+
+  public fetch(remote : string, options = {}) : Promise<any> {
+    const cmdopts = commandOptions({
+      "all": ["--all", Boolean],
+    }, options);
+
+    return new Promise(resolve => {
+      let process = child_process.exec(`git fetch ${cmdopts.join(' ')} ${remote}`, { cwd: this.repo }, (err, stdout, stderr) => {
+        resolve({ err, stdout, stderr });
+      });
+    });
+  }
+
+  public pull(remote, branch : string, options = {}) : Promise<any> {
+    const cmdopts = commandOptions({
+      "rebase": ["--rebase", Boolean],
+    }, options);
+    return new Promise<any>(resolve => {
+      let process = child_process.exec(`git pull ${cmdopts.join(' ')} ${remote} ${branch}`, { cwd: this.repo }, (err, stdout, stderr) => {
+        resolve({ err, stdout, stderr });
+      });
+    });
+  }
+}
+
+export class GitUtils {
 
   /**
    * parse commit logs from text
    */
-  protected parseCommitLogs(output:string) : Array<GitCommit> {
+  public static parseCommitLogs(output:string) : Array<GitCommit> {
     let commits = output.trim().split(GitCommitSpliter);
     commits.shift(); // skip empty chunk
 
@@ -95,6 +130,14 @@ export class GitSync {
 
   }
 
+}
+
+export class GitSync {
+  constructor() {
+
+  }
+
+
 
   public logOf(ref, options) {
     const cmdopts = commandOptions({
@@ -108,14 +151,14 @@ export class GitSync {
     let output = child_process.execSync(`git log ${ref} ${cmdopts.join(' ')}`, {
       "encoding": "utf8"
     });
-    return this.parseCommitLogs(output);
+    return GitUtils.parseCommitLogs(output);
   }
 
   public logSince(since, til) {
     let output = child_process.execSync(`git log ${since}..${til}`, {
       "encoding": "utf8"
     }).trim();
-    return this.parseCommitLogs(output);
+    return GitUtils.parseCommitLogs(output);
   }
 
 
@@ -149,8 +192,6 @@ export class GitSync {
     });
     return output.trim();
   }
-
-
 
   public tags() {
     let output = child_process.execSync("git tag", {
