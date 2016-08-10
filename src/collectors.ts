@@ -13,13 +13,13 @@ export class GitRevInfo {
 export interface RevCollector { }
 
 function parseGitRepo(cwd:string) : GitRevInfo {
-  let repo = new GitSync;
+  let repo = new GitSync(cwd);
   let latestTag = repo.describeTags(0);
   let commits = repo.logSince(latestTag, 'HEAD');
   return {
     latestTag: latestTag,
     commits: commits,
-    describe: repo.describeAll()
+    describe: repo.describe()
   } as GitRevInfo;
 }
 

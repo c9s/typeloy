@@ -4,17 +4,16 @@ var fs = require('fs');
 var pathResolve = require('path').resolve;
 
 import _ = require('underscore');
+import {Config} from './Config';
 
-type Path = string;
+export type BuildCallback = (err:Error) => void;
 
-type BuildCallback = (err:Error) => void;
-
-type BuildMeteorAppCallback = (code:number) => void;
+export type BuildMeteorAppCallback = (code:number) => void;
 
 /**
  * @param {Function(err)} callback
  */
-export function buildApp(appPath:Path, meteorBinary:Path, buildLocation:Path, bundlePath:Path,
+export function buildApp(config : Config, appPath:string, buildLocation:string, bundlePath:string,
                          start,
                          done:BuildCallback) {
 
@@ -25,8 +24,9 @@ export function buildApp(appPath:Path, meteorBinary:Path, buildLocation:Path, bu
     console.log("Found existing bundle file: " + bundlePath);
     return done(null);
   }
+  let meteorBinary = config.meteor.binary || 'meteor';
   start();
-  buildMeteorApp(appPath, meteorBinary, buildLocation, {}, (code:number) => {
+  buildMeteorApp(appPath, meteorBinary, buildLocation, config, (code:number) => {
     if (code == 0) {
       // Success
       console.log("Build succeed. Archiving the files...");
@@ -38,11 +38,11 @@ export function buildApp(appPath:Path, meteorBinary:Path, buildLocation:Path, bu
   });
 }
 
-export function buildMeteorApp(appPath:Path, executable:Path, buildLocation:Path, config, done:BuildMeteorAppCallback) {
+export function buildMeteorApp(appPath:string, executable:string, buildLocation:string, config : Config, done:BuildMeteorAppCallback) {
   var args : Array<string> = [
     "build",
     "--directory", buildLocation, 
-    "--server", (config.server || "http://localhost:3000"),
+    "--server", (config.meteor.server || "http://localhost:3000"),
   ];
   
   var isWin = /^win/.test(process.platform);
@@ -53,7 +53,10 @@ export function buildMeteorApp(appPath:Path, executable:Path, buildLocation:Path
     args = ["/c", "meteor"].concat(args);
   }
 
-  var options = {"cwd": pathResolve(appPath) };
+  let options = {"cwd": pathResolve(appPath) };
+  if (config.meteor.env) {
+    options['env'] = _.extend(process.env, config.meteor.env);
+  }
   console.log("Building Meteor App");
   console.log("  ", executable, args.join(' '), options);
 

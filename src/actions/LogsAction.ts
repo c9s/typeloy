@@ -1,14 +1,14 @@
 import {BaseAction} from './BaseAction';
 import {Config} from '../config';
-import Deployment from '../Deployment';
+import {Deployment} from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 
-interface LogOptions {
+export interface LogsOptions {
   tail?: boolean;
 }
 
 export class LogsAction extends BaseAction {
-  public run(options:LogOptions) {
+  public run(options : LogsOptions) {
     var self = this;
     var tailOptions = [];
     if (options.tail) {

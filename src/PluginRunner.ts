@@ -1,7 +1,7 @@
 import {Config} from "./config";
 
 import {GitRevCollector, GitRevInfo} from "./collectors";
-import Deployment from "./Deployment";
+import {Deployment} from "./Deployment";
 import {Plugin} from "./Plugin";
 
 export * from "./plugins/SlackPlugin";

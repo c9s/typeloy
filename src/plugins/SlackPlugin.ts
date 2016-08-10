@@ -1,5 +1,5 @@
 import {Plugin} from "../Plugin";
-import Deployment from "../Deployment";
+import {Deployment} from "../Deployment";
 import {GitRevInfo} from "../collectors";
 
 var slack = require('node-slack');

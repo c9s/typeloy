@@ -10,7 +10,7 @@ import {CmdDeployOptions} from '../src/options';
 import {SessionManager, SessionGroup, SessionsMap} from '../src/SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../src/SummaryMap";
 
-import Deployment from '../src/Deployment';
+import {Deployment} from '../src/Deployment';
 import debug from '../src/Debug';
 require('colors');
 

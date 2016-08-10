@@ -4,7 +4,7 @@ var nodemiral = require('nodemiral');
 var path = require('path');
 
 import {Config, AppConfig, ServerConfig} from './config';
-import Deployment from "./Deployment";
+import {Deployment} from "./Deployment";
 import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";

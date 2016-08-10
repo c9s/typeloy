@@ -1,4 +1,5 @@
 var child_process = require('child_process');
+var path = require('path');
 var _ = require('underscore');
 
 export class GitAuthor {
@@ -48,48 +49,119 @@ export function commandOptions(defs, options) : Array<string> {
   });
   return opts;
 }
+/*
+console.log(error.stack);
+console.log('Error code: '+error.code);
+console.log('Signal received: '+error.signal);
+*/
 
-export class GitCommands {
 
-  protected repo;
+export class GitRepo {
 
-  constructor(repo : string) {
-    this.repo = repo;
+  protected repo : string;
+
+  protected sharedOptions;
+
+  constructor(repo : string, options = null) {
+    this.repo = path.resolve(repo);
+    this.sharedOptions = options || {
+      'workTree': this.repo,
+      'gitDir': path.join(this.repo, '.git'),
+    };
+  }
+
+  protected baseCommand() : Array<string> {
+    return ['git'].concat(commandOptions({
+      "gitDir": ["--git-dir", String],
+      "workTree": ["--work-tree", String],
+    }, this.sharedOptions));
   }
 
   public checkout(branch : string, options = {}) : Promise<any> {
+    const cmd = this.baseCommand().join(' ');
     const cmdopts = commandOptions({
       "track": ["--track", String],
     }, options);
     return new Promise<any>(resolve => {
-      let process = child_process.exec(`git checkout ${cmdopts.join(' ')} ${branch}`, { cwd: this.repo }, (err, stdout, stderr) => {
+      let process = child_process.exec(`${cmd} checkout ${cmdopts.join(' ')} ${branch}`, { cwd: this.repo }, (err, stdout, stderr) => {
         resolve({ err, stdout, stderr });
       });
+      /*
+      process.on('exit', function (code) {
+        console.log('Child process exited with exit code '+code);
+      });
+      */
     });
   }
 
   public fetch(remote : string, options = {}) : Promise<any> {
+    const cmd = this.baseCommand().join(' ');
     const cmdopts = commandOptions({
       "all": ["--all", Boolean],
     }, options);
 
     return new Promise(resolve => {
-      let process = child_process.exec(`git fetch ${cmdopts.join(' ')} ${remote}`, { cwd: this.repo }, (err, stdout, stderr) => {
-        resolve({ err, stdout, stderr });
+      let process = child_process.exec(`${cmd} fetch ${cmdopts.join(' ')} ${remote}`, { cwd: this.repo }, (error, stdout, stderr) => {
+        resolve({ error, stdout, stderr });
       });
     });
   }
 
-  public pull(remote, branch : string, options = {}) : Promise<any> {
+  public clean(options = {}) : Promise<any> {
+    const cmd = this.baseCommand().join(' ');
     const cmdopts = commandOptions({
-      "rebase": ["--rebase", Boolean],
+      "removeUntrackedDirectory": ["-d", Boolean],
+      "force": ["--force", Boolean],
+      "quiet": ["--quiet", Boolean],
     }, options);
     return new Promise<any>(resolve => {
-      let process = child_process.exec(`git pull ${cmdopts.join(' ')} ${remote} ${branch}`, { cwd: this.repo }, (err, stdout, stderr) => {
-        resolve({ err, stdout, stderr });
+      let process = child_process.exec(`${cmd} clean ${cmdopts.join(' ')}`, { cwd: this.repo }, (error, stdout, stderr) => {
+        resolve({ error, stdout, stderr });
       });
     });
   }
+
+  public reset(options = {}) : Promise<any> {
+    const cmd = this.baseCommand().join(' ');
+    const cmdopts = commandOptions({
+      "hard": ["--hard", Boolean],
+    }, options);
+    return new Promise<any>(resolve => {
+      let process = child_process.exec(`${cmd} reset ${cmdopts.join(' ')}`, { cwd: this.repo }, (error, stdout, stderr) => {
+        resolve({ error, stdout, stderr });
+      });
+    });
+  }
+
+  public submoduleUpdate(options = {}) : Promise<any> {
+    const cmd = this.baseCommand().join(' ');
+    const cmdopts = commandOptions({
+      "force": ["--force", Boolean],
+      "init": ["--init", Boolean],
+      "recursive": ["--recursive", Boolean],
+    }, options);
+    return new Promise<any>(resolve => {
+      let process = child_process.exec(`${cmd} submodule update ${cmdopts.join(' ')}`, { cwd: this.repo }, (error, stdout, stderr) => {
+        resolve({ error, stdout, stderr });
+      });
+    });
+  }
+
+  public pull(remote = 'origin', branch : string = '', options = {}) : Promise<any> {
+    const cmd = this.baseCommand().join(' ');
+    const cmdopts = commandOptions({
+      "rebase": ["--rebase", Boolean],
+    }, options);
+
+    return new Promise<any>(resolve => {
+      let process = child_process.exec(`${cmd} pull ${cmdopts.join(' ')} ${remote} ${branch}`, { cwd: this.repo }, (error, stdout, stderr) => {
+        resolve({ error, stdout, stderr });
+      });
+    });
+  }
+
+
+
 }
 
 export class GitUtils {
@@ -129,17 +201,12 @@ export class GitUtils {
     });
 
   }
-
 }
 
-export class GitSync {
-  constructor() {
-
-  }
-
-
+export class GitSync extends GitRepo {
 
   public logOf(ref, options) {
+    const cmd = this.baseCommand().join(' ');
     const cmdopts = commandOptions({
       maxCount: ["--max-count", Number],
       skip: ["--skip", Number],
@@ -148,14 +215,15 @@ export class GitSync {
       committer: ["--committer", String],
       grep: ["--grep", String],
     }, options);
-    let output = child_process.execSync(`git log ${ref} ${cmdopts.join(' ')}`, {
+    let output = child_process.execSync(`${cmd} log ${ref} ${cmdopts.join(' ')}`, {
       "encoding": "utf8"
     });
     return GitUtils.parseCommitLogs(output);
   }
 
   public logSince(since, til) {
-    let output = child_process.execSync(`git log ${since}..${til}`, {
+    const cmd = this.baseCommand().join(' ');
+    let output = child_process.execSync(`${cmd} log ${since}..${til}`, {
       "encoding": "utf8"
     }).trim();
     return GitUtils.parseCommitLogs(output);
@@ -163,21 +231,23 @@ export class GitSync {
 
 
   public describeAll() {
-    let output = child_process.execSync(`git describe --all`, {
+    const cmd = this.baseCommand().join(' ');
+    let output = child_process.execSync(`${cmd} describe --all`, {
       "encoding": "utf8"
     });
     return output.trim();
   }
 
-  public describeTags(abbrev) {
-    abbrev = abbrev || 5;
-    let output = child_process.execSync(`git describe --tags --abbrev=${abbrev}`, {
+  public describeTags(abbrev = 5) {
+    const cmd = this.baseCommand().join(' ');
+    let output = child_process.execSync(`${cmd} describe --tags --abbrev=${abbrev}`, {
       "encoding": "utf8"
     });
     return output.trim();
   }
 
-  public describe(options) {
+  public describe(options = {}) {
+    const cmd = this.baseCommand().join(' ');
     const cmdopts = commandOptions({
       'dirty': ["--dirty", Boolean],
       'all': ["--all", Boolean],
@@ -187,17 +257,17 @@ export class GitSync {
       'long': ["--long", Boolean],
       'match': ["--match", String],
     }, options);
-    const output = child_process.execSync(`git describe ${cmdopts.join(' ')}`, {
+    const output = child_process.execSync(`${cmd} describe ${cmdopts.join(' ')}`, {
       "encoding": "utf8"
     });
     return output.trim();
   }
 
   public tags() {
-    let output = child_process.execSync("git tag", {
+    const cmd = this.baseCommand().join(' ');
+    let output = child_process.execSync(`${cmd} tag`, {
       "encoding": "utf8"
     });
     return output.trim().split(/\r?\n/);
   }
 }
-
