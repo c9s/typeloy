@@ -7,11 +7,7 @@ import {TaskBuilder} from "../TaskBuilder/BaseTaskBuilder";
 import Deployment from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
-import {Session} from '../Session';
-
-import {Plugin} from "../Plugin";
 import {PluginRunner} from "../PluginRunner";
-import {SlackNotificationPlugin} from '../PluginRunner';
 
 import _ = require('underscore');
 
@@ -88,7 +84,7 @@ export class BaseAction {
 
   // Extract this to Kadira plugin
   protected _showKadiraLink() {
-    var versionsFile = path.join((<AppConfig>this.config.app).directory, '.meteor/versions');
+    var versionsFile = path.join(this.config.app.directory, '.meteor/versions');
     if (fs.existsSync(versionsFile)) {
       var packages = fs.readFileSync(versionsFile, 'utf-8');
       var hasKadira = kadiraRegex.test(packages);

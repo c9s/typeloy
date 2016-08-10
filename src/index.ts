@@ -4,3 +4,4 @@ export * from './Plugin';
 export * from './PluginRunner';
 export * from './SummaryMap';
 export * from './Session';
+export * from './GitSync';
