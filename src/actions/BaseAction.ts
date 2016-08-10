@@ -4,7 +4,7 @@ import {Config, AppConfig, ServerConfig} from '../config';
 import LinuxTaskBuilder from "../TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "../TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "../TaskBuilder/BaseTaskBuilder";
-import Deployment from '../Deployment';
+import {Deployment} from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
 import {PluginRunner} from "../PluginRunner";

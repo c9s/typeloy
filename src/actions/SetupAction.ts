@@ -1,7 +1,7 @@
 import {BaseAction} from './BaseAction';
 
 import {Config} from '../config';
-import Deployment from '../Deployment';
+import {Deployment} from '../Deployment';
 
 export class SetupAction extends BaseAction {
   public run(deployment : Deployment) : Promise<any> {

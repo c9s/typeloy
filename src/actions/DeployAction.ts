@@ -1,6 +1,6 @@
 import {BaseAction} from './BaseAction';
 import {Config} from '../config';
-import Deployment from '../Deployment';
+import {Deployment} from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
 import {CmdDeployOptions} from '../options';
@@ -16,8 +16,7 @@ var rimraf = require('rimraf');
 var _ = require('underscore');
 
 export class DeployAction extends BaseAction {
-  public run(deployment : Deployment, sites:Array<string>, options:CmdDeployOptions) {
-
+  public run(deployment : Deployment, sites:Array<string>, options : CmdDeployOptions = {} as CmdDeployOptions) {
     this._showKadiraLink();
 
     const getDefaultBuildDirName = function(appName:string, tag:string) : string {
@@ -47,7 +46,7 @@ export class DeployAction extends BaseAction {
 
     // Handle build
     let afterBuild = new Promise( (resolveBuild, rejectBuild) => {
-      buildApp(appPath, meteorBinary, buildLocation, bundlePath, () => {
+      buildApp(this.config, appPath, buildLocation, bundlePath, () => {
         this.whenBeforeBuilding(deployment);
       }, (err:Error) => {
         if (err) {
@@ -57,7 +56,7 @@ export class DeployAction extends BaseAction {
       });
     });
 
-    let afterDeploy = new Promise( (resolveDeploy, rejectDeploy) => {
+    let afterDeploy = new Promise((resolveDeploy, rejectDeploy) => {
 
       afterBuild.catch( (reason) => {
         console.error("rejectDeploy", reason);

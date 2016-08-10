@@ -1,8 +1,9 @@
 {
   "name": "typeloy",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "friendly meteor deployments",
   "main": "lib/src/index.js",
+  "typings": "lib/src/index.d.ts",
   "scripts": {
     "test": "mocha lib/tests"
   },

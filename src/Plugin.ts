@@ -1,4 +1,4 @@
-import Deployment from "./Deployment";
+import {Deployment} from "./Deployment";
 
 export abstract class Plugin {
 

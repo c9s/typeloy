@@ -5,7 +5,7 @@ var format = require('util').format;
 import _ = require('underscore');
 import 'colors';
 
-interface Env {
+export interface Env {
   [key:string]: string
 }
 
@@ -36,12 +36,12 @@ export interface ServerConfig {
   sshOptions: SshOptions;
 }
 
-interface SslConfig {
+export interface SslConfig {
   backendPort: number;
   pem: string;
 }
 
-type MeteorSettings = any;
+export type MeteorSettings = any;
 
 export interface AppConfig {
   // name is required
@@ -56,6 +56,10 @@ export interface AppConfig {
 export interface MeteorConfig {
   // originally config.meteorBinary
   binary: string;
+
+  env?: Env;
+
+  server?: string; // server option for --server http://localhost:3000
 }
 
 export interface SetupConfig {
@@ -69,7 +73,7 @@ export interface DeployConfig {
 }
 
 
-interface LegacyConfig {
+export interface LegacyConfig {
   // common options
   servers?: Array<ServerConfig>;
   env: Env;

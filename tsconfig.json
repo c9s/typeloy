@@ -3,10 +3,10 @@
     "target": "es5",
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
+    "declaration": true,
     "removeComments": false,
     "module": "commonjs",
     "sourceMap": true,
-    "allowJs": true,
     "outDir": "lib"
   },
   "exclude": ["node_modules"],

@@ -1,4 +1,4 @@
-import Deployment from '../Deployment';
+import {Deployment} from '../Deployment';
 import {BaseAction} from './BaseAction';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
