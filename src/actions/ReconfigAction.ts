@@ -7,7 +7,9 @@ export class ReconfigAction extends BaseAction {
   public run(deployment: Deployment, site : string) {
     var self = this;
     let sessionInfoList = [];
-    let sessionsMap = this.createSiteSessionsMap(site);
+
+    let siteConfig = this.getSiteConfig(site);
+    let sessionsMap = this.createSiteSessionsMap(siteConfig);
     for (let os in sessionsMap) {
       let sessionGroup : SessionGroup = sessionsMap[os];
       sessionGroup.sessions.forEach( (session) => {

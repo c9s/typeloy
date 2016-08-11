@@ -18,13 +18,18 @@ var _ = require('underscore');
 export class DeployAction extends BaseAction {
 
   public run(deployment : Deployment, site : string, options : CmdDeployOptions = {} as CmdDeployOptions) {
+
+    const appConfig = this.config.app;
+    const appName = appConfig.name;
+    const siteConfig = this.getSiteConfig(site);
+
     this._showKadiraLink();
 
     const getDefaultBuildDirName = function(appName : string, tag : string) : string {
       return (appName || "meteor") + "-" + (tag || uuid.v4());
     };
 
-    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, deployment.tag));
+    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(appName, deployment.tag));
     const bundlePath = options.bundleFile || path.resolve(buildLocation, 'bundle.tar.gz');
 
     console.log('Deployment Tag:', deployment.tag);
@@ -37,26 +42,20 @@ export class DeployAction extends BaseAction {
 
     var deployCheckWaitTime = this.config.deploy.checkDelay;
 
-    var appConfig = this.config.app;
-    var appName = appConfig.name;
-    var appPath = appConfig.directory;
-    var meteorBinary = this.config.meteor.binary;
-
-    console.log('Meteor Path: ' + meteorBinary);
-    console.log('Building Started: ' + this.config.app.name);
 
     const builder = new MeteorBuilder(this.config);
 
-    return builder.buildApp(appPath, buildLocation, bundlePath, () => {
+    return builder.buildApp(appConfig.directory, buildLocation, bundlePath, () => {
       this.whenBeforeBuilding(deployment);
     }).then(() => {
       console.log("Connecting to the servers...");
       // We only want to fire once for now.
       this.whenBeforeDeploying(deployment);
-      let sessionsMap = this.createSiteSessionsMap(site);
+
+      const sessionsMap = this.createSiteSessionsMap(siteConfig);
 
       // An array of Promise<SummaryMap>
-      let pendingTasks : Array<Promise<SummaryMap>>
+      const pendingTasks : Array<Promise<SummaryMap>>
         = _.map(sessionsMap, (sessionGroup : SessionGroup) => {
           return new Promise<SummaryMap>( (resolveTask, rejectTask) => {
             let taskBuilder = this.getTaskBuilderByOs(sessionGroup.os);

@@ -27,7 +27,8 @@ export class LogsAction extends BaseAction {
       }
     }
 
-    let sessionsMap = this.createSiteSessionsMap(site);
+    let siteConfig = this.getSiteConfig(site);
+    let sessionsMap = this.createSiteSessionsMap(siteConfig);
     for (let os in sessionsMap) {
       let sessionGroup : SessionGroup = sessionsMap[os];
       sessionGroup.sessions.forEach(function(session) {
