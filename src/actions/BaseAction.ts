@@ -1,6 +1,6 @@
 import path = require('path');
 import fs = require('fs');
-import {Config, AppConfig, ServerConfig} from '../config';
+import {Config, AppConfig, ServerConfig, SiteConfig} from '../config';
 import LinuxTaskBuilder from "../TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "../TaskBuilder/SunOSTaskBuilder";
 import {TaskBuilder} from "../TaskBuilder/BaseTaskBuilder";
@@ -64,6 +64,14 @@ export class BaseAction {
     }
   }
 
+  protected getSiteConfig(siteName : string) : SiteConfig {
+    let site = this.config.sites[siteName];
+    if (!site) {
+      throw new Error(`${siteName} is not found in the sites.`);
+    }
+    return site;
+  }
+
   /**
    * Create sessions maps for only one site. It's possible to have more than
    * one servers in one site.
@@ -74,11 +82,10 @@ export class BaseAction {
    *
   * @param {object} config (the mup config object)
   */
-  protected createSiteSessionsMap(config : Config, siteName : string = "default") : SessionsMap {
-    let site = config.sites[siteName];
+  protected createSiteSessionsMap(siteName : string = "default") : SessionsMap {
+    let site = this.getSiteConfig(siteName);
     if (!site) {
       throw new Error(`${siteName} is not found in the sites.`);
-
     }
     let servers = site.servers;
     if (servers.length === 0) {
@@ -104,7 +111,7 @@ export class BaseAction {
   }
 
   protected executePararell(actionName : string, deployment : Deployment, site : string, args) : Promise<Array<SummaryMap>> {
-    let sessionsMap = this.createSiteSessionsMap(this.config, site);
+    let sessionsMap = this.createSiteSessionsMap(site);
     let sessionInfoList = _.values(sessionsMap);
     let promises = _.map(sessionInfoList,
       (sessionGroup:SessionGroup) => {

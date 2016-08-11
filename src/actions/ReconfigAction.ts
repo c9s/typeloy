@@ -4,10 +4,10 @@ import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '.
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
 
 export class ReconfigAction extends BaseAction {
-  public run(deployment: Deployment) {
+  public run(deployment: Deployment, site : string) {
     var self = this;
     let sessionInfoList = [];
-    let sessionsMap = this.createSiteSessionsMap(this.config, null);
+    let sessionsMap = this.createSiteSessionsMap(site);
     for (let os in sessionsMap) {
       let sessionGroup : SessionGroup = sessionsMap[os];
       sessionGroup.sessions.forEach( (session) => {

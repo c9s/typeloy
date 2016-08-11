@@ -13,31 +13,38 @@ export type BuildMeteorAppCallback = (code : number) => void;
 /**
  * @param {Function(err)} callback
  */
-export function buildApp(config : Config, appPath : string, buildLocation : string, bundlePath : string, start)
-{
-  return new Promise<any>((resolve, reject) => {
+export function buildApp(config : Config, appPath : string, buildLocation : string, bundlePath : string, start) : Promise<any> {
+  var buildFinish = new Promise<any>((resolve, reject) => {
     start = _.once(start);
     bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
     if (fs.existsSync(bundlePath)) {
       console.log("Found existing bundle file: " + bundlePath);
-      return resolve();
+      return resolve(0);
     }
+
     let meteorBinary = config.meteor.binary || 'meteor';
     start();
-    return buildMeteorApp(appPath, meteorBinary, buildLocation, config)
-      .then((code:number) => {
-        // 0 = success
+    buildMeteorApp(appPath, meteorBinary, buildLocation, config)
+      .then((code : number) => {
         if (code == 0) {
-          console.log("Build succeed. Archiving the files...");
-          return archiveIt(buildLocation, bundlePath);
+          resolve(code);
+        } else {
+          reject(code);
         }
-        console.error("\n=> Build Error. Check the logs printed above.");
-        return reject(new Error("Build error. Please check the console log output."));
       });
+  })
+  buildFinish.catch((code : number) => {
+    console.error("\n=> Build Error. Check the logs printed above.");
+    throw new Error("Build error. Please check the console log output.");
+  });
+  return buildFinish.then((code : number) => {
+    // 0 = success
+    console.log("Build succeed.");
+    return archiveIt(buildLocation, bundlePath);
   });
 }
 
-export function buildMeteorApp(appPath:string, executable:string, buildLocation:string, config : Config) {
+export function buildMeteorApp(appPath:string, executable:string, buildLocation:string, config : Config) : Promise<number> {
   let args : Array<string> = [
     "build",
     "--directory", buildLocation, 
@@ -59,13 +66,16 @@ export function buildMeteorApp(appPath:string, executable:string, buildLocation:
   console.log("Building Meteor App");
   console.log("  ", executable, args.join(' '), options);
 
-  return new Promise<number>(resolve => {
+  return new Promise<number>((resolve, reject) => {
     let meteor = spawn(executable, args, options);
     let stdout = "";
     let stderr = "";
     meteor.stdout.pipe(process.stdout, {end: false});
     meteor.stderr.pipe(process.stderr, {end: false});
     meteor.on('close', (code : number) => {
+      if (code != 0) {
+        return reject(code);
+      }
       resolve(code);
     });
   });
@@ -74,7 +84,9 @@ export function buildMeteorApp(appPath:string, executable:string, buildLocation:
 function archiveIt(buildLocation : string, bundlePath : string) : Promise<any> {
   let sourceDir = pathResolve(buildLocation, 'bundle');
   bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
-  console.log("Creating tar bundle: " + bundlePath);
+
+  console.log('Archiving the files...');
+  console.log("Creating tar bundle at: " + bundlePath);
   console.log("Bundle source: " + sourceDir);
 
   return new Promise<any>((resolve, reject) => {
@@ -95,5 +107,4 @@ function archiveIt(buildLocation : string, bundlePath : string) : Promise<any> {
     });
     archive.directory(sourceDir, 'bundle').finalize();
   });
-
 }

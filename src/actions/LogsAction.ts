@@ -8,7 +8,8 @@ export interface LogsOptions {
 }
 
 export class LogsAction extends BaseAction {
-  public run(options : LogsOptions) {
+
+  public run(deployment : Deployment, site : string, options : LogsOptions) {
     var self = this;
     var tailOptions = [];
     if (options.tail) {
@@ -26,7 +27,7 @@ export class LogsAction extends BaseAction {
       }
     }
 
-    let sessionsMap = this.createSiteSessionsMap(this.config, null);
+    let sessionsMap = this.createSiteSessionsMap(site);
     for (let os in sessionsMap) {
       let sessionGroup : SessionGroup = sessionsMap[os];
       sessionGroup.sessions.forEach(function(session) {

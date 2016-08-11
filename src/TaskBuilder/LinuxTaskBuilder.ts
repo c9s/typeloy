@@ -8,22 +8,11 @@ import {Config, AppConfig} from "../config";
 var SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/linux');
 var TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/linux');
 
-
 const DEPLOY_PREFIX = "/opt";
 
 import {TaskBuilder} from "./BaseTaskBuilder";
 
-abstract class Task {
-  protected config:Config;
-
-  constructor(config:Config) {
-    this.config = config;
-  }
-
-  public abstract describe();
-
-  public abstract build(taskList);
-}
+import {Task} from "./Task";
 
 abstract class SetupTask extends Task { }
 
@@ -219,8 +208,12 @@ class CopyBundleDeployTask extends DeployTask {
 
 export default class LinuxTaskBuilder implements TaskBuilder {
 
-  public setup(config:Config) {
+  public setup(config : Config) {
     var taskList = nodemiral.taskList('Setup (linux)');
+
+    taskList.addListener('started', function(msg) { console.log("started",msg); });
+    taskList.addListener('success', function(msg) { console.log("success",msg); });
+    taskList.addListener('failed', function(msg) { console.log("failed",msg); });
 
     let tasks : Array<Task> = [];
     tasks.push(new AptGetUpdateTask(config));
@@ -254,6 +247,10 @@ export default class LinuxTaskBuilder implements TaskBuilder {
 
   public deploy(config:Config, bundlePath:string, env, checkDelay, appName) {
     var taskList = nodemiral.taskList("Deploy app '" + appName + "' (linux)");
+
+    taskList.addListener('started', function(msg) { console.log("started",msg); });
+    taskList.addListener('success', function(msg) { console.log("success",msg); });
+    taskList.addListener('failed', function(msg) { console.log("failed",msg); });
 
     let copyBundle = new CopyBundleDeployTask(config, bundlePath);
     copyBundle.build(taskList);

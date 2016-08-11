@@ -16,6 +16,7 @@ var rimraf = require('rimraf');
 var _ = require('underscore');
 
 export class DeployAction extends BaseAction {
+
   public run(deployment : Deployment, site : string, options : CmdDeployOptions = {} as CmdDeployOptions) {
     this._showKadiraLink();
 
@@ -46,14 +47,11 @@ export class DeployAction extends BaseAction {
 
     return buildApp(this.config, appPath, buildLocation, bundlePath, () => {
       this.whenBeforeBuilding(deployment);
-    }).catch((err:Error) => {
-      if (err) {
-        throw err;
-      }
     }).then(() => {
+      console.log("Connecting to the servers...");
       // We only want to fire once for now.
       this.whenBeforeDeploying(deployment);
-      let sessionsMap = this.createSiteSessionsMap(this.config, site);
+      let sessionsMap = this.createSiteSessionsMap(site);
 
       // An array of Promise<SummaryMap>
       let pendingTasks : Array<Promise<SummaryMap>>
@@ -62,6 +60,7 @@ export class DeployAction extends BaseAction {
             let taskBuilder = this.getTaskBuilderByOs(sessionGroup.os);
             let sessions = sessionGroup.sessions;
 
+            // XXX: expend env from site and config it self.
             let env = _.extend({}, this.config.env);
             let taskList = taskBuilder.deploy(
                             this.config,
