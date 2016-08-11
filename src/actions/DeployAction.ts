@@ -4,7 +4,7 @@ import {Deployment} from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
 import {CmdDeployOptions} from '../options';
-import {buildApp} from '../build';
+import {MeteorBuilder} from '../build';
 
 var uuid = require('uuid');
 var format = require('util').format;
@@ -45,7 +45,9 @@ export class DeployAction extends BaseAction {
     console.log('Meteor Path: ' + meteorBinary);
     console.log('Building Started: ' + this.config.app.name);
 
-    return buildApp(this.config, appPath, buildLocation, bundlePath, () => {
+    const builder = new MeteorBuilder(this.config);
+
+    return builder.buildApp(appPath, buildLocation, bundlePath, () => {
       this.whenBeforeBuilding(deployment);
     }).then(() => {
       console.log("Connecting to the servers...");

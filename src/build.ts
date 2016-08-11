@@ -6,42 +6,51 @@ var pathResolve = require('path').resolve;
 import _ = require('underscore');
 import {Config} from './Config';
 
-export type BuildCallback = (err : Error) => void;
+export class MeteorBuilder {
 
-export type BuildMeteorAppCallback = (code : number) => void;
+  protected config : Config;
 
-/**
- * @param {Function(err)} callback
- */
-export function buildApp(config : Config, appPath : string, buildLocation : string, bundlePath : string, start) : Promise<any> {
-  var buildFinish = new Promise<any>((resolve, reject) => {
-    start = _.once(start);
-    bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
-    if (fs.existsSync(bundlePath)) {
-      console.log("Found existing bundle file: " + bundlePath);
-      return resolve(0);
-    }
+  constructor(config : Config) {
+    this.config = config;
+  }
 
-    let meteorBinary = config.meteor.binary || 'meteor';
-    start();
-    buildMeteorApp(appPath, meteorBinary, buildLocation, config)
-      .then((code : number) => {
-        if (code == 0) {
-          resolve(code);
-        } else {
-          reject(code);
-        }
+  /**
+  * @param {Function(err)} callback
+  */
+  public buildApp(appPath : string, buildLocation : string, bundlePath : string, start) : Promise<any> {
+    const buildFinish = new Promise<number>((resolve, reject) => {
+      start = _.once(start);
+      bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
+      if (fs.existsSync(bundlePath)) {
+        console.log("Found existing bundle file: " + bundlePath);
+        return resolve(0);
+      }
+
+      let meteorBinary = this.config.meteor.binary || 'meteor';
+      start();
+      buildMeteorApp(appPath, meteorBinary, buildLocation, this.config)
+        .then((code : number) => {
+          if (code == 0) {
+            resolve(code);
+          } else {
+            reject(code);
+          }
+        });
+    });
+    buildFinish.catch((code : number) => {
+      console.error("\n=> Build Error. Check the logs printed above.");
+      throw new Error("Build error. Please check the console log output.");
+    });
+    return buildFinish.then((code : number) => {
+      // 0 = success
+      console.log("Build succeed.");
+      return archiveIt(buildLocation, bundlePath, { 
+        level: 6,
+        // memLevel : 
+        // chunkSize
       });
-  })
-  buildFinish.catch((code : number) => {
-    console.error("\n=> Build Error. Check the logs printed above.");
-    throw new Error("Build error. Please check the console log output.");
-  });
-  return buildFinish.then((code : number) => {
-    // 0 = success
-    console.log("Build succeed.");
-    return archiveIt(buildLocation, bundlePath);
-  });
+    });
+  }
 }
 
 export function buildMeteorApp(appPath:string, executable:string, buildLocation:string, config : Config) : Promise<number> {
@@ -63,6 +72,7 @@ export function buildMeteorApp(appPath:string, executable:string, buildLocation:
   if (config.meteor.env) {
     options['env'] = _.extend(process.env, config.meteor.env);
   }
+
   console.log("Building Meteor App");
   console.log("  ", executable, args.join(' '), options);
 
@@ -81,7 +91,7 @@ export function buildMeteorApp(appPath:string, executable:string, buildLocation:
   });
 };
 
-function archiveIt(buildLocation : string, bundlePath : string) : Promise<any> {
+function archiveIt(buildLocation : string, bundlePath : string, gzipOptions : any) : Promise<any> {
   let sourceDir = pathResolve(buildLocation, 'bundle');
   bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
 
@@ -93,9 +103,7 @@ function archiveIt(buildLocation : string, bundlePath : string) : Promise<any> {
     let output  = fs.createWriteStream(bundlePath);
     let archive = archiver('tar', {
       gzip: true,
-      gzipOptions: {
-        level: 6
-      }
+      gzipOptions: gzipOptions
     });
     archive.pipe(output);
     output.once('close', () => {
