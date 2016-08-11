@@ -8,6 +8,7 @@ import {Deployment} from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
 import {PluginRunner} from "../PluginRunner";
+
 import {EventEmitter} from "events";
 
 import _ = require('underscore');
@@ -17,6 +18,11 @@ var os = require('os');
 require('colors');
 
 const kadiraRegex = /^meteorhacks:kadira/m;
+
+function copyFile(src, dest) {
+  const content = fs.readFileSync(src, 'utf8');
+  fs.writeFileSync(dest, content);
+}
 
 export class BaseAction extends EventEmitter {
 
@@ -43,38 +49,48 @@ export class BaseAction extends EventEmitter {
     // https://themeteorchef.com/snippets/making-use-of-settings-json/#tmc-using-settingsjson
     //
     // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
-    let settings = this.loadSettings();
-    this.config.env['METEOR_SETTINGS'] = JSON.stringify(settings);
+    const settings = this.loadSettings();
+    if (settings) {
+      this.config.env['METEOR_SETTINGS'] = JSON.stringify(settings);
+    }
   }
 
   protected loadSettings() {
     if (typeof this.config.app.settings === "object") {
       return this.config.app.settings;
     }
-    if (typeof this.config.app.settings === "string") {
-      let settingsFilename = this.config.app.settings;
+    let settingsFilename = this.config.app.settings || 'settings.json';
+    if (typeof settingsFilename === "string") {
       let dir;
       let settingsFile;
 
       if (dir = this.config.dirname) {
         settingsFile = path.resolve(dir, settingsFilename);
         if (fs.existsSync(settingsFile)) {
+          console.log(`Found ${settingsFile}`);
           return require(settingsFile);
         }
       }
       if (dir = this.config.app.directory) {
         settingsFile = path.resolve(dir, settingsFilename);
         if (fs.existsSync(settingsFile)) {
+          console.log(`Found ${settingsFile}`);
           return require(settingsFile);
         }
       }
       if (dir = this.config.app.root) {
         settingsFile = path.resolve(dir, settingsFilename);
         if (fs.existsSync(settingsFile)) {
+          console.log(`Found ${settingsFile}`);
           return require(settingsFile);
         }
       }
+      if (fs.existsSync(settingsFilename)) {
+        console.log(`Found ${settingsFilename}`);
+        return require(settingsFilename);
+      }
     }
+    console.error("settings.json not found.");
     return {};
   }
 
@@ -182,16 +198,8 @@ export class BaseAction extends EventEmitter {
     copyFile(exampleJson, destConfigJson);
     copyFile(exampleSettingsJson, destSettingsJson);
     console.log('New Project Initialized!');
-    function copyFile(src, dest) {
-      var content = fs.readFileSync(src, 'utf8');
-      fs.writeFileSync(dest, content);
-    }
   }
 
-  protected log(message : string) {
-    this.emit('log', message);
-    console.log(message);
-  }
 
 
   /**
@@ -217,6 +225,40 @@ export class BaseAction extends EventEmitter {
 
   public whenFailure(deployment : Deployment, summaryMaps) {
     return this.pluginRunner.whenFailure(deployment);
+  }
+
+
+
+
+
+  protected error(a : any) {
+    let message = a;
+    let err = null;
+    if (a instanceof Error) {
+      err = a;
+      message = a.message;
+    }
+    this.emit('error', message, err);
+    console.error(message, err);
+  }
+
+  protected debug(a : any) {
+    let message = a;
+    if (typeof a === "object") {
+      message = JSON.stringify(a, null, "  ");
+    }
+    this.emit('debug', message);
+    console.log(message);
+  }
+
+  protected progress(message : string) {
+    this.emit('progress', message);
+    console.log(message);
+  }
+
+  protected log(message : string) {
+    this.emit('log', message);
+    console.log(message);
   }
 
 }

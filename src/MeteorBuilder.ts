@@ -69,10 +69,7 @@ export class MeteorBuilder extends EventEmitter {
     });
   }
 
-  protected log(message) {
-    this.emit('log', message);
-    console.log(message);
-  }
+
 
   public archiveIt(buildLocation : string, bundlePath : string, gzipOptions : any) : Promise<any> {
     let sourceDir = pathResolve(buildLocation, 'bundle');
@@ -131,9 +128,9 @@ export class MeteorBuilder extends EventEmitter {
     }
     options['env']['BUILD_LOCATION'] = buildLocation;
 
-    this.log(`Building: ${executable} ${args.join(' ')} ${JSON.stringify(options, null, " ")}`);
+    this.log(`Building: ${executable} ${args.join(' ')}`);
 
-    return new Promise<number>((resolve, reject) => {
+    return new Promise<number>( (resolve, reject) => {
       let meteor = spawn(executable, args, options);
       let stdout = "";
       let stderr = "";
@@ -148,6 +145,38 @@ export class MeteorBuilder extends EventEmitter {
     });
   }
 
-}
 
+
+
+
+  protected error(a : any) {
+    let message = a;
+    let err = null;
+    if (a instanceof Error) {
+      err = a;
+      message = a.message;
+    }
+    this.emit('error', message, err);
+    console.error(message, err);
+  }
+
+  protected debug(a : any) {
+    let message = a;
+    if (typeof a === "object") {
+      message = JSON.stringify(a, null, "  ");
+    }
+    this.emit('debug', message);
+    console.log(message);
+  }
+
+  protected log(message : string) {
+    this.emit('log', message);
+    console.log(message);
+  }
+
+  protected progress(message : string) {
+    this.emit('progress', message);
+    console.log(message);
+  }
+}
 
