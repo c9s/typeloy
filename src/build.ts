@@ -17,9 +17,6 @@ export class MeteorBuilder extends EventEmitter {
     this.config = config;
   }
 
-  /**
-  * @param {Function(err)} callback
-  */
   public buildApp(appPath : string, buildLocation : string, bundlePath : string, start) : Promise<any> {
     const buildFinish = new Promise<number>((resolve, reject) => {
       start = _.once(start);
@@ -40,7 +37,7 @@ export class MeteorBuilder extends EventEmitter {
       }
 
       start();
-      buildMeteorApp(appPath, meteorBinary, buildLocation, this.config)
+      this.buildMeteorApp(appPath, meteorBinary, buildLocation)
         .then((code : number) => {
 
           this.log(`Builder returns: ${code}`);
@@ -107,42 +104,43 @@ export class MeteorBuilder extends EventEmitter {
     });
   }
 
+  protected buildMeteorApp(appPath:string, executable:string, buildLocation:string) : Promise<number> {
+    let args : Array<string> = [
+      "build",
+      "--directory", buildLocation, 
+      "--server", (this.config.meteor.server || "http://localhost:3000"),
+    ];
+    
+    let isWin = /^win/.test(process.platform);
+    if (isWin) {
+      // Sometimes cmd.exe not available in the path
+      // See: http://goo.gl/ADmzoD
+      executable = process.env.comspec || "cmd.exe";
+      args = ["/c", "meteor"].concat(args);
+    }
+
+    let options = {"cwd": pathResolve(appPath) };
+    if (this.config.meteor.env) {
+      options['env'] = _.extend(process.env, this.config.meteor.env);
+    }
+
+    console.log("  ", executable, args.join(' '), options);
+
+    return new Promise<number>((resolve, reject) => {
+      let meteor = spawn(executable, args, options);
+      let stdout = "";
+      let stderr = "";
+      meteor.stdout.pipe(process.stdout, {end: false});
+      meteor.stderr.pipe(process.stderr, {end: false});
+      meteor.on('close', (code : number) => {
+        if (code != 0) {
+          return reject(code);
+        }
+        resolve(code);
+      });
+    });
+  }
+
 }
 
-export function buildMeteorApp(appPath:string, executable:string, buildLocation:string, config : Config) : Promise<number> {
-  let args : Array<string> = [
-    "build",
-    "--directory", buildLocation, 
-    "--server", (config.meteor.server || "http://localhost:3000"),
-  ];
-  
-  let isWin = /^win/.test(process.platform);
-  if (isWin) {
-    // Sometimes cmd.exe not available in the path
-    // See: http://goo.gl/ADmzoD
-    executable = process.env.comspec || "cmd.exe";
-    args = ["/c", "meteor"].concat(args);
-  }
-
-  let options = {"cwd": pathResolve(appPath) };
-  if (config.meteor.env) {
-    options['env'] = _.extend(process.env, config.meteor.env);
-  }
-
-  console.log("  ", executable, args.join(' '), options);
-
-  return new Promise<number>((resolve, reject) => {
-    let meteor = spawn(executable, args, options);
-    let stdout = "";
-    let stderr = "";
-    meteor.stdout.pipe(process.stdout, {end: false});
-    meteor.stderr.pipe(process.stderr, {end: false});
-    meteor.on('close', (code : number) => {
-      if (code != 0) {
-        return reject(code);
-      }
-      resolve(code);
-    });
-  });
-};
 
