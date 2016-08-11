@@ -82,11 +82,7 @@ export class BaseAction {
    *
   * @param {object} config (the mup config object)
   */
-  protected createSiteSessionsMap(siteName : string = "default") : SessionsMap {
-    let site = this.getSiteConfig(siteName);
-    if (!site) {
-      throw new Error(`${siteName} is not found in the sites.`);
-    }
+  protected createSiteSessionsMap(site : SiteConfig) : SessionsMap {
     let servers = site.servers;
     if (servers.length === 0) {
       throw new Error("Emtpy server list.");
@@ -94,7 +90,7 @@ export class BaseAction {
     return this.sessionManager.createOsMap(servers);
   }
 
-  // Extract this to Kadira plugin
+  // XXX: Extract this to Kadira plugin
   protected _showKadiraLink() {
     var versionsFile = path.join(this.config.app.directory, '.meteor/versions');
     if (fs.existsSync(versionsFile)) {
@@ -111,7 +107,8 @@ export class BaseAction {
   }
 
   protected executePararell(actionName : string, deployment : Deployment, site : string, args) : Promise<Array<SummaryMap>> {
-    let sessionsMap = this.createSiteSessionsMap(site);
+    let siteConfig = this.getSiteConfig(site);
+    let sessionsMap = this.createSiteSessionsMap(siteConfig);
     let sessionInfoList = _.values(sessionsMap);
     let promises = _.map(sessionInfoList,
       (sessionGroup:SessionGroup) => {
