@@ -34,7 +34,7 @@ export class SlackNotificationPlugin extends Plugin {
 
   public whenBeforeBuilding(deployment : Deployment) {
     this.send({
-      "text": `Started building ${deployment.config.appName} ....`,
+      "text": `Started building ${deployment.config.app.name} ....`,
       "attachments":[
         this.createGitCommitAttachment(deployment.revInfo, {
           "color": "#cccccc", 
@@ -47,7 +47,7 @@ export class SlackNotificationPlugin extends Plugin {
 
   public whenBeforeDeploying(deployment:Deployment) {
     this.send({
-      "text": `Started deploying ${deployment.config.appName}...`,
+      "text": `Started deploying ${deployment.config.app.name}...`,
       "attachments":[
         this.createGitCommitAttachment(deployment.revInfo, {
           "color": "#999999", 
@@ -65,7 +65,7 @@ export class SlackNotificationPlugin extends Plugin {
       "attachments":[
         this.createGitCommitAttachment(deployment.revInfo, {
           "color": "#39aa56", 
-          "pretext": `${deployment.config.appName} is successfully deployed.`,
+          "pretext": `${deployment.config.app.name} is successfully deployed.`,
           "image_url": "http://66.media.tumblr.com/tumblr_ltb3i7VfUf1qblmtj.gif",
         })
       ]
@@ -78,11 +78,11 @@ export class SlackNotificationPlugin extends Plugin {
   public whenFailure(deployment:Deployment) : Promise<any> {
     // Convert "deferred promise to ES6 Promise"
     var deferred = this.send({
-      "text": `Failed............................`,
+      "text": `Failed...`,
       "attachments":[
         this.createGitCommitAttachment(deployment.revInfo, {
           "color": "#db4545", 
-          "pretext": `The deployment of ${deployment.config.appName} was failed.`,
+          "pretext": `The deployment of ${deployment.config.app.name} was failed.`,
           "image_url": "https://media.giphy.com/media/a9xhxAxaqOfQs/giphy.gif",
         })
       ]

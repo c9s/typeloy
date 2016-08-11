@@ -40,9 +40,6 @@ export class DeployAction extends BaseAction {
     this.log(`Build Location: ${buildLocation}`);
     this.log(`Bundle Path: ${bundlePath}`);
 
-    // spawn inherits env vars from process.env
-    // so we can simply set them like this
-    process.env.BUILD_LOCATION = buildLocation;
 
     const deployCheckWaitTime = this.config.deploy.checkDelay;
     const builder = new MeteorBuilder(this.config);
@@ -65,8 +62,10 @@ export class DeployAction extends BaseAction {
 
             const hasCustomEnv = _.some(sessions, (session : Session) => session._serverConfig.env );
 
-
             const env = _.extend({}, this.config.env || {}, siteConfig.env || {});
+
+            console.log("merged environment", env);
+
             const taskList = taskBuilder.deploy(
                             this.config,
                             bundlePath,

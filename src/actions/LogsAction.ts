@@ -23,7 +23,7 @@ export class LogsAction extends BaseAction {
         return 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + config.app.name + '.log';
       } else if (os == 'sunos') {
         return 'sudo tail ' + tailOptions.join(' ') +
-          ' /var/svc/log/site-' + config.appName + '\\:default.log';
+          ' /var/svc/log/site-' + config.app.name + '\\:default.log';
       } else {
         throw new Error("Unsupported OS.");
       }

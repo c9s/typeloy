@@ -48,8 +48,11 @@ export interface AppConfig {
   // name is required
   name: string;
 
-  // the path of the app, the default value can be "."
+  // the root directory of the app, the default value can be "."
   directory?: string;
+
+  // the root of the repository
+  root?: string;
 
   settings?: string|MeteorSettings;
 }
@@ -66,7 +69,8 @@ export interface MeteorConfig {
 }
 
 export interface SetupConfig {
-  node?: boolean|string;
+  node?: boolean;
+  nodeVersion?: string;
   phantom?: boolean;
   mongo?: boolean;
 }
@@ -100,20 +104,10 @@ export interface Config {
   deploy?: DeployConfig;
 
   // We will convert servers into "default" => servers => [ .... ]
-  sites?: SiteMapConfig;
+  sites: SiteMapConfig;
 
   app: AppConfig;
   meteor: MeteorConfig;
-
-  // legacy setup config
-  setupNode: boolean;
-  setupPhantom: boolean;
-  setupMongo: boolean;
-  nodeVersion?: string;
-  appName: string;
-  meteorBinary?: string;
-  // end of legacy setup config
-
 
   enableUploadProgressBar: boolean;
   env: Env;
@@ -166,7 +160,10 @@ export class ConfigParser {
   public static convertLegacyConfig(config:Config, _config:LegacyConfig) : Config {
     // Convert legacy setup configs to new SetupConfig
     if (typeof _config.setupNode !== "undefined") {
-      config.setup.node = config.nodeVersion || true;
+      config.setup.node = _config.setupNode || true;
+    }
+    if (typeof _config.nodeVersion !== "undefined") {
+      config.setup.nodeVersion = _config.nodeVersion || '4.4.7';
     }
     if (typeof _config.setupPhantom !== "undefined") {
       config.setup.phantom = true;
@@ -184,8 +181,8 @@ export class ConfigParser {
       config.app = {} as AppConfig;
       config.app.directory = appDir;
     }
-    if (typeof config.appName === "string") {
-      (<AppConfig>config.app).name = config.appName;
+    if (typeof _config.appName === "string") {
+      config.app.name = _config.appName;
     }
     if (typeof _config.meteorBinary === "string") {
       config.meteor.binary = _config.meteorBinary;

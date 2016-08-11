@@ -105,6 +105,8 @@ export class MeteorBuilder extends EventEmitter {
   }
 
   protected buildMeteorApp(appPath:string, executable:string, buildLocation:string) : Promise<number> {
+
+
     let args : Array<string> = [
       "build",
       "--directory", buildLocation, 
@@ -119,12 +121,17 @@ export class MeteorBuilder extends EventEmitter {
       args = ["/c", "meteor"].concat(args);
     }
 
-    let options = {"cwd": pathResolve(appPath) };
-    if (this.config.meteor.env) {
-      options['env'] = _.extend(process.env, this.config.meteor.env);
-    }
+    let options = {
+      "cwd": pathResolve(appPath),
+    };
 
-    console.log("  ", executable, args.join(' '), options);
+    options['env'] = process.env;
+    if (this.config.meteor.env) {
+      options['env'] = _.extend(options['env'], this.config.meteor.env);
+    }
+    options['env']['BUILD_LOCATION'] = buildLocation;
+
+    this.log(`Building: ${executable} ${args.join(' ')} ${options}`);
 
     return new Promise<number>((resolve, reject) => {
       let meteor = spawn(executable, args, options);
