@@ -9,7 +9,7 @@ import {Config} from "../Config";
 
 import {TaskBuilder} from "./BaseTaskBuilder";
 
-function reconfig(taskList, appName, env) {
+function reconfig(taskList, appName : string, env) {
   taskList.copy('Setting up environment variables', {
     src: path.resolve(TEMPLATES_DIR, 'env.sh'),
     dest: '/opt/' + appName + '/config/env.sh',
@@ -27,7 +27,7 @@ export default class SunOSTaskBuilder implements TaskBuilder {
     let setupNode = config.setup.node;
     let nodeVersion = config.setup.node;
     let setupPhantom = config.setup.phantom;
-    let appName = config.app.name;
+    const appName = config.app.name;
     
     // installMongo, setupNode, nodeVersion, setupPhantom, appName) {
     let taskList = nodemiral.taskList('Setup (sunos)');
@@ -73,8 +73,8 @@ export default class SunOSTaskBuilder implements TaskBuilder {
     return taskList;
   }
 
-  public deploy(bundlePath, env, deployCheckWaitTime, appName) {
-    var taskList = nodemiral.taskList("Deploy app '" + appName + "' (sunos)");
+  public deploy(bundlePath, env, deployCheckWaitTime, appName : string) {
+    const taskList = nodemiral.taskList("Deploy app '" + appName + "' (sunos)");
 
     taskList.copy('Uploading bundle', {
       src: bundlePath,

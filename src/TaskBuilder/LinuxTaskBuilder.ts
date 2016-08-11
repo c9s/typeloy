@@ -58,7 +58,7 @@ class EnvVarsSetupTask extends SetupTask {
     taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'setup-env.sh'),
       vars: {
-        appName: this.config.appName,
+        appName: this.config.app.name,
         deployPrefix: DEPLOY_PREFIX
       }
     });
@@ -195,7 +195,7 @@ class CopyBundleDeployTask extends DeployTask {
   }
 
   public build(taskList) {
-    let appName = (<AppConfig>this.config.app).name;
+    const appName = this.config.app.name;
     const remoteBundlePath = DEPLOY_PREFIX + '/' + appName + '/tmp/bundle.tar.gz'
     console.log("Transfering " + this.bundlePath + ' => ' + remoteBundlePath);
     taskList.copy(this.describe(), {
@@ -245,7 +245,7 @@ export default class LinuxTaskBuilder implements TaskBuilder {
     return taskList;
   }
 
-  public deploy(config:Config, bundlePath:string, env, checkDelay, appName) {
+  public deploy(config:Config, bundlePath:string, env, checkDelay, appName : string) {
     var taskList = nodemiral.taskList("Deploy app '" + appName + "' (linux)");
 
     taskList.addListener('started', function(msg) { console.log("started",msg); });
