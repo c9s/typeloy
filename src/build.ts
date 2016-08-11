@@ -131,7 +131,7 @@ export class MeteorBuilder extends EventEmitter {
     }
     options['env']['BUILD_LOCATION'] = buildLocation;
 
-    this.log(`Building: ${executable} ${args.join(' ')} ${options}`);
+    this.log(`Building: ${executable} ${args.join(' ')} ${JSON.stringify(options, null, " ")}`);
 
     return new Promise<number>((resolve, reject) => {
       let meteor = spawn(executable, args, options);

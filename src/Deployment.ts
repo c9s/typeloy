@@ -19,6 +19,9 @@ export class Deployment {
     this.revInfo = revInfo;
   }
 
+  /**
+   * @param dir dir is used for git collector to collect information
+   */
   public static create(config : Config, dir:string, tag:string = null) : Deployment {
     let revInfo = GitRevCollector.collect(dir);
     if (!tag) {

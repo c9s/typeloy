@@ -33,8 +33,8 @@ prog.command('deploy [site]')
   .option("-C, --no-clean", 'whether to clean up the bundle files.')
   .action((site : string, options : CmdDeployOptions) => {
     let config = readConfig(prog.config);
-    let a = new DeployAction(config, cwd);
-    let deployment = Deployment.create(config, cwd, options.tag);
+    let a = new DeployAction(config);
+    let deployment = Deployment.create(config, config.app.root || cwd, options.tag);
     let afterDeploy = a.run(deployment, site, options);
     afterDeploy.then((mapResult : Array<SummaryMap>) => {
       console.log("After deploy", mapResult);
@@ -51,9 +51,9 @@ prog.command('setup [site]')
   .description('setup the requirements on the target server.')
   .action((site : string, options) => {
     let config = readConfig(prog.config);
-    let a = new SetupAction(config, cwd);
+    let a = new SetupAction(config);
 
-    let deployment = Deployment.create(config, cwd);
+    let deployment = Deployment.create(config, config.app.root || cwd);
     a.run(deployment, site);
   })
   ;
@@ -63,8 +63,8 @@ prog.command('logs [site]')
   .option("-f, --tail", 'tail')
   .action((site, options) => {
     let config = readConfig(prog.config);
-    let a = new LogsAction(config, cwd);
-    let deployment = Deployment.create(config, cwd);
+    let a = new LogsAction(config);
+    let deployment = Deployment.create(config, config.app.root || cwd);
     a.run(deployment, site, options);
   });
 
@@ -72,9 +72,9 @@ prog.command('start [site]')
   .description('start the app.')
   .action( (site, options) => {
     let config = readConfig(prog.config);
-    let actions = new StartAction(config, cwd);
+    let actions = new StartAction(config);
 
-    let deployment = Deployment.create(config, cwd);
+    let deployment = Deployment.create(config, config.app.root || cwd);
     actions.run(deployment, site);
   });
   ;
@@ -83,9 +83,9 @@ prog.command('stop [site]')
   .description('stop the app.')
   .action((site, options) => {
     let config = readConfig(prog.config);
-    let actions = new StopAction(config, cwd);
+    let actions = new StopAction(config);
 
-    let deployment = Deployment.create(config, cwd);
+    let deployment = Deployment.create(config, config.app.root || cwd);
     actions.run(deployment, site);
   });
   ;
@@ -94,9 +94,9 @@ prog.command('restart')
   .description('restart the app.')
   .action((site, options) => {
     let config = readConfig(prog.config);
-    let actions = new RestartAction(config, cwd);
+    let actions = new RestartAction(config);
 
-    let deployment = Deployment.create(config, cwd);
+    let deployment = Deployment.create(config, config.app.root || cwd);
     actions.run(deployment, site);
   });
   ;
@@ -105,7 +105,7 @@ prog.command('init')
   .description('init the mup.json config.')
   .action( (env, options) => {
     let config = readConfig(prog.config);
-    let actions = new BaseAction(config, cwd);
+    let actions = new BaseAction(config);
     actions.init();
   });
 
