@@ -17,6 +17,7 @@ export interface SshOptions {
 
 export interface SiteConfig {
   servers : Array<ServerConfig>;
+  env? : Env;
 }
 
 
@@ -32,7 +33,7 @@ export interface ServerConfig {
   app?: string;
   os?: string; // linux or sunos
   pem?: string;
-  env: Env;
+  env?: Env;
   sshOptions: SshOptions;
 }
 

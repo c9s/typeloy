@@ -43,6 +43,11 @@ export class BaseAction {
     // https://themeteorchef.com/snippets/making-use-of-settings-json/#tmc-using-settingsjson
     //
     // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
+
+    if (this.config.app.settings) {
+
+    }
+
     let setttingsJsonPath = path.resolve(this.cwd, 'settings.json');
     if (fs.existsSync(setttingsJsonPath)) {
       this.config.env['METEOR_SETTINGS'] = JSON.stringify(require(setttingsJsonPath));

@@ -24,23 +24,25 @@ Session {
 */
 export interface Session {
 
-  _serverConfig: ServerConfig;
+  _serverConfig : ServerConfig;
+
+  _host : string;
 
 
   /**
    * copy data from src to dest
    */
-  copy(src, dest, options, callback)
+  copy(src, dest, options, callback?)
 
   /**
    * execute shell command on remote server
    */
-  execute(shellCommand, options, callback)
+  execute(shellCommand, options, callback?)
 
   /**
    * execute script on remote server
    */
-  executeScript(scriptFile, options, callback)
+  executeScript(scriptFile, options, callback?)
 
   /**
    * close the connection.

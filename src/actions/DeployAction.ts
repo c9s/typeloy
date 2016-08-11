@@ -1,6 +1,7 @@
 import {BaseAction} from './BaseAction';
 import {Config} from '../config';
 import {Deployment} from '../Deployment';
+import {Session} from '../Session';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
 import {CmdDeployOptions} from '../options';
@@ -29,7 +30,9 @@ export class DeployAction extends BaseAction {
       return (appName || "meteor") + "-" + (tag || uuid.v4());
     };
 
-    const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(appName, deployment.tag));
+    const buildLocation = options.buildDir 
+                          || process.env.METEOR_BUILD_DIR 
+                          || path.resolve(os.tmpdir(), getDefaultBuildDirName(appName, deployment.tag));
     const bundlePath = options.bundleFile || path.resolve(buildLocation, 'bundle.tar.gz');
 
     console.log('Deployment Tag:', deployment.tag);
@@ -59,11 +62,13 @@ export class DeployAction extends BaseAction {
         = _.map(sessionsMap, (sessionGroup : SessionGroup) => {
           return new Promise<SummaryMap>( (resolveTask, rejectTask) => {
             let taskBuilder = this.getTaskBuilderByOs(sessionGroup.os);
-            let sessions = sessionGroup.sessions;
+            const sessions = sessionGroup.sessions;
 
-            // XXX: expend env from site and config it self.
-            let env = _.extend({}, this.config.env);
-            let taskList = taskBuilder.deploy(
+            const hasCustomEnv = _.some(sessions, (session : Session) => session._serverConfig.env );
+
+
+            const env = _.extend({}, this.config.env || {}, siteConfig.env || {});
+            const taskList = taskBuilder.deploy(
                             this.config,
                             bundlePath,
                             env,

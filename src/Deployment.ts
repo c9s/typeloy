@@ -19,8 +19,8 @@ export class Deployment {
     this.revInfo = revInfo;
   }
 
-  public static create(config : Config, cwd:string, tag:string = null) : Deployment {
-    let revInfo = GitRevCollector.collect(cwd);
+  public static create(config : Config, dir:string, tag:string = null) : Deployment {
+    let revInfo = GitRevCollector.collect(dir);
     if (!tag) {
       tag = revInfo.describe;
     }
