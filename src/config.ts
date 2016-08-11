@@ -59,6 +59,8 @@ export interface MeteorConfig {
 
   env?: Env;
 
+  // settings?
+
   server?: string; // server option for --server http://localhost:3000
 }
 
@@ -107,7 +109,6 @@ export interface Config {
   setupPhantom: boolean;
   setupMongo: boolean;
   nodeVersion?: string;
-  servers?: Array<ServerConfig>;
   appName: string;
   meteorBinary?: string;
   // end of legacy setup config
@@ -191,9 +192,9 @@ export class ConfigParser {
 
     // Transfer the default servers to "default" site If site name is not
     // defined, we will use default as the default site list.
-    if (typeof config.servers !== "undefined") {
+    if (typeof _config.servers !== "undefined") {
       config.sites["default"] = {
-        "servers": config.servers
+        "servers": _config.servers
       };
     }
     return config;
@@ -270,11 +271,10 @@ export class ConfigParser {
     }
 
     // validating server config
-    if (!config.servers && !config.sites) {
+    if (!config.sites) {
       fatal("Config 'sites' or 'servers' is not defined.");
     }
-    if ((config.servers instanceof Array && config.servers.length == 0)
-        || _.isEmpty(config.sites)) {
+    if (_.isEmpty(config.sites)) {
       fatal("Config 'servers' or 'sites' is empty.");
     }
 

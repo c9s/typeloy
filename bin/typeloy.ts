@@ -24,18 +24,18 @@ prog.usage('[options] <subcommand> ...');
 prog.option('-v, --verbose', 'verbose mode');
 prog.option('-c, --config <file>', 'config file');
 
-prog.command('deploy [tag] [sites...]')
+prog.command('deploy [site]')
   .description('set the deployment tag and start deploying.')
   .option("-d, --dryrun", 'do not really deploy it.')
   .option("--bundle-file <file>", 'the bundle file you have already built with meteor build.')
   .option("--build-dir <dir>", 'the meteor build directory.')
   .option("--tag <tag>", 'deployment tag')
   .option("-C, --no-clean", 'whether to clean up the bundle files.')
-  .action((sites : Array<string>, options : CmdDeployOptions) => {
+  .action((site : string, options : CmdDeployOptions) => {
     let config = readConfig(prog.config);
     let a = new DeployAction(config, cwd);
     let deployment = Deployment.create(config, cwd, options.tag);
-    let afterDeploy = a.run(deployment, sites, options);
+    let afterDeploy = a.run(deployment, site, options);
     afterDeploy.then((mapResult : Array<SummaryMap>) => {
       console.log("After deploy", mapResult);
       console.log(JSON.stringify(mapResult, null, "  "));
@@ -47,23 +47,58 @@ prog.command('deploy [tag] [sites...]')
   })
   ;
 
-prog.command('setup')
+prog.command('setup [site]')
   .description('setup the requirements on the target server.')
-  .action( (env, options) => {
+  .action((site : string, options) => {
     let config = readConfig(prog.config);
     let a = new SetupAction(config, cwd);
-    a.run(null);
+
+    let deployment = Deployment.create(config, cwd);
+    a.run(deployment, site);
   })
   ;
 
 prog.command('logs')
-  .description('init the mup.json config.')
+  .description('tail the logs')
   .option("-f, --tail", 'tail')
   .action((options) => {
     let config = readConfig(prog.config);
     let a = new LogsAction(config, cwd);
     a.run(options);
   });
+
+prog.command('start [site]')
+  .description('start the app.')
+  .action( (site, options) => {
+    let config = readConfig(prog.config);
+    let actions = new StartAction(config, cwd);
+
+    let deployment = Deployment.create(config, cwd);
+    actions.run(deployment, site);
+  });
+  ;
+
+prog.command('stop [site]')
+  .description('stop the app.')
+  .action((site, options) => {
+    let config = readConfig(prog.config);
+    let actions = new StopAction(config, cwd);
+
+    let deployment = Deployment.create(config, cwd);
+    actions.run(deployment, site);
+  });
+  ;
+
+prog.command('restart')
+  .description('restart the app.')
+  .action((site, options) => {
+    let config = readConfig(prog.config);
+    let actions = new RestartAction(config, cwd);
+
+    let deployment = Deployment.create(config, cwd);
+    actions.run(deployment, site);
+  });
+  ;
 
 prog.command('init')
   .description('init the mup.json config.')
@@ -73,32 +108,6 @@ prog.command('init')
     actions.init();
   });
 
-prog.command('start')
-  .description('start the app.')
-  .action( (env, options) => {
-    let config = readConfig(prog.config);
-    let actions = new StartAction(config, cwd);
-    actions.run(null);
-  });
-  ;
-
-prog.command('stop')
-  .description('stop the app.')
-  .action( (env, options) => {
-    let config = readConfig(prog.config);
-    let actions = new StopAction(config, cwd);
-    actions.run(null);
-  });
-  ;
-
-prog.command('restart')
-  .description('restart the app.')
-  .action( (env, options) => {
-    let config = readConfig(prog.config);
-    let actions = new RestartAction(config, cwd);
-    actions.run(null);
-  });
-  ;
 
 /*
 // handling undefined command
