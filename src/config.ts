@@ -1,7 +1,7 @@
 var cjson = require('cjson');
-var path = require('path');
-var fs = require('fs');
 var format = require('util').format;
+import path = require('path');
+import fs = require('fs');
 import _ = require('underscore');
 import 'colors';
 
@@ -114,6 +114,8 @@ export interface Config {
   ssl?: SslConfig;
   deployCheckWaitTime?: number;
   plugins: Array<any>;
+
+  dirname ?: string;
 }
 
 
@@ -141,7 +143,7 @@ function canonicalizePath(loc:string) : string {
 
 export class ConfigParser {
 
-  public static parse(configPath:string) : Config {
+  public static parse(configPath : string) : Config {
     var config : LegacyConfig;
     if (configPath.match(/\.json$/)) {
       config = cjson.load(configPath);
@@ -152,8 +154,11 @@ export class ConfigParser {
       config = cjson.load(configPath);
     }
 
+
     let newconfig = this.preprocess(config);
     this.validate(newconfig);
+
+    newconfig.dirname = path.dirname(configPath);
     return newconfig;
   }
 

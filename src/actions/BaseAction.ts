@@ -20,24 +20,21 @@ const kadiraRegex = /^meteorhacks:kadira/m;
 
 export class BaseAction extends EventEmitter {
 
-  public cwd : string;
-
   public config : Config;
 
   protected sessionManager : SessionManager;
 
   protected pluginRunner : PluginRunner;
 
-  constructor(config : Config, cwd : string) {
+  constructor(config : Config) {
     super();
-    this.cwd = cwd;
     this.config = config;
 
     this.sessionManager = new SessionManager({
       "keepAlive": false 
     } as SessionManagerConfig);
 
-    this.pluginRunner = new PluginRunner(config, cwd);
+    this.pluginRunner = new PluginRunner(config);
 
     // Get settings.json into env,
     // The METEOR_SETTINGS can be used for setting up meteor application without passing "--settings=...."
@@ -46,15 +43,39 @@ export class BaseAction extends EventEmitter {
     // https://themeteorchef.com/snippets/making-use-of-settings-json/#tmc-using-settingsjson
     //
     // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
+    let settings = this.loadSettings();
+    this.config.env['METEOR_SETTINGS'] = JSON.stringify(settings);
+  }
 
-    if (this.config.app.settings) {
-
+  protected loadSettings() {
+    if (typeof this.config.app.settings === "object") {
+      return this.config.app.settings;
     }
+    if (typeof this.config.app.settings === "string") {
+      let settingsFilename = this.config.app.settings;
+      let dir;
+      let settingsFile;
 
-    let setttingsJsonPath = path.resolve(this.cwd, 'settings.json');
-    if (fs.existsSync(setttingsJsonPath)) {
-      this.config.env['METEOR_SETTINGS'] = JSON.stringify(require(setttingsJsonPath));
+      if (dir = this.config.dirname) {
+        settingsFile = path.resolve(dir, settingsFilename);
+        if (fs.existsSync(settingsFile)) {
+          return require(settingsFile);
+        }
+      }
+      if (dir = this.config.app.directory) {
+        settingsFile = path.resolve(dir, settingsFilename);
+        if (fs.existsSync(settingsFile)) {
+          return require(settingsFile);
+        }
+      }
+      if (dir = this.config.app.root) {
+        settingsFile = path.resolve(dir, settingsFilename);
+        if (fs.existsSync(settingsFile)) {
+          return require(settingsFile);
+        }
+      }
     }
+    return {};
   }
 
 

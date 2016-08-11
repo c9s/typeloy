@@ -12,12 +12,9 @@ export class PluginRunner {
 
   protected config:Config;
 
-  protected cwd:string;
-
   protected plugins:Array<Plugin> = [];
 
-  constructor(config:Config, cwd:string) {
-    this.cwd = cwd;
+  constructor(config:Config) {
     this.config = config;
     this.plugins = [];
     if (this.config.plugins && this.config.plugins instanceof Array) {
