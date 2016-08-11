@@ -16,11 +16,11 @@ var rimraf = require('rimraf');
 var _ = require('underscore');
 
 export class DeployAction extends BaseAction {
-  public run(deployment : Deployment, sites:Array<string>, options : CmdDeployOptions = {} as CmdDeployOptions) {
+  public run(deployment : Deployment, site : string, options : CmdDeployOptions = {} as CmdDeployOptions) {
     this._showKadiraLink();
 
-    const getDefaultBuildDirName = function(appName:string, tag:string) : string {
-      return (appName || "meteor-") + "-" + (tag || uuid.v4());
+    const getDefaultBuildDirName = function(appName : string, tag : string) : string {
+      return (appName || "meteor") + "-" + (tag || uuid.v4());
     };
 
     const buildLocation = process.env.METEOR_BUILD_DIR || path.resolve(os.tmpdir(), getDefaultBuildDirName(this.config.appName, deployment.tag));
@@ -44,64 +44,47 @@ export class DeployAction extends BaseAction {
     console.log('Meteor Path: ' + meteorBinary);
     console.log('Building Started: ' + this.config.app.name);
 
-    // Handle build
-    let afterBuild = new Promise( (resolveBuild, rejectBuild) => {
-      buildApp(this.config, appPath, buildLocation, bundlePath, () => {
-        this.whenBeforeBuilding(deployment);
-      }, (err:Error) => {
-        if (err) {
-          return rejectBuild(err);
-        }
-        resolveBuild();
-      });
-    });
+    return buildApp(this.config, appPath, buildLocation, bundlePath, () => {
+      this.whenBeforeBuilding(deployment);
+    }).catch((err:Error) => {
+      if (err) {
+        throw err;
+      }
+    }).then(() => {
+      // We only want to fire once for now.
+      this.whenBeforeDeploying(deployment);
+      let sessionsMap = this.createSiteSessionsMap(this.config, site);
 
-    let afterDeploy = new Promise((resolveDeploy, rejectDeploy) => {
+      // An array of Promise<SummaryMap>
+      let pendingTasks : Array<Promise<SummaryMap>>
+        = _.map(sessionsMap, (sessionGroup : SessionGroup) => {
+          return new Promise<SummaryMap>( (resolveTask, rejectTask) => {
+            let taskBuilder = this.getTaskBuilderByOs(sessionGroup.os);
+            let sessions = sessionGroup.sessions;
 
-      afterBuild.catch( (reason) => {
-        console.error("rejectDeploy", reason);
-        rejectDeploy(reason);
-      });
-
-      afterBuild.then(() => {
-        // We only want to fire once for now.
-        this.whenBeforeDeploying(deployment);
-        let sessionsMap = this.createSiteSessionsMap(this.config, null);
-
-        // An array of Promise<SummaryMap>
-        let pendingTasks : Array<Promise<SummaryMap>>
-          = _.map(sessionsMap, (sessionGroup : SessionGroup) => {
-            return new Promise<SummaryMap>( (resolveTask, rejectTask) => {
-              let taskBuilder = this.getTaskBuilderByOs(sessionGroup.os);
-              let sessions = sessionGroup.sessions;
-
-              let env = _.extend({}, this.config.env);
-              let taskList = taskBuilder.deploy(
-                              this.config,
-                              bundlePath,
-                              env,
-                              deployCheckWaitTime, appName);
-              taskList.run(sessions, (summaryMap : SummaryMap) => {
-                resolveTask(summaryMap);
-              });
+            let env = _.extend({}, this.config.env);
+            let taskList = taskBuilder.deploy(
+                            this.config,
+                            bundlePath,
+                            env,
+                            deployCheckWaitTime, appName);
+            taskList.run(sessions, (summaryMap : SummaryMap) => {
+              resolveTask(summaryMap);
             });
-        });
-
-        // whenAfterDeployed
-        Promise.all(pendingTasks).then( (results : Array<SummaryMap>) => {
-          this.pluginRunner.whenAfterDeployed(deployment);
-          if (options.clean) {
-            console.log(`Cleaning up ${buildLocation}`);
-            rimraf.sync(buildLocation);
-          }
-          resolveDeploy(results);
-        }).catch( (reason) => {
-          console.error("Failed", reason);
-          rejectDeploy(reason);
-        });
+          });
+      });
+      return Promise.all(pendingTasks).then((results : Array<SummaryMap>) => {
+        this.pluginRunner.whenAfterDeployed(deployment);
+        if (options.clean) {
+          console.log(`Cleaning up ${buildLocation}`);
+          rimraf.sync(buildLocation);
+        }
+        return Promise.resolve(results);
+      }).catch((reason) => {
+        console.error("Failed", reason);
+        return Promise.reject(reason);
       });
     });
-    return afterDeploy;
   }
 
   protected whenBeforeBuilding(deployment : Deployment) {

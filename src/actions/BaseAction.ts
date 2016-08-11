@@ -74,12 +74,17 @@ export class BaseAction {
    *
   * @param {object} config (the mup config object)
   */
-  protected createSiteSessionsMap(config : Config, siteName : string) : SessionsMap {
+  protected createSiteSessionsMap(config : Config, siteName : string = "default") : SessionsMap {
+    let site = config.sites[siteName];
+    if (!site) {
+      throw new Error(`${siteName} is not found in the sites.`);
 
-    if (!siteName) {
-      siteName = "default";
     }
-    return this.sessionManager.createOsMap(config.sites[siteName].servers);
+    let servers = site.servers;
+    if (servers.length === 0) {
+      throw new Error("Emtpy server list.");
+    }
+    return this.sessionManager.createOsMap(servers);
   }
 
   // Extract this to Kadira plugin
@@ -98,8 +103,8 @@ export class BaseAction {
     }
   }
 
-  protected executePararell(actionName:string, deployment : Deployment, args) : Promise<Array<SummaryMap>> {
-    let sessionsMap = this.createSiteSessionsMap(this.config, null);
+  protected executePararell(actionName : string, deployment : Deployment, site : string, args) : Promise<Array<SummaryMap>> {
+    let sessionsMap = this.createSiteSessionsMap(this.config, site);
     let sessionInfoList = _.values(sessionsMap);
     let promises = _.map(sessionInfoList,
       (sessionGroup:SessionGroup) => {

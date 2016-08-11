@@ -6,46 +6,45 @@ var pathResolve = require('path').resolve;
 import _ = require('underscore');
 import {Config} from './Config';
 
-export type BuildCallback = (err:Error) => void;
+export type BuildCallback = (err : Error) => void;
 
-export type BuildMeteorAppCallback = (code:number) => void;
+export type BuildMeteorAppCallback = (code : number) => void;
 
 /**
  * @param {Function(err)} callback
  */
-export function buildApp(config : Config, appPath:string, buildLocation:string, bundlePath:string,
-                         start,
-                         done:BuildCallback) {
-
-  start = _.once(start);
-  done = _.once(done);
-  bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
-  if (fs.existsSync(bundlePath)) {
-    console.log("Found existing bundle file: " + bundlePath);
-    return done(null);
-  }
-  let meteorBinary = config.meteor.binary || 'meteor';
-  start();
-  buildMeteorApp(appPath, meteorBinary, buildLocation, config, (code:number) => {
-    if (code == 0) {
-      // Success
-      console.log("Build succeed. Archiving the files...");
-      archiveIt(buildLocation, bundlePath, done);
-    } else {
-      console.error("\n=> Build Error. Check the logs printed above.");
-      done(new Error("Build error. Please check the console log output."));
+export function buildApp(config : Config, appPath : string, buildLocation : string, bundlePath : string, start)
+{
+  return new Promise<any>((resolve, reject) => {
+    start = _.once(start);
+    bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
+    if (fs.existsSync(bundlePath)) {
+      console.log("Found existing bundle file: " + bundlePath);
+      return resolve();
     }
+    let meteorBinary = config.meteor.binary || 'meteor';
+    start();
+    return buildMeteorApp(appPath, meteorBinary, buildLocation, config)
+      .then((code:number) => {
+        // 0 = success
+        if (code == 0) {
+          console.log("Build succeed. Archiving the files...");
+          return archiveIt(buildLocation, bundlePath);
+        }
+        console.error("\n=> Build Error. Check the logs printed above.");
+        return reject(new Error("Build error. Please check the console log output."));
+      });
   });
 }
 
-export function buildMeteorApp(appPath:string, executable:string, buildLocation:string, config : Config, done:BuildMeteorAppCallback) {
-  var args : Array<string> = [
+export function buildMeteorApp(appPath:string, executable:string, buildLocation:string, config : Config) {
+  let args : Array<string> = [
     "build",
     "--directory", buildLocation, 
     "--server", (config.meteor.server || "http://localhost:3000"),
   ];
   
-  var isWin = /^win/.test(process.platform);
+  let isWin = /^win/.test(process.platform);
   if (isWin) {
     // Sometimes cmd.exe not available in the path
     // See: http://goo.gl/ADmzoD
@@ -60,36 +59,41 @@ export function buildMeteorApp(appPath:string, executable:string, buildLocation:
   console.log("Building Meteor App");
   console.log("  ", executable, args.join(' '), options);
 
-  var meteor = spawn(executable, args, options);
-  var stdout = "";
-  var stderr = "";
-  meteor.stdout.pipe(process.stdout, {end: false});
-  meteor.stderr.pipe(process.stderr, {end: false});
-  meteor.on('close', done);
+  return new Promise<number>(resolve => {
+    let meteor = spawn(executable, args, options);
+    let stdout = "";
+    let stderr = "";
+    meteor.stdout.pipe(process.stdout, {end: false});
+    meteor.stderr.pipe(process.stderr, {end: false});
+    meteor.on('close', (code : number) => {
+      resolve(code);
+    });
+  });
 };
 
-function archiveIt(buildLocation:string, bundlePath:string, callback) {
+function archiveIt(buildLocation : string, bundlePath : string) : Promise<any> {
   let sourceDir = pathResolve(buildLocation, 'bundle');
   bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
-  callback = _.once(callback);
-
   console.log("Creating tar bundle: " + bundlePath);
   console.log("Bundle source: " + sourceDir);
 
-  var output  = fs.createWriteStream(bundlePath);
-  var archive = archiver('tar', {
-    gzip: true,
-    gzipOptions: {
-      level: 6
-    }
+  return new Promise<any>((resolve, reject) => {
+    let output  = fs.createWriteStream(bundlePath);
+    let archive = archiver('tar', {
+      gzip: true,
+      gzipOptions: {
+        level: 6
+      }
+    });
+    archive.pipe(output);
+    output.once('close', () => {
+      resolve();
+    });
+    archive.once('error', (err) => {
+      console.log("=> Archiving failed:", err.message);
+      reject(err);
+    });
+    archive.directory(sourceDir, 'bundle').finalize();
   });
 
-  archive.pipe(output);
-  output.once('close', callback);
-
-  archive.once('error', (err) => {
-    console.log("=> Archiving failed:", err.message);
-    callback(err);
-  });
-  archive.directory(sourceDir, 'bundle').finalize();
 }
