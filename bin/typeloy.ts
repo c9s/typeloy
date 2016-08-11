@@ -29,14 +29,12 @@ prog.command('deploy [tag] [sites...]')
   .option("-d, --dryrun", 'do not really deploy it.')
   .option("--bundle-file <file>", 'the bundle file you have already built with meteor build.')
   .option("--build-dir <dir>", 'the meteor build directory.')
+  .option("--tag <tag>", 'deployment tag')
   .option("-C, --no-clean", 'whether to clean up the bundle files.')
-  .action((deploymentTag : string, sites : Array<string>, options : CmdDeployOptions) => {
+  .action((sites : Array<string>, options : CmdDeployOptions) => {
     let config = readConfig(prog.config);
     let a = new DeployAction(config, cwd);
-    if (!deploymentTag) {
-      deploymentTag = "v" + (new Date).getTime();
-    }
-    let deployment = Deployment.create(config, cwd, deploymentTag);
+    let deployment = Deployment.create(config, cwd, options.tag);
     let afterDeploy = a.run(deployment, sites, options);
     afterDeploy.then((mapResult : Array<SummaryMap>) => {
       console.log("After deploy", mapResult);
