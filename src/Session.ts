@@ -28,6 +28,10 @@ export interface Session {
 
   _host : string;
 
+  _auth : any;
+
+  _keepAlive : boolean;
+
 
   /**
    * copy data from src to dest

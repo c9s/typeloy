@@ -19,6 +19,7 @@
     "fibers": "^1.0.13",
     "node-slack": "0.0.7",
     "nodemiral": "^1.1.1",
+    "propagate": "^1.0.0",
     "request": "^2.74.0",
     "rimraf": "^2.5.4",
     "simple-git": "^1.43.0",
