@@ -36,9 +36,9 @@ export class DeployAction extends BaseAction {
                           || path.resolve(os.tmpdir(), getDefaultBuildDirName(appName, deployment.tag));
     const bundlePath = options.bundleFile || path.resolve(buildLocation, 'bundle.tar.gz');
 
-    this.log(`Deployment Tag: ${deployment.tag}`);
-    this.log(`Build Location: ${buildLocation}`);
-    this.log(`Bundle Path: ${bundlePath}`);
+    this.debug(`Deployment Tag: ${deployment.tag}`);
+    this.debug(`Build Location: ${buildLocation}`);
+    this.debug(`Bundle Path: ${bundlePath}`);
 
     const deployCheckWaitTime = this.config.deploy.checkDelay;
     const builder = new MeteorBuilder(this.config);

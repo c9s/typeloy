@@ -63,8 +63,6 @@ export interface MeteorConfig {
 
   env?: Env;
 
-  // settings?
-
   server?: string; // server option for --server http://localhost:3000
 }
 
