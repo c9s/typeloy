@@ -167,6 +167,11 @@ export class BaseAction extends EventEmitter {
     }
   }
 
+  protected log(message : string) {
+    this.emit('log', message);
+    console.log(message);
+  }
+
 
   /**
   * After completed ....

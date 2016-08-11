@@ -36,23 +36,21 @@ export class DeployAction extends BaseAction {
                           || path.resolve(os.tmpdir(), getDefaultBuildDirName(appName, deployment.tag));
     const bundlePath = options.bundleFile || path.resolve(buildLocation, 'bundle.tar.gz');
 
-    console.log('Deployment Tag:', deployment.tag);
-    console.log('Build Location:', buildLocation);
-    console.log('Bundle Path:', bundlePath);
+    this.log(`Deployment Tag: ${deployment.tag}`);
+    this.log(`Build Location: ${buildLocation}`);
+    this.log(`Bundle Path: ${bundlePath}`);
 
     // spawn inherits env vars from process.env
     // so we can simply set them like this
     process.env.BUILD_LOCATION = buildLocation;
 
-    var deployCheckWaitTime = this.config.deploy.checkDelay;
-
-
+    const deployCheckWaitTime = this.config.deploy.checkDelay;
     const builder = new MeteorBuilder(this.config);
 
     return builder.buildApp(appConfig.directory, buildLocation, bundlePath, () => {
       this.whenBeforeBuilding(deployment);
     }).then(() => {
-      console.log("Connecting to the servers...");
+      this.log("Connecting to the servers...");
       // We only want to fire once for now.
       this.whenBeforeDeploying(deployment);
 
@@ -85,7 +83,7 @@ export class DeployAction extends BaseAction {
       return Promise.all(pendingTasks).then((results : Array<SummaryMap>) => {
         this.pluginRunner.whenAfterDeployed(deployment);
         if (options.clean) {
-          console.log(`Cleaning up ${buildLocation}`);
+          this.log(`Cleaning up ${buildLocation}`);
           rimraf.sync(buildLocation);
         }
         return Promise.resolve(results);
