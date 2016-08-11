@@ -58,13 +58,14 @@ prog.command('setup [site]')
   })
   ;
 
-prog.command('logs')
+prog.command('logs [site]')
   .description('tail the logs')
   .option("-f, --tail", 'tail')
-  .action((options) => {
+  .action((site, options) => {
     let config = readConfig(prog.config);
     let a = new LogsAction(config, cwd);
-    a.run(options);
+    let deployment = Deployment.create(config, cwd);
+    a.run(deployment, site, options);
   });
 
 prog.command('start [site]')
