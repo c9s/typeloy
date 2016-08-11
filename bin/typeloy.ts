@@ -12,6 +12,7 @@ import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, h
 
 import {Deployment} from '../src/Deployment';
 import debug from '../src/Debug';
+
 require('colors');
 
 var prog = require('commander');
@@ -37,9 +38,10 @@ prog.command('deploy [site]')
     let deployment = Deployment.create(config, config.app.root || cwd, options.tag);
     let afterDeploy = a.run(deployment, site, options);
     afterDeploy.then((mapResult : Array<SummaryMap>) => {
-      console.log("After deploy", mapResult);
-      console.log(JSON.stringify(mapResult, null, "  "));
-      // var errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
+      var errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
+      console.log("returned code", errorCode);
+      // console.log("After deploy", mapResult);
+      // console.log(JSON.stringify(mapResult, null, "  "));
     });
     afterDeploy.catch( (res) => {
       console.error(res);
