@@ -208,12 +208,18 @@ class CopyBundleDeployTask extends DeployTask {
 
 export default class LinuxTaskBuilder implements TaskBuilder {
 
-  public setup(config : Config) {
-    var taskList = nodemiral.taskList('Setup (linux)');
+  protected taskList(title : string) {
+    return nodemiral.taskList(title);
+  }
 
+  public setup(config : Config) {
+    const taskList = this.taskList('Setup (linux)');
+
+    /*
     taskList.addListener('started', function(msg) { console.log("started",msg); });
     taskList.addListener('success', function(msg) { console.log("success",msg); });
     taskList.addListener('failed', function(msg) { console.log("failed",msg); });
+    */
 
     let tasks : Array<Task> = [];
     tasks.push(new AptGetUpdateTask(config));
@@ -246,7 +252,7 @@ export default class LinuxTaskBuilder implements TaskBuilder {
   }
 
   public deploy(config:Config, bundlePath:string, env, checkDelay, appName : string) {
-    var taskList = nodemiral.taskList("Deploy app '" + appName + "' (linux)");
+    var taskList = this.taskList("Deploy app '" + appName + "' (linux)");
 
     taskList.addListener('started', function(msg) { console.log("started",msg); });
     taskList.addListener('success', function(msg) { console.log("success",msg); });
@@ -301,7 +307,7 @@ export default class LinuxTaskBuilder implements TaskBuilder {
   };
 
   public reconfig(env, appName) {
-    var taskList = nodemiral.taskList("Updating configurations (linux)");
+    var taskList = this.taskList("Updating configurations (linux)");
 
     taskList.copy('Setting up Environment Variables', {
       src: path.resolve(TEMPLATES_DIR, 'env.sh'),
@@ -321,7 +327,7 @@ export default class LinuxTaskBuilder implements TaskBuilder {
   }
 
   public restart(appName) {
-    var taskList = nodemiral.taskList("Restarting Application (linux)");
+    var taskList = this.taskList("Restarting Application (linux)");
 
     //restarting
     taskList.execute('Restarting app', {
@@ -332,7 +338,7 @@ export default class LinuxTaskBuilder implements TaskBuilder {
   }
 
   public stop(appName) {
-    var taskList = nodemiral.taskList("Stopping Application (linux)");
+    var taskList = this.taskList("Stopping Application (linux)");
 
     //stopping
     taskList.execute('Stopping app', {
@@ -343,7 +349,7 @@ export default class LinuxTaskBuilder implements TaskBuilder {
   }
 
   public start(appName) {
-    var taskList = nodemiral.taskList("Starting Application (linux)");
+    var taskList = this.taskList("Starting Application (linux)");
 
     //starting
     taskList.execute('Starting app', {

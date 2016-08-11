@@ -7,12 +7,13 @@ import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, h
 import {CmdDeployOptions} from '../options';
 import {MeteorBuilder} from '../build';
 
+import fs = require('fs');
+import os = require('os');
 var uuid = require('uuid');
+var propagate = require('propagate');
 var format = require('util').format;
 var extend = require('util')._extend;
 var path = require('path');
-var fs = require('fs');
-var os = require('os');
 var rimraf = require('rimraf');
 var _ = require('underscore');
 
@@ -61,7 +62,7 @@ export class DeployAction extends BaseAction {
       const pendingTasks : Array<Promise<SummaryMap>>
         = _.map(sessionsMap, (sessionGroup : SessionGroup) => {
           return new Promise<SummaryMap>( (resolveTask, rejectTask) => {
-            let taskBuilder = this.getTaskBuilderByOs(sessionGroup.os);
+            const taskBuilder = this.getTaskBuilderByOs(sessionGroup.os);
             const sessions = sessionGroup.sessions;
 
             const hasCustomEnv = _.some(sessions, (session : Session) => session._serverConfig.env );
@@ -73,6 +74,9 @@ export class DeployAction extends BaseAction {
                             bundlePath,
                             env,
                             deployCheckWaitTime, appName);
+
+            propagate(taskList, this);
+
             taskList.run(sessions, (summaryMap : SummaryMap) => {
               resolveTask(summaryMap);
             });

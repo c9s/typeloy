@@ -8,15 +8,17 @@ import {Deployment} from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
 import {PluginRunner} from "../PluginRunner";
+import {EventEmitter} from "events";
 
 import _ = require('underscore');
 
+var propagate = require('propagate');
 var os = require('os');
 require('colors');
 
 const kadiraRegex = /^meteorhacks:kadira/m;
 
-export class BaseAction {
+export class BaseAction extends EventEmitter {
 
   public cwd : string;
 
@@ -27,6 +29,7 @@ export class BaseAction {
   protected pluginRunner : PluginRunner;
 
   constructor(config : Config, cwd : string) {
+    super();
     this.cwd = cwd;
     this.config = config;
 
@@ -118,8 +121,12 @@ export class BaseAction {
     let promises = _.map(sessionInfoList,
       (sessionGroup:SessionGroup) => {
         return new Promise<SummaryMap>(resolve => {
-          let taskListsBuilder = this.getTaskBuilderByOs(sessionGroup.os);
-          let taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
+          const taskListsBuilder = this.getTaskBuilderByOs(sessionGroup.os);
+          const taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
+
+          // propagate events to this
+          propagate(taskList, this);
+
           taskList.run(sessionGroup.sessions, (summaryMap:SummaryMap) => {
             resolve(summaryMap);
           });
