@@ -33,14 +33,14 @@ class AptGetUpdateTask extends Task {
 class NodeJsSetupTask extends SetupTask {
 
   public describe() : string {
-    return 'Installing Node.js: ' + (this.config.setup.node || this.config.nodeVersion);
+    return 'Installing Node.js: ' + this.config.setup.nodeVersion;
   }
 
   public build(taskList) {
     taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
       vars: {
-        nodeVersion: this.config.nodeVersion,
+        nodeVersion: this.config.setup.nodeVersion,
         deployPrefix: DEPLOY_PREFIX
       }
     });
