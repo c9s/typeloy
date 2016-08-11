@@ -215,12 +215,6 @@ export default class LinuxTaskBuilder implements TaskBuilder {
   public setup(config : Config) {
     const taskList = this.taskList('Setup (linux)');
 
-    /*
-    taskList.addListener('started', function(msg) { console.log("started",msg); });
-    taskList.addListener('success', function(msg) { console.log("success",msg); });
-    taskList.addListener('failed', function(msg) { console.log("failed",msg); });
-    */
-
     let tasks : Array<Task> = [];
     tasks.push(new AptGetUpdateTask(config));
 
@@ -254,9 +248,6 @@ export default class LinuxTaskBuilder implements TaskBuilder {
   public deploy(config:Config, bundlePath:string, env, checkDelay, appName : string) {
     var taskList = this.taskList("Deploy app '" + appName + "' (linux)");
 
-    taskList.addListener('started', function(msg) { console.log("started",msg); });
-    taskList.addListener('success', function(msg) { console.log("success",msg); });
-    taskList.addListener('failed', function(msg) { console.log("failed",msg); });
 
     let copyBundle = new CopyBundleDeployTask(config, bundlePath);
     copyBundle.build(taskList);

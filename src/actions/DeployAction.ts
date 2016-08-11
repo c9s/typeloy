@@ -5,7 +5,7 @@ import {Session} from '../Session';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
 import {CmdDeployOptions} from '../options';
-import {MeteorBuilder} from '../build';
+import {MeteorBuilder} from '../MeteorBuilder';
 
 import fs = require('fs');
 import os = require('os');
@@ -40,9 +40,10 @@ export class DeployAction extends BaseAction {
     this.log(`Build Location: ${buildLocation}`);
     this.log(`Bundle Path: ${bundlePath}`);
 
-
     const deployCheckWaitTime = this.config.deploy.checkDelay;
     const builder = new MeteorBuilder(this.config);
+
+    propagate(builder, this);
 
     return builder.buildApp(appConfig.directory, buildLocation, bundlePath, () => {
       this.whenBeforeBuilding(deployment);
