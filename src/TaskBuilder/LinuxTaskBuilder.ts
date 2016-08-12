@@ -15,9 +15,7 @@ import {TaskBuilder} from "./BaseTaskBuilder";
 import {Task} from "./Task";
 
 abstract class SetupTask extends Task {
-  protected getAppRoot() : string {
-    return path.join(DEPLOY_PREFIX, this.config.app.name);
-  }
+
 }
 
 class AptGetUpdateTask extends Task {
@@ -45,7 +43,7 @@ class NodeJsSetupTask extends SetupTask {
       script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
       vars: {
         nodeVersion: this.config.setup.nodeVersion,
-        deployPrefix: DEPLOY_PREFIX
+        deployPrefix: this.deployPrefix
       }
     });
   }
@@ -62,7 +60,7 @@ class MeteorEnvSetupTask extends SetupTask {
       script: path.resolve(SCRIPT_DIR, 'setup-env.sh'),
       vars: {
         appName: this.config.app.name,
-        deployPrefix: DEPLOY_PREFIX
+        deployPrefix: this.deployPrefix
       }
     });
   }
@@ -129,20 +127,20 @@ class SslSetupTask extends SetupTask {
 
     taskList.copy('Configuring SSL', {
       src: pemFilePath,
-      dest: DEPLOY_PREFIX + '/stud/ssl.pem'
+      dest: this.deployPrefix + '/stud/ssl.pem'
     });
 
 
     taskList.copy('Configuring Stud', {
       src: path.resolve(TEMPLATES_DIR, 'stud.conf'),
-      dest: DEPLOY_PREFIX + '/stud/stud.conf',
+      dest: this.deployPrefix + '/stud/stud.conf',
       vars: {
         backend: util.format('[%s]:%d', backend.host, backend.port)
       }
     });
 
     taskList.execute('Verifying SSL Configurations (ssl.pem)', {
-      'command': `stud --test --config=${DEPLOY_PREFIX}/stud/stud.conf`
+      'command': `stud --test --config=${this.deployPrefix}/stud/stud.conf`
     });
 
     //restart stud
@@ -169,7 +167,7 @@ class StartScriptTask extends SetupTask {
       src: path.resolve(TEMPLATES_DIR, 'meteor/systemd.conf'),
       dest: this.getAppRoot(),
       vars: {
-        deployPrefix: DEPLOY_PREFIX,
+        deployPrefix: this.deployPrefix,
         appName: this.getAppName()
       }
     });
@@ -197,7 +195,7 @@ class SystemdSetupTask extends SetupTask {
       src: path.resolve(TEMPLATES_DIR, 'meteor/systemd.conf'),
       dest: this.getConfigPath(),
       vars: {
-        deployPrefix: DEPLOY_PREFIX,
+        deployPrefix: this.deployPrefix,
         appName: this.getAppName()
       }
     });
@@ -225,27 +223,33 @@ class UpstartSetupTask extends SetupTask {
       src: path.resolve(TEMPLATES_DIR, 'meteor/upstart.conf'),
       dest: upstartConfig,
       vars: {
-        deployPrefix: DEPLOY_PREFIX,
+        deployPrefix: this.deployPrefix,
         appName: this.getAppName()
       }
     });
   }
 }
 
+
+
+/**
+ * EnvVars with export statement
+ */
 class EnvVarsTask extends Task {
 
   protected env;
 
-  constructor(config:Config, env) {
+  constructor(config : Config, env) {
     super(config);
     this.env = env;
   }
 
   public describe() : string {
-    return 'Setting up environment variables';
+    return 'Setting up environment variable file';
   }
 
-  public build(taskList) {
+
+  protected buildEnvDict() {
     let bashenv = {};
     for (let key in this.env) {
       let val = this.env[key];
@@ -258,11 +262,41 @@ class EnvVarsTask extends Task {
         bashenv[key] = val;
       }
     }
-    taskList.copy('Setting up environment variables', {
-      'src': path.resolve(TEMPLATES_DIR, 'env.sh'),
-      'dest': DEPLOY_PREFIX + '/' + this.config.app.name + '/config/env.sh',
+    return bashenv;
+  }
+
+  public build(taskList) {
+    let bashenv = this.buildEnvDict();
+    taskList.copy(this.describe(), {
+      'src': path.resolve(TEMPLATES_DIR, 'env-vars'),
+      'dest': this.deployPrefix + '/' + this.config.app.name + '/config/env-vars',
       'vars': {
-        'deployPrefix': DEPLOY_PREFIX,
+        'deployPrefix': this.deployPrefix,
+        'env': bashenv,
+        'appName': this.config.app.name
+      }
+    });
+  }
+}
+
+
+
+/**
+ * Bash EnvVars with export statement
+ */
+class BashEnvVarsTask extends EnvVarsTask {
+
+  public describe() : string {
+    return 'Setting up environment variable file for bash';
+  }
+
+  public build(taskList) {
+    let bashenv = this.buildEnvDict();
+    taskList.copy(this.describe(), {
+      'src': path.resolve(TEMPLATES_DIR, 'env.sh'),
+      'dest': this.deployPrefix + '/' + this.config.app.name + '/config/env.sh',
+      'vars': {
+        'deployPrefix': this.deployPrefix,
         'env': bashenv,
         'appName': this.config.app.name
       }
@@ -277,7 +311,7 @@ class CopyBundleDeployTask extends DeployTask {
 
   protected bundlePath : string;
 
-  constructor(config:Config, bundlePath:string) {
+  constructor(config : Config, bundlePath:string) {
     super(config);
     this.bundlePath = bundlePath;
   }
@@ -288,11 +322,11 @@ class CopyBundleDeployTask extends DeployTask {
 
   public build(taskList) {
     const appName = this.config.app.name;
-    const remoteBundlePath = DEPLOY_PREFIX + '/' + appName + '/tmp/bundle.tar.gz'
+    const remoteBundlePath = this.deployPrefix + '/' + appName + '/tmp/bundle.tar.gz'
     console.log("Transfering " + this.bundlePath + ' => ' + remoteBundlePath);
     taskList.copy(this.describe(), {
       src: this.bundlePath,
-      dest: DEPLOY_PREFIX + '/' + appName + '/tmp/bundle.tar.gz',
+      dest: this.deployPrefix + '/' + appName + '/tmp/bundle.tar.gz',
       progressBar: this.config.enableUploadProgressBar
     });
   }
@@ -357,8 +391,8 @@ export default class LinuxTaskBuilder implements TaskBuilder {
       }
     }
 
-    let envVarsSetup = new EnvVarsTask(config, env);
-    envVarsSetup.build(taskList);
+    let bashEnvVars = new BashEnvVarsTask(config, env);
+    bashEnvVars.build(taskList);
 
     taskList.copy('Creating build.sh', {
       src: path.resolve(TEMPLATES_DIR, 'deploy.sh'),
