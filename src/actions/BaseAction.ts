@@ -13,7 +13,6 @@ import {EventEmitter} from "events";
 
 import _ = require('underscore');
 
-var propagate = require('propagate');
 var os = require('os');
 require('colors');
 
@@ -161,8 +160,8 @@ export class BaseAction extends EventEmitter {
           const taskListsBuilder = this.getTaskBuilderByOs(sessionGroup.os);
           const taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
 
-          // propagate events to this
-          propagate(taskList, this);
+          // propagate task events
+          this.propagateTaskEvents(taskList);
 
           taskList.run(sessionGroup.sessions, (summaryMap:SummaryMap) => {
             resolve(summaryMap);
@@ -229,6 +228,17 @@ export class BaseAction extends EventEmitter {
 
 
 
+  protected propagateTaskEvents(taskList) {
+    taskList.addListener('started', (taskId) => {
+      this.emit('task.started', taskId);
+    });
+    taskList.addListener('success', (taskId) => {
+      this.emit('task.success', taskId);
+    });
+    taskList.addListener('failed',  (err, taskId) => {
+      this.emit('task.failed', taskId, err);
+    });
+  }
 
 
   protected error(a : any) {

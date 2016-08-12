@@ -1,6 +1,4 @@
 
-
-
 export interface SummaryMap {
   // summaryMap[session._host] = {error: err, history: history};
   [host: string] : SummaryMapResult
@@ -14,7 +12,7 @@ export interface SummaryMapResult {
 export interface SummaryMapHistory {
   "task" : string;
   "status" : string; // SUCCESS or FAILED
-  "error"? : string;
+  "error" : string;
 }
 
 export function haveSummaryMapsErrors(summaryMaps : Array<SummaryMap>) : boolean {

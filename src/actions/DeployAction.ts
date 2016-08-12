@@ -73,7 +73,8 @@ export class DeployAction extends BaseAction {
                             env,
                             deployCheckWaitTime, appName);
 
-            propagate(taskList, this);
+            // propagate task events
+            this.propagateTaskEvents(taskList);
 
             taskList.run(sessions, (summaryMap : SummaryMap) => {
               resolveTask(summaryMap);
