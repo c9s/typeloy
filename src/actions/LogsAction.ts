@@ -6,20 +6,25 @@ import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '.
 
 export interface LogsOptions {
   tail?: boolean;
+  init?: string;
 }
 
 export class LogsAction extends BaseAction {
 
   public run(deployment : Deployment, site : string, options : LogsOptions) {
 
-    var self = this;
+    const self = this;
     let tailOptions = [];
     if (options.tail) {
       tailOptions.push('-f');
     }
+    const tailOptionArgs = tailOptions.join(' ');
 
     function tailCommand(os : string, config : Config, tailOptions) {
       if (os == 'linux') {
+        if (options.init === "systemd") {
+          return `sudo journalctl -u ${config.app.name}.service --since today ${tailOptions.join(' ')}`;
+        }
         return 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + config.app.name + '.log';
       } else if (os == 'sunos') {
         return 'sudo tail ' + tailOptions.join(' ') +

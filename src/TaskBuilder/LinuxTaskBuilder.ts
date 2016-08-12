@@ -165,9 +165,9 @@ class SystemdSetupTask extends SetupTask {
 
   public build(taskList) {
     taskList.copy(this.describe(), {
-      src: path.resolve(TEMPLATES_DIR, 'meteor/systemd.conf'),
-      dest: this.getConfigPath(),
-      vars: this.extendArgs({}),
+      'src': path.resolve(TEMPLATES_DIR, 'meteor/systemd.conf'),
+      'dest': this.getConfigPath(),
+      'vars': this.extendArgs({}),
     });
   }
 }

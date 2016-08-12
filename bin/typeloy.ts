@@ -63,6 +63,7 @@ prog.command('setup [site]')
 prog.command('logs [site]')
   .description('tail the logs')
   .option("-f, --tail", 'tail')
+  .option("--init <init>", 'init type, could be "systemd".')
   .action((site, options) => {
     let config = readConfig(prog.config);
     let a = new LogsAction(config);
