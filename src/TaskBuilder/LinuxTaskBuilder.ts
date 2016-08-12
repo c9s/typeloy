@@ -14,7 +14,11 @@ import {TaskBuilder} from "./BaseTaskBuilder";
 
 import {Task} from "./Task";
 
-abstract class SetupTask extends Task { }
+abstract class SetupTask extends Task {
+  protected getAppRoot() : string {
+    return path.join(DEPLOY_PREFIX, this.config.app.name);
+  }
+}
 
 class AptGetUpdateTask extends Task {
 
@@ -48,10 +52,9 @@ class NodeJsSetupTask extends SetupTask {
 
 }
 
-class EnvVarsSetupTask extends SetupTask {
-
+class MeteorEnvSetupTask extends SetupTask {
   public describe() : string {
-    return 'Setting up environment variable script';
+    return 'Setting up environment for meteor application';
   }
 
   public build(taskList) {
@@ -147,18 +150,69 @@ class SslSetupTask extends SetupTask {
       'command': '(sudo stop stud || :) && (sudo start stud || :)'
     });
   }
-
 }
 
-class UpstartSetupTask extends SetupTask {
 
+/*
+class StartScriptTask extends SetupTask {
+
+  public describe() : string {
+    return 'Creating start script entry';
+  }
+
+  protected getAppName() : string {
+    return this.config.app.name;
+  }
+
+  public build(taskList) {
+    taskList.copy(this.describe(), {
+      src: path.resolve(TEMPLATES_DIR, 'meteor/systemd.conf'),
+      dest: this.getAppRoot(),
+      vars: {
+        deployPrefix: DEPLOY_PREFIX,
+        appName: this.getAppName()
+      }
+    });
+  }
+}
+*/
+
+
+class SystemdSetupTask extends SetupTask {
+
+  public describe() : string {
+    return 'Configuring systemd: ' + this.getConfigPath();
+  }
+
+  protected getConfigPath() : string {
+    return '/lib/systemd/system/meteor.service';
+  }
+
+  protected getAppName() : string {
+    return this.config.app.name;
+  }
+
+  public build(taskList) {
+    taskList.copy(this.describe(), {
+      src: path.resolve(TEMPLATES_DIR, 'meteor/systemd.conf'),
+      dest: this.getConfigPath(),
+      vars: {
+        deployPrefix: DEPLOY_PREFIX,
+        appName: this.getAppName()
+      }
+    });
+  }
+}
+
+
+class UpstartSetupTask extends SetupTask {
 
   public describe() : string {
     return 'Configuring upstart: ' + this.getUpstartConfigPath();
   }
 
   protected getUpstartConfigPath() : string {
-    return '/etc/init/' + (<AppConfig>this.config.app).name + '.conf';
+    return '/etc/init/' + this.config.app.name + '.conf';
   }
 
   protected getAppName() : string {
@@ -168,11 +222,49 @@ class UpstartSetupTask extends SetupTask {
   public build(taskList) {
     var upstartConfig : string = this.getUpstartConfigPath();
     taskList.copy(this.describe(), {
-      src: path.resolve(TEMPLATES_DIR, 'meteor.conf'),
+      src: path.resolve(TEMPLATES_DIR, 'meteor/upstart.conf'),
       dest: upstartConfig,
       vars: {
         deployPrefix: DEPLOY_PREFIX,
         appName: this.getAppName()
+      }
+    });
+  }
+}
+
+class EnvVarsTask extends Task {
+
+  protected env;
+
+  constructor(config:Config, env) {
+    super(config);
+    this.env = env;
+  }
+
+  public describe() : string {
+    return 'Setting up environment variables';
+  }
+
+  public build(taskList) {
+    let bashenv = {};
+    for (let key in this.env) {
+      let val = this.env[key];
+      if (typeof val === "object") {
+        // Do proper escape
+        bashenv[key] = JSON.stringify(val).replace(/[\""]/g, '\\"')
+      } else if (typeof val === "string") {
+        bashenv[key] = val.replace(/[\""]/g, '\\"');
+      } else {
+        bashenv[key] = val;
+      }
+    }
+    taskList.copy('Setting up environment variables', {
+      'src': path.resolve(TEMPLATES_DIR, 'env.sh'),
+      'dest': DEPLOY_PREFIX + '/' + this.config.app.name + '/config/env.sh',
+      'vars': {
+        'deployPrefix': DEPLOY_PREFIX,
+        'env': bashenv,
+        'appName': this.config.app.name
       }
     });
   }
@@ -227,7 +319,7 @@ export default class LinuxTaskBuilder implements TaskBuilder {
       tasks.push(new PhantomJsSetupTask(config));
     }
 
-    tasks.push(new EnvVarsSetupTask(config));
+    tasks.push(new MeteorEnvSetupTask(config));
 
     if (config.setup.mongo) {
       tasks.push(new MongoSetupTask(config));
@@ -264,15 +356,9 @@ export default class LinuxTaskBuilder implements TaskBuilder {
         bashenv[key] = val;
       }
     }
-    taskList.copy('Setting up environment variables', {
-      src: path.resolve(TEMPLATES_DIR, 'env.sh'),
-      dest: DEPLOY_PREFIX + '/' + appName + '/config/env.sh',
-      vars: {
-        deployPrefix: DEPLOY_PREFIX,
-        env: bashenv,
-        appName: appName
-      }
-    });
+
+    let envVarsSetup = new EnvVarsTask(config, env);
+    envVarsSetup.build(taskList);
 
     taskList.copy('Creating build.sh', {
       src: path.resolve(TEMPLATES_DIR, 'deploy.sh'),
