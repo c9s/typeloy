@@ -5,7 +5,7 @@ APP_NAME="<%= appName %>"
 APP_ROOT=$DEPLOY_PREFIX/$APP_NAME
 TMP_DIR=$DEPLOY_PREFIX/$APP_NAME/tmp
 BUNDLE_DIR=$TMP_DIR/bundle
-BUNDLE_TARBALL_FILE=bundle.tar.gz
+BUNDLE_TARBALL_FILENAME=bundle.tar.gz
 DEPLOY_CHECK_WAIT_TIME=<%= deployCheckWaitTime %>
 
 # utilities
@@ -80,11 +80,11 @@ set -o xtrace
 
 
 cd ${TMP_DIR}
-echo "Removing bundle..."
+echo "Removing existing bundle..."
 sudo rm -rf $TMP_DIR/bundle
 
-echo "Extracing $TMP_DIR/$BUNDLE_TARBALL_FILE"
-sudo tar xvzf $BUNDLE_TARBALL_FILE > /dev/null
+echo "Extracing $TMP_DIR/$BUNDLE_TARBALL_FILENAME"
+sudo tar xvzf $TMP_DIR/$BUNDLE_TARBALL_FILENAME > /dev/null
 
 # why are we adding execute mode?
 sudo chmod -R +x *
@@ -153,15 +153,26 @@ fi
 
 sudo mv tmp/bundle app
 
-#wait and check
+# wait and check
 echo "Waiting for MongoDB to initialize. (5 minutes)"
 . $APP_ROOT/config/env.sh
 wait-for-mongo $MONGO_URL 300000
 
+# check upstart
+USE_UPSTART=0
+if [ -x /sbin/initctl ] && /sbin/initctl version 2>/dev/null | /bin/grep -q upstart; then
+  USE_UPSTART=1
+fi
+
 # restart app
 echo "Restarting the app"
-sudo stop $APP_NAME || :
-sudo start $APP_NAME || :
+if [[ $USE_UPSTART == 1 ]] ; then
+  sudo stop $APP_NAME || :
+  sudo start $APP_NAME || :
+else
+  sudo systemctl daemon-reload
+  sudo systemctl restart ${APP_NAME}.service
+fi
 
 echo "Waiting for $DEPLOY_CHECK_WAIT_TIME seconds while app is booting up"
 sleep $DEPLOY_CHECK_WAIT_TIME
