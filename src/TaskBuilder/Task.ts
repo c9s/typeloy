@@ -3,6 +3,7 @@
 import {Config, AppConfig} from "../config";
 
 var path = require('path');
+var _ = require('underscore');
 
 export abstract class Task {
 
@@ -20,6 +21,18 @@ export abstract class Task {
 
   protected getAppRoot() : string {
     return path.join(this.deployPrefix, this.config.app.name);
+  }
+
+  protected getAppName() : string {
+    return this.config.app.name;
+  }
+
+  protected extendArgs(args) {
+    return _.extend({
+        'deployPrefix': this.deployPrefix,
+        'appRoot': this.appRoot,
+        'appName': this.config.app.name
+    }, args);
   }
 
   public abstract describe();

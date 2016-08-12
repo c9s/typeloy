@@ -5,9 +5,8 @@ var util = require('util');
 
 import {Config, AppConfig} from "../config";
 
-var SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/linux');
-var TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/linux');
-
+const SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/linux');
+const TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/linux');
 const DEPLOY_PREFIX = "/opt";
 
 import {TaskBuilder} from "./BaseTaskBuilder";
@@ -35,14 +34,18 @@ class AptGetUpdateTask extends Task {
 class NodeJsSetupTask extends SetupTask {
 
   public describe() : string {
-    return 'Installing Node.js: ' + this.config.setup.nodeVersion;
+    return 'Installing Node.js: ' + this.getNodeVersion();
+  }
+
+  protected getNodeVersion() {
+    return this.config.setup.nodeVersion || '0.10.44';
   }
 
   public build(taskList) {
     taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
       vars: {
-        nodeVersion: this.config.setup.nodeVersion,
+        nodeVersion: this.getNodeVersion(),
         deployPrefix: this.deployPrefix
       }
     });
@@ -150,32 +153,6 @@ class SslSetupTask extends SetupTask {
   }
 }
 
-
-/*
-class StartScriptTask extends SetupTask {
-
-  public describe() : string {
-    return 'Creating start script entry';
-  }
-
-  protected getAppName() : string {
-    return this.config.app.name;
-  }
-
-  public build(taskList) {
-    taskList.copy(this.describe(), {
-      src: path.resolve(TEMPLATES_DIR, 'meteor/systemd.conf'),
-      dest: this.getAppRoot(),
-      vars: {
-        deployPrefix: this.deployPrefix,
-        appName: this.getAppName()
-      }
-    });
-  }
-}
-*/
-
-
 class SystemdSetupTask extends SetupTask {
 
   public describe() : string {
@@ -183,21 +160,14 @@ class SystemdSetupTask extends SetupTask {
   }
 
   protected getConfigPath() : string {
-    return '/lib/systemd/system/meteor.service';
-  }
-
-  protected getAppName() : string {
-    return this.config.app.name;
+    return `/lib/systemd/system/${this.getAppName()}.service`;
   }
 
   public build(taskList) {
     taskList.copy(this.describe(), {
       src: path.resolve(TEMPLATES_DIR, 'meteor/systemd.conf'),
       dest: this.getConfigPath(),
-      vars: {
-        deployPrefix: this.deployPrefix,
-        appName: this.getAppName()
-      }
+      vars: this.extendArgs({}),
     });
   }
 }
@@ -248,7 +218,6 @@ class EnvVarsTask extends Task {
     return 'Setting up environment variable file';
   }
 
-
   protected buildEnvDict() {
     let bashenv = {};
     for (let key in this.env) {
@@ -269,12 +238,8 @@ class EnvVarsTask extends Task {
     let bashenv = this.buildEnvDict();
     taskList.copy(this.describe(), {
       'src': path.resolve(TEMPLATES_DIR, 'env-vars'),
-      'dest': this.deployPrefix + '/' + this.config.app.name + '/config/env-vars',
-      'vars': {
-        'deployPrefix': this.deployPrefix,
-        'env': bashenv,
-        'appName': this.config.app.name
-      }
+      'dest': this.appRoot + '/config/env-vars',
+      'vars': this.extendArgs({ 'env': bashenv }),
     });
   }
 }
@@ -294,18 +259,41 @@ class BashEnvVarsTask extends EnvVarsTask {
     let bashenv = this.buildEnvDict();
     taskList.copy(this.describe(), {
       'src': path.resolve(TEMPLATES_DIR, 'env.sh'),
-      'dest': this.deployPrefix + '/' + this.config.app.name + '/config/env.sh',
-      'vars': {
-        'deployPrefix': this.deployPrefix,
-        'env': bashenv,
-        'appName': this.config.app.name
-      }
+      'dest': this.appRoot + '/config/env.sh',
+      'vars': this.extendArgs({ 'env': bashenv }),
     });
   }
 }
 
-
 abstract class DeployTask extends Task { }
+
+
+class StartProcessTask extends DeployTask {
+
+  protected initSettings : any;
+
+  constructor(config : Config, initSettings : any = {}) {
+    super(config);
+    this.initSettings = initSettings;
+  }
+
+  public describe() : string {
+    return 'Invoking deployment process';
+  }
+
+  public build(taskList) {
+    const appName = this.config.app.name;
+    taskList.executeScript(this.describe(), {
+      'script': path.resolve(TEMPLATES_DIR, 'deploy.sh'),
+      'vars': this.extendArgs({
+        'deployCheckWaitTime': this.initSettings.checkDelay || 10
+      })
+    });
+  }
+
+
+}
+
 
 class CopyBundleDeployTask extends DeployTask {
 
@@ -363,6 +351,7 @@ export default class LinuxTaskBuilder implements TaskBuilder {
       tasks.push(new SslSetupTask(config));
     }
     tasks.push(new UpstartSetupTask(config));
+    tasks.push(new SystemdSetupTask(config));
 
     // build tasks into taskList
     tasks.forEach((t:Task) => {
@@ -378,21 +367,11 @@ export default class LinuxTaskBuilder implements TaskBuilder {
     let copyBundle = new CopyBundleDeployTask(config, bundlePath);
     copyBundle.build(taskList);
 
-    var bashenv = {};
-    for (var key in env) {
-      var val = env[key];
-      if (typeof val === "object") {
-        // Do proper escape
-        bashenv[key] = JSON.stringify(val).replace(/[\""]/g, '\\"')
-      } else if (typeof val === "string") {
-        bashenv[key] = val.replace(/[\""]/g, '\\"');
-      } else {
-        bashenv[key] = val;
-      }
-    }
-
     let bashEnvVars = new BashEnvVarsTask(config, env);
     bashEnvVars.build(taskList);
+
+    let envVars = new EnvVarsTask(config, env);
+    envVars.build(taskList);
 
     taskList.copy('Creating build.sh', {
       src: path.resolve(TEMPLATES_DIR, 'deploy.sh'),
@@ -404,15 +383,8 @@ export default class LinuxTaskBuilder implements TaskBuilder {
       }
     });
 
-    // deploying
-    taskList.executeScript('Invoking deployment process', {
-      script: path.resolve(TEMPLATES_DIR, 'deploy.sh'),
-      vars: {
-        deployPrefix: DEPLOY_PREFIX,
-        deployCheckWaitTime: checkDelay || 10,
-        appName: appName
-      }
-    });
+    let startProcess = new StartProcessTask(config, { checkDelay });
+    startProcess.build(taskList);
 
     return taskList;
   };
