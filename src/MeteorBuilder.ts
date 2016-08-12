@@ -18,13 +18,15 @@ export class MeteorBuilder extends EventEmitter {
   }
 
   public buildApp(appPath : string, buildLocation : string, bundlePath : string, start) : Promise<any> {
+    start = _.once(start);
+
+    bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
+    if (fs.existsSync(bundlePath)) {
+      this.log(`Found existing bundle file: ${bundlePath}`);
+      return Promise.resolve(0);
+    }
+
     const buildFinish = new Promise<number>((resolve, reject) => {
-      start = _.once(start);
-      bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
-      if (fs.existsSync(bundlePath)) {
-        this.log(`Found existing bundle file: ${bundlePath}`);
-        return resolve(0);
-      }
 
       const appName = this.config.app.name;
       const meteorBinary = this.config.meteor.binary || 'meteor';
