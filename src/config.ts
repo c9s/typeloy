@@ -17,6 +17,7 @@ export interface SshOptions {
 
 export interface SiteConfig {
   servers : Array<ServerConfig>;
+  init? : string;
   env? : Env;
 }
 
@@ -35,6 +36,7 @@ export interface ServerConfig {
   pem?: string;
   env?: Env;
   sshOptions: SshOptions;
+  init? : string; // systemd or upstart
 }
 
 export interface SslConfig {

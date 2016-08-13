@@ -20,11 +20,12 @@ export class LogsAction extends BaseAction {
     }
     const tailOptionArgs = tailOptions.join(' ');
 
+    function journalctl(config : Config, tailOptions) {
+      return `sudo journalctl -u ${config.app.name}.service --since today ${tailOptions.join(' ')}`;
+    }
+
     function tailCommand(os : string, config : Config, tailOptions) {
       if (os == 'linux') {
-        if (options.init === "systemd") {
-          return `sudo journalctl -u ${config.app.name}.service --since today ${tailOptions.join(' ')}`;
-        }
         return 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + config.app.name + '.log';
       } else if (os == 'sunos') {
         return 'sudo tail ' + tailOptions.join(' ') +
@@ -40,7 +41,13 @@ export class LogsAction extends BaseAction {
       let sessionGroup : SessionGroup = sessionsMap[os];
       sessionGroup.sessions.forEach((session : Session) => {
         let hostPrefix = '[' + session._host + '] ';
-        let command = tailCommand(os, this.config, tailOptions);
+        let serverConfig = session._serverConfig;
+        let isSystemd = serverConfig.init === "systemd" || siteConfig.init === "systemd" || options.init === "systemd";
+
+        let command = isSystemd
+            ? journalctl(this.config, tailOptions)
+            : tailCommand(os, this.config, tailOptions)
+            ;
         session.execute(command, {
           "onStdout": (data) => {
             process.stdout.write(hostPrefix + data.toString());
