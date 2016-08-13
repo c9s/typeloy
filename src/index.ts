@@ -1,5 +1,5 @@
-export * from './Config';
-export * from './Actions';
+export * from './config';
+export * from './actions';
 export * from './Plugin';
 export * from './PluginRunner';
 export * from './SummaryMap';

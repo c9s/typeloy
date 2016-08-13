@@ -4,7 +4,7 @@ var fs = require('fs');
 var pathResolve = require('path').resolve;
 
 import _ = require('underscore');
-import {Config} from './Config';
+import {Config} from './config';
 
 import {EventEmitter} from 'events';
 
