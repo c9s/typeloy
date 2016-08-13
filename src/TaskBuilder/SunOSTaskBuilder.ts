@@ -5,7 +5,7 @@ var path = require('path');
 var SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/sunos');
 var TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/sunos');
 
-import {Config} from "../Config";
+import {Config} from "../config";
 
 import {TaskBuilder} from "./BaseTaskBuilder";
 

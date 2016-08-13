@@ -3,7 +3,7 @@
 import chai = require('chai');
 var expect = chai.expect;
 
-import {ConfigParser} from "../src/Config";
+import {ConfigParser} from "../src/config";
 
 describe('Config', () => {
   describe('#parse', () => {
