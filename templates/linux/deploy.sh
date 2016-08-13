@@ -3,7 +3,8 @@
 DEPLOY_PREFIX="<%= deployPrefix %>"
 APP_NAME="<%= appName %>"
 APP_ROOT=$DEPLOY_PREFIX/$APP_NAME
-TMP_DIR=$DEPLOY_PREFIX/$APP_NAME/tmp
+TMP_DIR=$APP_ROOT/tmp
+APP_DIR=$APP_ROOT/app
 BUNDLE_DIR=$TMP_DIR/bundle
 BUNDLE_TARBALL_FILENAME=bundle.tar.gz
 DEPLOY_CHECK_WAIT_TIME=<%= deployCheckWaitTime %>
@@ -142,16 +143,15 @@ fi
 cd $APP_ROOT
 
 # remove old app, if it exists
-if [ -d old_app ]; then
-  sudo rm -rf old_app
+if [ -d $APP_ROOT/old_app ]; then
+  sudo rm -rf $APP_ROOT/old_app
 fi
 
 ## backup current version
-if [[ -d app ]]; then
-  sudo mv app old_app
+if [[ -d $APP_ROOT/app ]]; then
+  sudo mv $APP_ROOT/app $APP_ROOT/old_app
 fi
-
-sudo mv tmp/bundle app
+sudo mv $APP_ROOT/tmp/bundle $APP_DIR
 
 # wait and check
 echo "Waiting for MongoDB to initialize. (5 minutes)"
@@ -159,18 +159,19 @@ echo "Waiting for MongoDB to initialize. (5 minutes)"
 wait-for-mongo $MONGO_URL 300000
 
 # check upstart
-USE_UPSTART=0
+UPSTART=0
 if [ -x /sbin/initctl ] && /sbin/initctl version 2>/dev/null | /bin/grep -q upstart; then
-  USE_UPSTART=1
+  UPSTART=1
 fi
 
 # restart app
 echo "Restarting the app"
-if [[ $USE_UPSTART == 1 ]] ; then
+if [[ $UPSTART == 1 ]] ; then
   sudo stop $APP_NAME || :
   sudo start $APP_NAME || :
 else
   sudo systemctl daemon-reload
+  sudo systemctl status ${APP_NAME}.service
   sudo systemctl restart ${APP_NAME}.service
 fi
 
@@ -181,4 +182,4 @@ echo "Checking is app booted or not?"
 curl localhost:${PORT} || revert_app
 
 # chown to support dumping heapdump and etc
-sudo chown -R meteoruser app
+sudo chown -R meteoruser: $APP_DIR
