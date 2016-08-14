@@ -56,26 +56,26 @@ prog.command('deploy [sites...]')
   })
   ;
 
-prog.command('setup [site]')
+prog.command('setup [sites...]')
   .description('setup the requirements on the target server.')
-  .action((site : string, options) => {
+  .action((sites : Array<string>, options) => {
     let config = readConfig(prog.config);
     let a = new SetupAction(config);
 
     let deployment = Deployment.create(config, config.app.root || cwd);
-    a.run(deployment, site);
+    a.run(deployment, sites);
   })
   ;
 
-prog.command('logs [site]')
+prog.command('logs [sites...]')
   .description('tail the logs')
   .option("-f, --tail", 'tail')
   .option("--init <init>", 'init type, could be "systemd".')
-  .action((site, options) => {
+  .action((sites, options) => {
     let config = readConfig(prog.config);
     let a = new LogsAction(config);
     let deployment = Deployment.create(config, config.app.root || cwd);
-    a.run(deployment, site, options);
+    a.run(deployment, sites, options);
   });
 
 prog.command('start [site]')
