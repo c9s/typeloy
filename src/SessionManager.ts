@@ -3,33 +3,16 @@ var fs = require('fs');
 var nodemiral = require('nodemiral');
 var path = require('path');
 
-import {Config, AppConfig, ServerConfig} from './config';
+import {Config, AppConfig, ServerConfig, SiteConfig} from './config';
 import {Deployment} from "./Deployment";
-import LinuxTaskBuilder from "./TaskBuilder/LinuxTaskBuilder";
-import SunOSTaskBuilder from "./TaskBuilder/SunOSTaskBuilder";
-import {TaskBuilder} from "./TaskBuilder/BaseTaskBuilder";
 import {Session} from "./Session";
 
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "./SummaryMap";
 
-/**
- * Return the task builder by operating system name.
- */
-function getTaskBuilderByOs(os:string) : TaskBuilder {
-  switch (os) {
-    case "linux":
-      return new LinuxTaskBuilder;
-    case "sunos":
-      return new SunOSTaskBuilder;
-    default:
-      throw new Error("Unsupported operating system.");
-  }
-}
-
-
 export interface SessionGroup {
   os: string;
   sessions: Array<any>;
+  _siteConfig?: SiteConfig;
 }
 
 export interface SshAuthOptions {
@@ -85,7 +68,8 @@ export class SessionManager {
     return session;
   }
 
-  public createOsMap(servers : Array<ServerConfig>) : SessionsMap {
+  public createSiteConnections(siteConfig : SiteConfig) : SessionsMap {
+    let servers : Array<ServerConfig> = siteConfig.servers;
     let sessionsMap : SessionsMap = {} as SessionsMap;
     _.each(servers, (server : ServerConfig) => {
       let session = this.create(server);
@@ -94,7 +78,8 @@ export class SessionManager {
       if (!sessionsMap[server.os]) {
         sessionsMap[server.os] = {
           "os": server.os,
-          "sessions": []
+          "sessions": [],
+          "_siteConfig": siteConfig,
         } as SessionGroup;
       }
       sessionsMap[server.os].sessions.push(session);

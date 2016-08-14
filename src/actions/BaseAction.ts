@@ -3,16 +3,15 @@ import fs = require('fs');
 import {Config, AppConfig, ServerConfig, SiteConfig} from '../config';
 import LinuxTaskBuilder from "../TaskBuilder/LinuxTaskBuilder";
 import SunOSTaskBuilder from "../TaskBuilder/SunOSTaskBuilder";
-import {TaskBuilder} from "../TaskBuilder/BaseTaskBuilder";
+import {BaseTaskBuilder} from "../TaskBuilder/BaseTaskBuilder";
 import {Deployment} from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
-import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
+import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors, mergeSummaryMap} from "../SummaryMap";
 import {PluginRunner} from "../PluginRunner";
 
 import {EventEmitter} from "events";
 
-import _ = require('underscore');
-
+var _ = require('underscore');
 var os = require('os');
 require('colors');
 
@@ -46,12 +45,12 @@ export class BaseAction extends EventEmitter {
   /**
   * Return the task builder by operating system name.
   */
-  protected getTaskBuilderByOs(os:string) : TaskBuilder {
-    switch (os) {
+  protected createTaskBuilderByOs(sessionGroup : SessionGroup) : BaseTaskBuilder {
+    switch (sessionGroup.os) {
       case "linux":
-        return new LinuxTaskBuilder;
+        return new LinuxTaskBuilder(sessionGroup);
       case "sunos":
-        return new SunOSTaskBuilder;
+        return new SunOSTaskBuilder(sessionGroup);
       default:
         throw new Error("Unsupported operating system.");
     }
@@ -80,7 +79,7 @@ export class BaseAction extends EventEmitter {
     if (servers.length === 0) {
       throw new Error("Emtpy server list.");
     }
-    return this.sessionManager.createOsMap(servers);
+    return this.sessionManager.createSiteConnections(site);
   }
 
   // XXX: Extract this to Kadira plugin
@@ -99,24 +98,21 @@ export class BaseAction extends EventEmitter {
     }
   }
 
-  protected executePararell(actionName : string, deployment : Deployment, sites : Array<string>, args) : Promise<Array<SummaryMap>> {
+  protected executePararell(actionName : string, deployment : Deployment, sites : Array<string>, args) : Promise<SummaryMap> {
+    let sitesPromise = Promise.resolve({});
 
-
-    let sitesPromise = Promise.resolve();
     for (let i = 0; i < sites.length; i++) {
       const site = sites[i];
-
-      sitesPromise = sitesPromise.then(() => {
+      sitesPromise = sitesPromise.then((previousSummaryMap : SummaryMap) => {
         let siteConfig = this.getSiteConfig(site);
         let sessionsMap = this.createSiteSessionsMap(siteConfig);
         let sessionInfoList = _.values(sessionsMap);
         let taskPromises = _.map(sessionInfoList,
-          (sessionGroup:SessionGroup) => {
+          (sessionGroup : SessionGroup) => {
             return new Promise<SummaryMap>(resolve => {
-              const taskListsBuilder = this.getTaskBuilderByOs(sessionGroup.os);
+              const taskListsBuilder = this.createTaskBuilderByOs(sessionGroup);
               const taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
 
-              // propagate task events
               this.propagateTaskEvents(taskList);
 
               taskList.run(sessionGroup.sessions, (summaryMap:SummaryMap) => {
@@ -124,17 +120,14 @@ export class BaseAction extends EventEmitter {
               });
             });
           });
-        return Promise.all(taskPromises);
+        return Promise.all(taskPromises).then((summaryMaps) => {
+          return Promise.resolve(_.extend(previousSummaryMap, mergeSummaryMap(summaryMaps)));
+        });
       });
     }
-
-
-    const allSites = _.map(sites, (site : string) => {
-    });
-    return Promise.all(allSites).then((siteResults) => {
-      let mapResults = _.flatten(siteResults);
-      this.whenAfterCompleted(deployment, mapResults);
-      return Promise.resolve(mapResults);
+    return sitesPromise.then((summaryMap : SummaryMap) => {
+      this.whenAfterCompleted(deployment, summaryMap);
+      return Promise.resolve(summaryMap);
     });
   }
 
@@ -161,30 +154,28 @@ export class BaseAction extends EventEmitter {
     console.log('New Project Initialized!');
   }
 
-
-
   /**
   * After completed ....
   *
   * Right now we don't have things to do, just exit the process with the error
   * code.
   */
-  public whenAfterCompleted(deployment : Deployment, summaryMaps : Array<SummaryMap>) {
+  public whenAfterCompleted(deployment : Deployment, summaryMap : SummaryMap) {
     this.pluginRunner.whenAfterCompleted(deployment);
-    var errorCode = haveSummaryMapsErrors(summaryMaps) ? 1 : 0;
+    var errorCode = haveSummaryMapsErrors(summaryMap) ? 1 : 0;
     let promises;
     if (errorCode != 0) {
-      this.whenFailure(deployment, summaryMaps);
+      this.whenFailure(deployment, summaryMap);
     } else {
-      this.whenSuccess(deployment, summaryMaps);
+      this.whenSuccess(deployment, summaryMap);
     }
   }
 
-  public whenSuccess(deployment : Deployment, summaryMaps) {
+  public whenSuccess(deployment : Deployment, summaryMap) {
     return this.pluginRunner.whenSuccess(deployment);
   }
 
-  public whenFailure(deployment : Deployment, summaryMaps) {
+  public whenFailure(deployment : Deployment, summaryMap) {
     return this.pluginRunner.whenFailure(deployment);
   }
 

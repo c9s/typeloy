@@ -3,7 +3,7 @@ var archiver = require('archiver');
 var fs = require('fs');
 var pathResolve = require('path').resolve;
 
-import _ = require('underscore');
+var _ = require('underscore');
 import {Config} from './config';
 
 import {EventEmitter} from 'events';

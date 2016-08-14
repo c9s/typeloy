@@ -35,7 +35,7 @@ export class PluginRunner {
 
   public whenSuccess(deployment : Deployment) : Promise<any> {
     console.log("whenSuccess");
-    let promises = _.map(this.plugins, (p) => p.whenSuccess(deployment)).compact();
+    let promises = _.compact(_.map(this.plugins, (p) => p.whenSuccess(deployment)));
     if (promises.length == 0) {
       return;
     }
@@ -44,7 +44,7 @@ export class PluginRunner {
 
   public whenFailure(deployment:Deployment) : Promise<any> {
     console.log("whenFailure");
-    let promises = _.map(this.plugins, (p) => p.whenFailure(deployment)).compact();
+    let promises = _.compact(_.map(this.plugins, (p) => p.whenFailure(deployment)));
     if (promises.length == 0) {
       return;
     }

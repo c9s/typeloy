@@ -9,7 +9,7 @@ const SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/linux');
 const TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/linux');
 const DEPLOY_PREFIX = "/opt";
 
-import {TaskBuilder} from "./BaseTaskBuilder";
+import {BaseTaskBuilder} from "./BaseTaskBuilder";
 
 import {Task} from "./Task";
 
@@ -100,7 +100,6 @@ class MongoSetupTask extends SetupTask {
       script: path.resolve(SCRIPT_DIR, 'install-mongodb.sh')
     });
   }
-
 }
 
 class SslSetupTask extends SetupTask {
@@ -320,7 +319,7 @@ class CopyBundleDeployTask extends DeployTask {
   }
 }
 
-export default class LinuxTaskBuilder implements TaskBuilder {
+export default class LinuxTaskBuilder extends BaseTaskBuilder {
 
   protected taskList(title : string) {
     return nodemiral.taskList(title);
@@ -360,8 +359,8 @@ export default class LinuxTaskBuilder implements TaskBuilder {
     return taskList;
   }
 
-  public deploy(config : Config, bundlePath:string, env, checkDelay, appName : string) {
-    var taskList = this.taskList("Deploy app '" + appName + "' (linux)");
+  public deploy(config : Config, bundlePath:string, env, checkDelay) {
+    let taskList = this.taskList("Deploy app '" + config.app.name + "' (linux)");
 
     let copyBundle = new CopyBundleDeployTask(config, bundlePath);
     copyBundle.build(taskList);
@@ -374,11 +373,11 @@ export default class LinuxTaskBuilder implements TaskBuilder {
 
     taskList.copy('Creating build.sh', {
       src: path.resolve(TEMPLATES_DIR, 'deploy.sh'),
-      dest: DEPLOY_PREFIX + '/' + appName + '/build.sh',
+      dest: DEPLOY_PREFIX + '/' + config.app.name + '/build.sh',
       vars: {
         deployPrefix: DEPLOY_PREFIX,
         deployCheckWaitTime: checkDelay || 10,
-        appName: appName
+        appName: config.app.name
       }
     });
 
@@ -388,58 +387,64 @@ export default class LinuxTaskBuilder implements TaskBuilder {
     return taskList;
   };
 
-  public reconfig(env, appName) {
+  public reconfig(env, config : Config) {
     var taskList = this.taskList("Updating configurations (linux)");
-
     taskList.copy('Setting up Environment Variables', {
       src: path.resolve(TEMPLATES_DIR, 'env.sh'),
-      dest: DEPLOY_PREFIX + '/' + appName + '/config/env.sh',
+      dest: DEPLOY_PREFIX + '/' + config.app.name + '/config/env.sh',
       vars: {
         env: env || {},
-        appName: appName
+        appName: config.app.name
       }
     });
 
-    //restarting
-    taskList.execute('Restarting app', {
-      command: '(sudo stop ' + appName + ' || :) && (sudo start ' + appName + ')'
-    });
-
+    if (this.sessionGroup._siteConfig.init === "systemd") {
+      taskList.execute('Restarting app', {
+        command: `sudo systemctl restart ${config.app.name}.service`
+      });
+    } else {
+      taskList.execute('Restarting app', {
+        command: '(sudo stop ' + config.app.name + ' || :) && (sudo start ' + config.app.name + ')'
+      });
+    }
     return taskList;
   }
 
-  public restart(appName : string) {
-    var taskList = this.taskList("Restarting Application (linux)");
-
-    //restarting
-    taskList.execute('Restarting app', {
-      command: '(sudo stop ' + appName + ' || :) && (sudo start ' + appName + ')'
-    });
-
+  public restart(config : Config) {
+    let taskList = this.taskList("Restarting Application (linux)");
+    if (this.sessionGroup._siteConfig.init === "systemd") {
+      taskList.execute('Restarting app', {
+        command: `sudo systemctl restart ${config.app.name}.service`
+      });
+    } else {
+      taskList.execute('Restarting app', {
+        command: '(sudo stop ' + config.app.name + ' || :) && (sudo start ' + config.app.name + ')'
+      });
+    }
     return taskList;
   }
 
-  public stop(appName : string) {
-    var taskList = this.taskList("Stopping Application (linux)");
-
-    //stopping
-    taskList.execute('Stopping app', {
-      command: '(sudo stop ' + appName + ')'
-    });
-
+  public stop(config : Config) {
+    let taskList = this.taskList("Stopping Application (linux)");
+    if (this.sessionGroup._siteConfig.init === "systemd") {
+      taskList.execute('Stopping app', {
+        command: `sudo systemctl stop ${config.app.name}.service`
+      });
+    } else {
+      taskList.execute('Stopping app', { command: `(sudo stop ${config.app.name})` });
+    }
     return taskList;
   }
 
-  public start(appName : string) {
-    var taskList = this.taskList("Starting Application (linux)");
-
-    //starting
-    taskList.execute('Starting app', {
-      command: '(sudo start ' + appName + ')'
-    });
-
+  public start(config : Config) {
+    let taskList = this.taskList("Starting Application (linux)");
+    if (this.sessionGroup._siteConfig.init === "systemd") {
+      taskList.execute('Stopping app', {
+        command: 'sudo systemctl start ${config.app.name}.service'
+      });
+    } else {
+      taskList.execute('Starting app', { command: `(sudo start ${config.app.name})` });
+    }
     return taskList;
   }
-
 }
-

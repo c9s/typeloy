@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 import path = require('path');
 import fs = require('fs');
+var _ = require('underscore');
 import {readConfig, Config} from '../src/config';
 
-import { BaseAction, DeployAction, SetupAction, StartAction, RestartAction, StopAction, LogsAction} from '../src/actions';
-
-
-
+import {BaseAction, DeployAction, SetupAction, StartAction, RestartAction, StopAction, LogsAction} from '../src/actions';
 import {CmdDeployOptions} from '../src/options';
 import {SessionManager, SessionGroup, SessionsMap} from '../src/SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../src/SummaryMap";
@@ -44,11 +42,12 @@ prog.command('deploy [sites...]')
     let a = new DeployAction(config);
     let deployment = Deployment.create(config, config.app.root || cwd, options.tag);
     let afterDeploy = a.run(deployment, sites, options);
-    afterDeploy.then((mapResult : Array<SummaryMap>) => {
+    afterDeploy.then((mapResult : SummaryMap) => {
+      console.log(JSON.stringify(mapResult, null, "  "));
+
       var errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
       console.log("returned code", errorCode);
       // console.log("After deploy", mapResult);
-      // console.log(JSON.stringify(mapResult, null, "  "));
     });
     afterDeploy.catch( (res) => {
       console.error(res);
@@ -78,36 +77,40 @@ prog.command('logs [sites...]')
     a.run(deployment, sites, options);
   });
 
-prog.command('start [site]')
+prog.command('start [sites...]')
   .description('start the app.')
-  .action( (site, options) => {
+  .action( (sites, options) => {
     let config = readConfig(prog.config);
     let actions = new StartAction(config);
 
     let deployment = Deployment.create(config, config.app.root || cwd);
-    actions.run(deployment, site);
+    actions.run(deployment, sites);
   });
   ;
 
-prog.command('stop [site]')
+prog.command('stop [sites...]')
   .description('stop the app.')
-  .action((site, options) => {
+  .action((sites, options) => {
     let config = readConfig(prog.config);
     let actions = new StopAction(config);
 
     let deployment = Deployment.create(config, config.app.root || cwd);
-    actions.run(deployment, site);
+    actions.run(deployment, sites);
   });
   ;
 
-prog.command('restart')
+prog.command('restart [sites...]')
   .description('restart the app.')
-  .action((site, options) => {
+  .action((sites, options) => {
     let config = readConfig(prog.config);
     let actions = new RestartAction(config);
-
     let deployment = Deployment.create(config, config.app.root || cwd);
-    actions.run(deployment, site);
+    let afterSetup = actions.run(deployment, sites);
+    afterSetup.then((result) => {
+      console.log(result);
+    }).catch((err) => {
+      console.error(err);
+    });
   });
   ;
 
