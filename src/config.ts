@@ -159,6 +159,7 @@ export class ConfigParser {
     this.validate(newconfig);
 
     newconfig.dirname = path.dirname(configPath);
+    loadMeteorSettings(newconfig);
     return newconfig;
   }
 
@@ -324,3 +325,41 @@ export function readConfig(configPath:string) : Config {
   process.exit(1);
 };
 
+
+function loadMeteorSettings(config : Config) {
+  if (typeof config.app.settings === "object") {
+    return config.app.settings;
+  }
+  let settingsFilename = config.app.settings;
+  if (typeof settingsFilename === "string") {
+    let dir;
+    let settingsFile;
+
+    if (dir = config.dirname) {
+      settingsFile = path.resolve(dir, settingsFilename);
+      if (fs.existsSync(settingsFile)) {
+        console.log(`Found ${settingsFile}`);
+        return config.app.settings = require(settingsFile);
+      }
+    }
+    if (dir = config.app.directory) {
+      settingsFile = path.resolve(dir, settingsFilename);
+      if (fs.existsSync(settingsFile)) {
+        console.log(`Found ${settingsFile}`);
+        return config.app.settings = require(settingsFile);
+      }
+    }
+    if (dir = config.app.root) {
+      settingsFile = path.resolve(dir, settingsFilename);
+      if (fs.existsSync(settingsFile)) {
+        console.log(`Found ${settingsFile}`);
+        return config.app.settings = require(settingsFile);
+      }
+    }
+    if (fs.existsSync(settingsFilename)) {
+      console.log(`Found ${settingsFilename}`);
+      return config.app.settings = require(settingsFilename);
+    }
+  }
+  console.error("**WARNING**: settings.json not found.");
+}

@@ -170,8 +170,6 @@ if [[ $UPSTART == 1 ]] ; then
   sudo stop $APP_NAME || :
   sudo start $APP_NAME || :
 else
-  sudo systemctl daemon-reload
-  sudo systemctl status ${APP_NAME}.service
   sudo systemctl restart ${APP_NAME}.service
 fi
 

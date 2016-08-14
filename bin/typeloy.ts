@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import path = require('path');
-import {readConfig} from '../src/config';
+import fs = require('fs');
+import {readConfig, Config} from '../src/config';
 
 import { BaseAction, DeployAction, SetupAction, StartAction, RestartAction, StopAction, LogsAction} from '../src/actions';
 
@@ -25,18 +26,24 @@ prog.usage('[options] <subcommand> ...');
 prog.option('-v, --verbose', 'verbose mode');
 prog.option('-c, --config <file>', 'config file');
 
-prog.command('deploy [site]')
+
+
+
+
+prog.command('deploy [sites...]')
   .description('set the deployment tag and start deploying.')
   .option("-d, --dryrun", 'do not really deploy it.')
   .option("--bundle-file <file>", 'the bundle file you have already built with meteor build.')
   .option("--build-dir <dir>", 'the meteor build directory.')
   .option("--tag <tag>", 'deployment tag')
   .option("-C, --no-clean", 'whether to clean up the bundle files.')
-  .action((site : string, options : CmdDeployOptions) => {
+  .action((sites : Array<string>, options : CmdDeployOptions) => {
     let config = readConfig(prog.config);
+
+
     let a = new DeployAction(config);
     let deployment = Deployment.create(config, config.app.root || cwd, options.tag);
-    let afterDeploy = a.run(deployment, site, options);
+    let afterDeploy = a.run(deployment, sites, options);
     afterDeploy.then((mapResult : Array<SummaryMap>) => {
       var errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
       console.log("returned code", errorCode);
