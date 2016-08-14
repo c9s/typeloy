@@ -2,8 +2,8 @@ var cjson = require('cjson');
 var format = require('util').format;
 import path = require('path');
 import fs = require('fs');
-import _ = require('underscore');
 import 'colors';
+var _ = require('underscore');
 
 export interface Env {
   [key:string]: string
@@ -128,13 +128,13 @@ function expandPath(loc:string) : string {
 }
 
 function fatal(message:string) {
-  var errorMessage = 'Invalid json config file: ' + message;
+  const errorMessage = 'Invalid json config file: ' + message;
   console.error(errorMessage);
   process.exit(1);
 }
 
-function canonicalizePath(loc:string) : string {
-  var localDir : string = path.resolve(__dirname, loc);
+function canonicalizePath(loc : string) : string {
+  const localDir : string = path.resolve(__dirname, loc);
   if (fs.existsSync(localDir)) {
     return localDir;
   }

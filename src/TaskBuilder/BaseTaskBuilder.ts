@@ -1,15 +1,24 @@
 
 import {Config} from "../config";
+import {SessionGroup} from "../SessionManager";
 
-export interface TaskBuilder {
+export abstract class BaseTaskBuilder {
 
-  setup(config:Config);
+  protected sessionGroup : SessionGroup;
 
-  deploy(config:Config, bundlePath:string, env, checkDelay, appName);
+  constructor(sessionGroup : SessionGroup) {
+    this.sessionGroup = sessionGroup;
+  }
 
-  reconfig(env, appName);
+  abstract setup(config:Config);
 
-  restart(appName);
+  abstract deploy(config:Config, bundlePath:string, env, checkDelay);
 
-  stop(appName);
+  abstract reconfig(env, config:Config);
+
+  abstract start(config:Config);
+
+  abstract restart(config:Config);
+
+  abstract stop(config:Config);
 }

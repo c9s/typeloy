@@ -37,7 +37,7 @@ gyp_rebuild_inside_node_modules () {
     if [ $isBinaryModule = "yes" ]; then
       echo " > $npmModule: npm install due to binary npm modules"
       rm -rf node_modules
-      npm install --update-binary
+      npm install
       # always rebuild because the node version might be different.
       npm rebuild
       if [ -f binding.gyp ]; then
@@ -94,6 +94,9 @@ sudo chown -R ${USER} ${BUNDLE_DIR}
 # rebuilding fibers
 cd ${BUNDLE_DIR}/programs/server
 
+
+# the prebuilt binary files might differ, we will need to rebuild everything to
+# solve the binary incompatible issues
 if [ -d npm ]; then
   (cd npm && rebuild_binary_npm_modules)
 fi

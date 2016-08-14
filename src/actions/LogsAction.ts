@@ -11,6 +11,10 @@ export interface LogsOptions {
   init?: string;
 }
 
+function journalctl(config : Config, tailOptions) {
+  return `sudo journalctl -u ${config.app.name}.service --since today ${tailOptions.join(' ')}`;
+}
+
 export class LogsAction extends BaseAction {
 
   public run(deployment : Deployment, sites : Array<string>, options : LogsOptions) {
@@ -22,11 +26,8 @@ export class LogsAction extends BaseAction {
     }
     const tailOptionArgs = tailOptions.join(' ');
 
-    function journalctl(config : Config, tailOptions) {
-      return `sudo journalctl -u ${config.app.name}.service --since today ${tailOptions.join(' ')}`;
-    }
 
-    function tailCommand(os : string, config : Config, tailOptions) {
+    function tailCommand(config : Config, tailOptions, os : string = 'linux') {
       if (os == 'linux') {
         return 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + config.app.name + '.log';
       } else if (os == 'sunos') {
@@ -43,12 +44,12 @@ export class LogsAction extends BaseAction {
       for (let os in sessionsMap) {
         let sessionGroup : SessionGroup = sessionsMap[os];
         sessionGroup.sessions.forEach((session : Session) => {
-          let hostPrefix = '[' + session._host + '] ';
+          let hostPrefix = `(${site}) [${session._host}] `;
           let serverConfig = session._serverConfig;
           let isSystemd = serverConfig.init === "systemd" || siteConfig.init === "systemd" || options.init === "systemd";
           let command = isSystemd
               ? journalctl(this.config, tailOptions)
-              : tailCommand(os, this.config, tailOptions)
+              : tailCommand(this.config, tailOptions, os)
               ;
           session.execute(command, {
             "onStdout": (data) => {

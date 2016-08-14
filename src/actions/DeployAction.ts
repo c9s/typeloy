@@ -3,7 +3,7 @@ import {Config} from '../config';
 import {Deployment} from '../Deployment';
 import {Session} from '../Session';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
-import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../SummaryMap";
+import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors, mergeSummaryMap} from "../SummaryMap";
 import {CmdDeployOptions} from '../options';
 import {MeteorBuilder} from '../MeteorBuilder';
 
@@ -16,6 +16,7 @@ var extend = require('util')._extend;
 var path = require('path');
 var rimraf = require('rimraf');
 var _ = require('underscore');
+
 
 export class DeployAction extends BaseAction {
 
@@ -50,10 +51,10 @@ export class DeployAction extends BaseAction {
       // We only want to fire once for now.
       this.whenBeforeDeploying(deployment);
 
-      let sitesPromise = Promise.resolve();
+      let sitesPromise = Promise.resolve({});
       for (let i = 0; i < sites.length ; i++) {
         const site = sites[i];
-        sitesPromise = sitesPromise.then(() => {
+        sitesPromise = sitesPromise.then((previousSummaryMap : SummaryMap) => {
           const siteConfig = this.getSiteConfig(site);
           const sessionsMap = this.createSiteSessionsMap(siteConfig);
           this.log(`Connecting to the ${site} servers: [${ _.map(siteConfig.servers, (server) => server.host).join(', ')}]`);
@@ -83,9 +84,10 @@ export class DeployAction extends BaseAction {
           // An array of Promise<SummaryMap> for sites server
           const groupPromises : Array<Promise<SummaryMap>>
             = _.map(sessionsMap, (sessionGroup : SessionGroup) => {
-                const taskBuilder = this.getTaskBuilderByOs(sessionGroup.os);
+                const taskBuilder = this.createTaskBuilderByOs(sessionGroup);
                 const sessionPromises = _.map(sessionGroup.sessions,
                   (session : Session) => {
+                    return new Promise<SummaryMap>(resolveTask => {
                       const env = _.extend({},
                                       this.config.env || {},
                                       siteConfig.env || {},
@@ -94,29 +96,33 @@ export class DeployAction extends BaseAction {
                                     this.config,
                                     bundlePath,
                                     env,
-                                    deployCheckWaitTime, appName);
+                                    deployCheckWaitTime);
                       // propagate task events
                       this.propagateTaskEvents(taskList);
-                      return new Promise<SummaryMap>(resolveTask => {
                         taskList.run(session, (summaryMap : SummaryMap) => {
                           resolveTask(summaryMap);
                         });
-                      });
+                    });
                   });
-                return Promise.all(sessionPromises);
+                return Promise.all(sessionPromises).then((summaryMaps) => {
+                  return Promise.resolve(mergeSummaryMap(summaryMaps));
+                });
               });
-          return Promise.all(groupPromises)
+          return Promise.all(groupPromises).then((summaryMaps) => {
+            return Promise.resolve(
+              _.extend(previousSummaryMap, mergeSummaryMap(summaryMaps))
+            );
+          });
         });
       }
-      return sitesPromise.then((results) => {
-        var summaryMaps = _.flatten(results);
-        console.log(JSON.stringify(summaryMaps, null, "  "));
+      return sitesPromise.then((summaryMap : SummaryMap) => {
+        console.log(JSON.stringify(summaryMap, null, "  "));
         this.pluginRunner.whenAfterDeployed(deployment);
         if (options.clean) {
           this.log(`Cleaning up ${buildLocation}`);
           rimraf.sync(buildLocation);
         }
-        return Promise.resolve(summaryMaps);
+        return Promise.resolve(summaryMap);
       }).catch((reason) => {
         console.error("Failed", reason);
         return Promise.reject(reason);
@@ -135,7 +141,7 @@ export class DeployAction extends BaseAction {
   /**
    * Return a callback, which is used when after deployed, clean up the files.
    */
-  public whenAfterDeployed(deployment : Deployment, summaryMaps : Array<SummaryMap>) {
-    return this.whenAfterCompleted(deployment, summaryMaps);
+  public whenAfterDeployed(deployment : Deployment, summaryMap) {
+    return this.whenAfterCompleted(deployment, summaryMap);
   }
 }

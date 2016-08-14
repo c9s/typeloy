@@ -7,7 +7,7 @@ var TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/sunos');
 
 import {Config} from "../config";
 
-import {TaskBuilder} from "./BaseTaskBuilder";
+import {BaseTaskBuilder} from "./BaseTaskBuilder";
 
 function reconfig(taskList, appName : string, env) {
   taskList.copy('Setting up environment variables', {
@@ -20,7 +20,7 @@ function reconfig(taskList, appName : string, env) {
   });
 }
 
-export default class SunOSTaskBuilder implements TaskBuilder {
+export default class SunOSTaskBuilder extends BaseTaskBuilder {
 
   public setup(config:Config) {
     let installMongo = config.setup.mongo;
