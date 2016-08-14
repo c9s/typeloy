@@ -47,64 +47,73 @@ export class DeployAction extends BaseAction {
     return builder.buildApp(appConfig.directory, buildLocation, bundlePath, () => {
       this.whenBeforeBuilding(deployment);
     }).then(() => {
-      this.log("Connecting to the servers...");
       // We only want to fire once for now.
       this.whenBeforeDeploying(deployment);
 
-
-      const sitesTask = _.map(sites, (site : string) => {
+      let sitesPromise = Promise.resolve();
+      for (let i = 0; i < sites.length ; i++) {
+        const site = sites[i];
         const siteConfig = this.getSiteConfig(site);
+
+
         const sessionsMap = this.createSiteSessionsMap(siteConfig);
 
-        // Get settings.json into env,
-        // The METEOR_SETTINGS can be used for setting up meteor application without passing "--settings=...."
-        //
-        // Here is the guide of using METEOR_SETTINGS
-        // https://themeteorchef.com/snippets/making-use-of-settings-json/#tmc-using-settingsjson
-        //
-        // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
-        const meteorSettings = _.extend({
-          "public": {},
-          "private": {},
-          "log": { "level": "warn" }
-        }, this.config.app.settings);
+        sitesPromise = sitesPromise.then(() => {
+          this.log(`Connecting to the ${site} servers: [${ _.map(siteConfig.servers, (server) => server.host).join(', ')}]`);
 
-        // always update
-        // meteorSettings['public']['site'] = site;
-        meteorSettings['public']['version'] = deployment.brief();
+          // Get settings.json into env,
+          // The METEOR_SETTINGS can be used for setting up meteor application without passing "--settings=...."
+          //
+          // Here is the guide of using METEOR_SETTINGS
+          // https://themeteorchef.com/snippets/making-use-of-settings-json/#tmc-using-settingsjson
+          //
+          // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
+          const meteorSettings = _.extend({
+            "public": {},
+            "private": {},
+            "log": { "level": "warn" }
+          }, this.config.app.settings);
 
-        console.log("Updated Meteor Settings:");
-        console.log(JSON.stringify(meteorSettings, null, "  "));
+          // always update
+          // meteorSettings['public']['site'] = site;
+          meteorSettings['public']['version'] = deployment.brief();
 
-        siteConfig.env['METEOR_SETTINGS'] = JSON.stringify(meteorSettings);
+          console.log("Updated Meteor Settings:");
+          console.log(JSON.stringify(meteorSettings, null, "  "));
 
-        // An array of Promise<SummaryMap> for sites server
-        const pendingTasks : Array<Promise<SummaryMap>>
-          = _.map(sessionsMap, (sessionGroup : SessionGroup) => {
-            return new Promise<SummaryMap>( (resolveTask, rejectTask) => {
-              const taskBuilder = this.getTaskBuilderByOs(sessionGroup.os);
-              const sessions = sessionGroup.sessions;
+          siteConfig.env['METEOR_SETTINGS'] = JSON.stringify(meteorSettings);
 
-              const hasCustomEnv = _.some(sessions, (session : Session) => session._serverConfig.env );
-              const env = _.extend({}, this.config.env || {}, siteConfig.env || {});
-              const taskList = taskBuilder.deploy(
-                              this.config,
-                              bundlePath,
-                              env,
-                              deployCheckWaitTime, appName);
+          // An array of Promise<SummaryMap> for sites server
+          const groupPromises : Array<Promise<SummaryMap>>
+            = _.map(sessionsMap, (sessionGroup : SessionGroup) => {
+                const taskBuilder = this.getTaskBuilderByOs(sessionGroup.os);
+                const sessionPromises = _.map(sessionGroup.sessions,
+                  (session) => {
+                      const env = _.extend({},
+                                      this.config.env || {},
+                                      siteConfig.env || {},
+                                      session._serverConfig.env || {});
+                      const taskList = taskBuilder.deploy(
+                                    this.config,
+                                    bundlePath,
+                                    env,
+                                    deployCheckWaitTime, appName);
+                      // propagate task events
+                      this.propagateTaskEvents(taskList);
+                      return new Promise<SummaryMap>(resolveTask => {
+                        taskList.run(session, (summaryMap : SummaryMap) => {
+                          resolveTask(summaryMap);
+                        });
+                      });
+                  });
 
-              // propagate task events
-              this.propagateTaskEvents(taskList);
-
-              taskList.run(sessions, (summaryMap : SummaryMap) => {
-                resolveTask(summaryMap);
+                return Promise.all(sessionPromises);
               });
-            });
-        });
-        return Promise.all(pendingTasks);
-      });
 
-      return Promise.all(sitesTask).then((results) => {
+          return Promise.all(groupPromises)
+        });
+      }
+      return sitesPromise.then((results) => {
         var summaryMaps = _.flatten(results);
         console.log(JSON.stringify(summaryMaps, null, "  "));
         this.pluginRunner.whenAfterDeployed(deployment);
