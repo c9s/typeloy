@@ -53,12 +53,9 @@ export class DeployAction extends BaseAction {
       let sitesPromise = Promise.resolve();
       for (let i = 0; i < sites.length ; i++) {
         const site = sites[i];
-        const siteConfig = this.getSiteConfig(site);
-
-
-        const sessionsMap = this.createSiteSessionsMap(siteConfig);
-
         sitesPromise = sitesPromise.then(() => {
+          const siteConfig = this.getSiteConfig(site);
+          const sessionsMap = this.createSiteSessionsMap(siteConfig);
           this.log(`Connecting to the ${site} servers: [${ _.map(siteConfig.servers, (server) => server.host).join(', ')}]`);
 
           // Get settings.json into env,
@@ -88,7 +85,7 @@ export class DeployAction extends BaseAction {
             = _.map(sessionsMap, (sessionGroup : SessionGroup) => {
                 const taskBuilder = this.getTaskBuilderByOs(sessionGroup.os);
                 const sessionPromises = _.map(sessionGroup.sessions,
-                  (session) => {
+                  (session : Session) => {
                       const env = _.extend({},
                                       this.config.env || {},
                                       siteConfig.env || {},
@@ -106,10 +103,8 @@ export class DeployAction extends BaseAction {
                         });
                       });
                   });
-
                 return Promise.all(sessionPromises);
               });
-
           return Promise.all(groupPromises)
         });
       }

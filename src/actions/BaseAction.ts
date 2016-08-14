@@ -101,25 +101,35 @@ export class BaseAction extends EventEmitter {
 
   protected executePararell(actionName : string, deployment : Deployment, sites : Array<string>, args) : Promise<Array<SummaryMap>> {
 
-    const allSites = _.map(sites, (site : string) => {
-      let siteConfig = this.getSiteConfig(site);
-      let sessionsMap = this.createSiteSessionsMap(siteConfig);
-      let sessionInfoList = _.values(sessionsMap);
-      let promises = _.map(sessionInfoList,
-        (sessionGroup:SessionGroup) => {
-          return new Promise<SummaryMap>(resolve => {
-            const taskListsBuilder = this.getTaskBuilderByOs(sessionGroup.os);
-            const taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
 
-            // propagate task events
-            this.propagateTaskEvents(taskList);
+    let sitesPromise = Promise.resolve();
+    for (let i = 0; i < sites.length; i++) {
+      const site = sites[i];
 
-            taskList.run(sessionGroup.sessions, (summaryMap:SummaryMap) => {
-              resolve(summaryMap);
+      sitesPromise = sitesPromise.then(() => {
+        let siteConfig = this.getSiteConfig(site);
+        let sessionsMap = this.createSiteSessionsMap(siteConfig);
+        let sessionInfoList = _.values(sessionsMap);
+        let taskPromises = _.map(sessionInfoList,
+          (sessionGroup:SessionGroup) => {
+            return new Promise<SummaryMap>(resolve => {
+              const taskListsBuilder = this.getTaskBuilderByOs(sessionGroup.os);
+              const taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
+
+              // propagate task events
+              this.propagateTaskEvents(taskList);
+
+              taskList.run(sessionGroup.sessions, (summaryMap:SummaryMap) => {
+                resolve(summaryMap);
+              });
             });
           });
-        });
-      return Promise.all(promises);
+        return Promise.all(taskPromises);
+      });
+    }
+
+
+    const allSites = _.map(sites, (site : string) => {
     });
     return Promise.all(allSites).then((siteResults) => {
       let mapResults = _.flatten(siteResults);
