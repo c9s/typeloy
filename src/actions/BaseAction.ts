@@ -99,29 +99,32 @@ export class BaseAction extends EventEmitter {
     }
   }
 
-  protected executePararell(actionName : string, deployment : Deployment, site : string, args) : Promise<Array<SummaryMap>> {
-    let siteConfig = this.getSiteConfig(site);
-    let sessionsMap = this.createSiteSessionsMap(siteConfig);
-    let sessionInfoList = _.values(sessionsMap);
-    let promises = _.map(sessionInfoList,
-      (sessionGroup:SessionGroup) => {
-        return new Promise<SummaryMap>(resolve => {
-          const taskListsBuilder = this.getTaskBuilderByOs(sessionGroup.os);
-          const taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
+  protected executePararell(actionName : string, deployment : Deployment, sites : Array<string>, args) : Promise<Array<SummaryMap>> {
 
-          // propagate task events
-          this.propagateTaskEvents(taskList);
+    const allSites = _.map(sites, (site : string) => {
+      let siteConfig = this.getSiteConfig(site);
+      let sessionsMap = this.createSiteSessionsMap(siteConfig);
+      let sessionInfoList = _.values(sessionsMap);
+      let promises = _.map(sessionInfoList,
+        (sessionGroup:SessionGroup) => {
+          return new Promise<SummaryMap>(resolve => {
+            const taskListsBuilder = this.getTaskBuilderByOs(sessionGroup.os);
+            const taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
 
-          taskList.run(sessionGroup.sessions, (summaryMap:SummaryMap) => {
-            resolve(summaryMap);
+            // propagate task events
+            this.propagateTaskEvents(taskList);
+
+            taskList.run(sessionGroup.sessions, (summaryMap:SummaryMap) => {
+              resolve(summaryMap);
+            });
           });
         });
-      });
-    return new Promise<Array<SummaryMap>>(resolveCompleted => {
-      Promise.all(promises).then((mapResults : Array<SummaryMap>) => {
-        this.whenAfterCompleted(deployment, mapResults);
-        resolveCompleted(mapResults);
-      });
+      return Promise.all(promises);
+    });
+    return Promise.all(allSites).then((siteResults) => {
+      let mapResults = _.flatten(siteResults);
+      this.whenAfterCompleted(deployment, mapResults);
+      return Promise.resolve(mapResults);
     });
   }
 

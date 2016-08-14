@@ -25,7 +25,8 @@ export class Deployment {
       latestTag: this.revInfo.latestTag,
       describe: this.revInfo.describe,
       commit: this.revInfo.commits[0].hash,
-      author: this.revInfo.commits[0].author.name
+      author: this.revInfo.commits[0].author.name,
+      committedAt: this.revInfo.commits[0].date.toLocaleString()
     };
   }
 

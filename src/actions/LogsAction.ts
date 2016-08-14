@@ -4,6 +4,8 @@ import {Deployment} from '../Deployment';
 import {Session} from '../Session';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 
+var _ = require('underscore');
+
 export interface LogsOptions {
   tail?: boolean;
   init?: string;
@@ -11,7 +13,7 @@ export interface LogsOptions {
 
 export class LogsAction extends BaseAction {
 
-  public run(deployment : Deployment, site : string, options : LogsOptions) {
+  public run(deployment : Deployment, sites : Array<string>, options : LogsOptions) {
 
     const self = this;
     let tailOptions = [];
@@ -35,28 +37,30 @@ export class LogsAction extends BaseAction {
       }
     }
 
-    let siteConfig = this.getSiteConfig(site);
-    let sessionsMap = this.createSiteSessionsMap(siteConfig);
-    for (let os in sessionsMap) {
-      let sessionGroup : SessionGroup = sessionsMap[os];
-      sessionGroup.sessions.forEach((session : Session) => {
-        let hostPrefix = '[' + session._host + '] ';
-        let serverConfig = session._serverConfig;
-        let isSystemd = serverConfig.init === "systemd" || siteConfig.init === "systemd" || options.init === "systemd";
-
-        let command = isSystemd
-            ? journalctl(this.config, tailOptions)
-            : tailCommand(os, this.config, tailOptions)
-            ;
-        session.execute(command, {
-          "onStdout": (data) => {
-            process.stdout.write(hostPrefix + data.toString());
-          },
-          "onStderr": (data) => {
-            process.stderr.write(hostPrefix + data.toString());
-          }
+    _.map(sites, (site : string) => {
+      let siteConfig = this.getSiteConfig(site);
+      let sessionsMap = this.createSiteSessionsMap(siteConfig);
+      for (let os in sessionsMap) {
+        let sessionGroup : SessionGroup = sessionsMap[os];
+        sessionGroup.sessions.forEach((session : Session) => {
+          let hostPrefix = '[' + session._host + '] ';
+          let serverConfig = session._serverConfig;
+          let isSystemd = serverConfig.init === "systemd" || siteConfig.init === "systemd" || options.init === "systemd";
+          let command = isSystemd
+              ? journalctl(this.config, tailOptions)
+              : tailCommand(os, this.config, tailOptions)
+              ;
+          session.execute(command, {
+            "onStdout": (data) => {
+              process.stdout.write(hostPrefix + data.toString());
+            },
+            "onStderr": (data) => {
+              process.stderr.write(hostPrefix + data.toString());
+            }
+          });
         });
-      });
-    }
+      }
+    });
+
   }
 }

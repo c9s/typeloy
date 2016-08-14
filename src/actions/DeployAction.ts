@@ -64,17 +64,17 @@ export class DeployAction extends BaseAction {
         //
         // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
         const meteorSettings = _.extend({
-          "public": { "site" : site },
+          "public": {},
           "private": {},
           "log": { "level": "warn" }
         }, this.config.app.settings);
 
         // always update
-        meteorSettings['public']['site'] = site;
+        // meteorSettings['public']['site'] = site;
         meteorSettings['public']['version'] = deployment.brief();
 
+        console.log("Updated Meteor Settings:");
         console.log(JSON.stringify(meteorSettings, null, "  "));
-
 
         siteConfig.env['METEOR_SETTINGS'] = JSON.stringify(meteorSettings);
 
