@@ -10,11 +10,11 @@ var _ = require('underscore');
 
 export class PluginRunner {
 
-  protected config:Config;
+  protected config : Config;
 
-  protected plugins:Array<Plugin> = [];
+  protected plugins : Array<Plugin> = [];
 
-  constructor(config:Config) {
+  constructor(config : Config) {
     this.config = config;
     this.plugins = [];
     if (this.config.plugins && this.config.plugins instanceof Array) {
