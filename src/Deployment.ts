@@ -19,6 +19,16 @@ export class Deployment {
     this.revInfo = revInfo;
   }
 
+  public brief() {
+    return {
+      deployment: this.tag,
+      latestTag: this.revInfo.latestTag,
+      describe: this.revInfo.describe,
+      commit: this.revInfo.commits[0].hash,
+      author: this.revInfo.commits[0].author.name
+    };
+  }
+
   /**
    * @param dir dir is used for git collector to collect information
    */

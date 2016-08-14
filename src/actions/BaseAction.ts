@@ -38,60 +38,9 @@ export class BaseAction extends EventEmitter {
     this.sessionManager = new SessionManager({
       "keepAlive": false 
     } as SessionManagerConfig);
-
     this.pluginRunner = new PluginRunner(config);
-
-    // Get settings.json into env,
-    // The METEOR_SETTINGS can be used for setting up meteor application without passing "--settings=...."
-    //
-    // Here is the guide of using METEOR_SETTINGS
-    // https://themeteorchef.com/snippets/making-use-of-settings-json/#tmc-using-settingsjson
-    //
-    // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
-    const settings = this.loadSettings();
-    if (settings) {
-      this.config.env['METEOR_SETTINGS'] = JSON.stringify(settings);
-    }
   }
 
-  protected loadSettings() {
-    if (typeof this.config.app.settings === "object") {
-      return this.config.app.settings;
-    }
-    let settingsFilename = this.config.app.settings || 'settings.json';
-    if (typeof settingsFilename === "string") {
-      let dir;
-      let settingsFile;
-
-      if (dir = this.config.dirname) {
-        settingsFile = path.resolve(dir, settingsFilename);
-        if (fs.existsSync(settingsFile)) {
-          console.log(`Found ${settingsFile}`);
-          return require(settingsFile);
-        }
-      }
-      if (dir = this.config.app.directory) {
-        settingsFile = path.resolve(dir, settingsFilename);
-        if (fs.existsSync(settingsFile)) {
-          console.log(`Found ${settingsFile}`);
-          return require(settingsFile);
-        }
-      }
-      if (dir = this.config.app.root) {
-        settingsFile = path.resolve(dir, settingsFilename);
-        if (fs.existsSync(settingsFile)) {
-          console.log(`Found ${settingsFile}`);
-          return require(settingsFile);
-        }
-      }
-      if (fs.existsSync(settingsFilename)) {
-        console.log(`Found ${settingsFilename}`);
-        return require(settingsFilename);
-      }
-    }
-    console.error("settings.json not found.");
-    return {};
-  }
 
 
   /**

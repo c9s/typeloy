@@ -360,9 +360,8 @@ export default class LinuxTaskBuilder implements TaskBuilder {
     return taskList;
   }
 
-  public deploy(config:Config, bundlePath:string, env, checkDelay, appName : string) {
+  public deploy(config : Config, bundlePath:string, env, checkDelay, appName : string) {
     var taskList = this.taskList("Deploy app '" + appName + "' (linux)");
-
 
     let copyBundle = new CopyBundleDeployTask(config, bundlePath);
     copyBundle.build(taskList);
@@ -409,7 +408,7 @@ export default class LinuxTaskBuilder implements TaskBuilder {
     return taskList;
   }
 
-  public restart(appName) {
+  public restart(appName : string) {
     var taskList = this.taskList("Restarting Application (linux)");
 
     //restarting
@@ -420,7 +419,7 @@ export default class LinuxTaskBuilder implements TaskBuilder {
     return taskList;
   }
 
-  public stop(appName) {
+  public stop(appName : string) {
     var taskList = this.taskList("Stopping Application (linux)");
 
     //stopping
@@ -431,7 +430,7 @@ export default class LinuxTaskBuilder implements TaskBuilder {
     return taskList;
   }
 
-  public start(appName) {
+  public start(appName : string) {
     var taskList = this.taskList("Starting Application (linux)");
 
     //starting
