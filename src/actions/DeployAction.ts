@@ -67,7 +67,7 @@ export class DeployAction extends BaseAction {
           //
           // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
           const meteorSettings = _.extend({
-            "public": {},
+            "public": { "site": site },
             "private": {},
             "log": { "level": "warn" }
           }, this.config.app.settings);
