@@ -73,7 +73,7 @@ export class DeployAction extends BaseAction {
           }, this.config.app.settings);
 
           // always update
-          // meteorSettings['public']['site'] = site;
+          meteorSettings['public']['site'] = site;
           meteorSettings['public']['version'] = deployment.brief();
 
           console.log("Updated Meteor Settings:");
