@@ -16,6 +16,11 @@ export interface SshOptions {
 
 
 export interface SiteConfig {
+  // the site name
+  siteName ?: string;
+  settings ?: any;
+  ssl ?: string;
+
   servers : Array<ServerConfig>;
   init? : string;
   env? : Env;
@@ -81,7 +86,7 @@ export interface BuildConfig {
 }
 
 export interface DeployConfig {
-  backupMongo ?: boolean;
+  backupMongo ?: any;
   checkDelay ?: number;
   exposeSiteName?: boolean;
   exposeVersionInfo?: boolean;

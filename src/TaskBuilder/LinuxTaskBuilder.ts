@@ -13,6 +13,22 @@ import {BaseTaskBuilder} from "./BaseTaskBuilder";
 
 import {Task} from "./Task";
 
+
+function translateBackupMongoConfigVars(config : Config) : any {
+  if (config.deploy.backupMongo) {
+    let backupConfig : any = {};
+    if (typeof config.deploy.backupMongo === "object") {
+      backupConfig.host = config.deploy.backupMongo.host || 'localhost';
+      backupConfig.port = config.deploy.backupMongo.port || 27017;
+      backupConfig.db = config.deploy.backupMongo.db || config.app.name;
+    }
+    return backupConfig;
+  }
+  return null;
+}
+
+
+
 abstract class SetupTask extends Task {
 
 }
@@ -269,11 +285,8 @@ abstract class DeployTask extends Task { }
 
 class StartProcessTask extends DeployTask {
 
-  protected initSettings : any;
-
-  constructor(config : Config, initSettings : any = {}) {
+  constructor(config : Config) {
     super(config);
-    this.initSettings = initSettings;
   }
 
   public describe() : string {
@@ -285,7 +298,8 @@ class StartProcessTask extends DeployTask {
     taskList.executeScript(this.describe(), {
       'script': path.resolve(TEMPLATES_DIR, 'deploy.sh'),
       'vars': this.extendArgs({
-        'deployCheckWaitTime': this.initSettings.checkDelay || 10
+        'backupMongo': translateBackupMongoConfigVars(this.config),
+        'deployCheckWaitTime': this.config.deploy.checkDelay || 10
       })
     });
   }
@@ -346,9 +360,11 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
       tasks.push(new MongoSetupTask(config));
     }
 
+    // XXX: Support ssl customization from SiteConfig
     if (config.ssl) {
       tasks.push(new SslSetupTask(config));
     }
+
     tasks.push(new UpstartSetupTask(config));
     tasks.push(new SystemdSetupTask(config));
 
@@ -377,11 +393,12 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
       vars: {
         deployPrefix: DEPLOY_PREFIX,
         deployCheckWaitTime: config.deploy.checkDelay || 10,
+        backupMongo: translateBackupMongoConfigVars(config),
         appName: config.app.name
       }
     });
 
-    let startProcess = new StartProcessTask(config, { 'checkDelay': config.deploy.checkDelay });
+    let startProcess = new StartProcessTask(config);
     startProcess.build(taskList);
 
     return taskList;
