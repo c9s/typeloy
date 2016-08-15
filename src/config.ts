@@ -77,6 +77,8 @@ export interface SetupConfig {
 
 export interface DeployConfig {
   checkDelay?: number;
+  exposeSiteName?: boolean;
+  exposeVersionInfo?: boolean;
 }
 
 
