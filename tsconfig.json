@@ -15,6 +15,7 @@
     "src/index.ts",
     "bin/typeloy.ts",
     "tests/ConfigTest.ts",
-    "tests/GitSyncTest.ts"
+    "tests/GitSyncTest.ts",
+    "tests/SummaryMapFormatterTest.ts"
   ]
 }
