@@ -220,8 +220,6 @@ export class ConfigParser {
     config.app = config.app || {} as AppConfig;
     config = this.convertLegacyConfig(config, _config);
 
-    console.log(JSON.stringify(config, null, "  "));
-
     config.meteor.binary = (config.meteor.binary) ? canonicalizePath(config.meteor.binary) : 'meteor';
     if (typeof config.app.name === "undefined") {
       config.app.name = "meteor";
@@ -300,7 +298,7 @@ export class ConfigParser {
       });
     });
 
-    if (!(<AppConfig>config.app).directory) {
+    if (!config.app.directory) {
       fatal('Path to app does not exist');
     }
     if (config.ssl) {
@@ -311,7 +309,7 @@ export class ConfigParser {
   }
 }
 
-export function readConfig(configPath:string) : Config {
+export function readConfig(configPath : string) : Config {
   if (configPath) {
     let filepath : string = path.resolve(configPath);
     if (fs.existsSync(filepath)) {
