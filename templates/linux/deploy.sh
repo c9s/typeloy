@@ -10,7 +10,7 @@ BUNDLE_TARBALL_FILENAME=bundle.tar.gz
 DEPLOY_CHECK_WAIT_TIME=<%= deployCheckWaitTime %>
 
 # This is for fixing the arch binary issue
-REBUILD_NPM_MODULES=0
+REBUILD_NPM_MODULES=1
 
 # utilities
 gyp_rebuild_inside_node_modules () {
@@ -101,41 +101,42 @@ cd ${BUNDLE_DIR}/programs/server
 # the prebuilt binary files might differ, we will need to rebuild everything to
 # solve the binary incompatible issues
 if [[ $REBUILD_NPM_MODULES == "1" ]] ; then
+
   if [ -d npm ]; then
     (cd npm && rebuild_binary_npm_modules)
   fi
-fi
 
-if [ -d node_modules ]; then
-  (cd node_modules && gyp_rebuild_inside_node_modules)
-fi
+  if [ -d node_modules ]; then
+    (cd node_modules && gyp_rebuild_inside_node_modules)
+  fi
 
-# Special fix for bcrypt invalid ELF issue
-# @see http://stackoverflow.com/questions/27984456/deploying-meteor-app-from-os-x-to-linux-causes-bcrypt-issues
-# @see https://github.com/meteor/meteor/issues/7513
+  # Special fix for bcrypt invalid ELF issue
+  # @see http://stackoverflow.com/questions/27984456/deploying-meteor-app-from-os-x-to-linux-causes-bcrypt-issues
+  # @see https://github.com/meteor/meteor/issues/7513
 
-# for 1.3 
-if [[ -e npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt ]] ; then
-    rm -rf npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
-    npm install --update-binary -f bcrypt
-    cp -r node_modules/bcrypt npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
-fi
-if [[ -e npm/node_modules/bignum ]] ; then
-    rm -rf npm/node_modules/bignum
-    npm install --update-binary -f bignum
-    cp -r node_modules/bignum npm/node_modules/bignum
-fi
-if [[ -e npm/npm-container/node_modules/nsq.js/node_modules/bignum ]] ; then
-    # for meteor 1.2, we have npm-container
-    rm -rf npm/npm-container/node_modules/nsq.js/node_modules/bignum
-    npm install --update-binary -f bignum
-    cp -r node_modules/bignum npm/npm-container/node_modules/nsq.js/node_modules/bignum
-fi
-if [[ -e npm/node_modules/nsq.js/node_modules/bignum ]] ; then
-    # for meteor 1.3, we have bignum used in nsq.js
-    rm -rf npm/node_modules/nsq.js/node_modules/bignum
-    npm install --update-binary -f bignum
-    cp -r node_modules/bignum npm/node_modules/nsq.js/node_modules/bignum
+  # for 1.3 
+  if [[ -e npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt ]] ; then
+      rm -rf npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
+      npm install --update-binary -f bcrypt
+      cp -r node_modules/bcrypt npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
+  fi
+  if [[ -e npm/node_modules/bignum ]] ; then
+      rm -rf npm/node_modules/bignum
+      npm install --update-binary -f bignum
+      cp -r node_modules/bignum npm/node_modules/bignum
+  fi
+  if [[ -e npm/npm-container/node_modules/nsq.js/node_modules/bignum ]] ; then
+      # for meteor 1.2, we have npm-container
+      rm -rf npm/npm-container/node_modules/nsq.js/node_modules/bignum
+      npm install --update-binary -f bignum
+      cp -r node_modules/bignum npm/npm-container/node_modules/nsq.js/node_modules/bignum
+  fi
+  if [[ -e npm/node_modules/nsq.js/node_modules/bignum ]] ; then
+      # for meteor 1.3, we have bignum used in nsq.js
+      rm -rf npm/node_modules/nsq.js/node_modules/bignum
+      npm install --update-binary -f bignum
+      cp -r node_modules/bignum npm/node_modules/nsq.js/node_modules/bignum
+  fi
 fi
 
 if [ -f package.json ]; then
