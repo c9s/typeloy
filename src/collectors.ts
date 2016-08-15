@@ -29,7 +29,7 @@ function parseGitRepo(cwd:string) : GitRevInfo {
 function findGitWorkingRootDir(dir : string) : string {
   dir = path.resolve(dir);
   while (dir && dir.length > 1) {
-    let gitDir = path.join(dir, ".git");
+    let gitDir = path.join(dir, ".git", "HEAD");
     if (fs.existsSync(gitDir)) {
       return dir;
     }

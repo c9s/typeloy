@@ -2,6 +2,8 @@ import {GitRevCollector, GitRevInfo} from "./collectors";
 
 import {Config} from "./config";
 
+var path = require('path');
+
 export class Deployment {
 
   /**
@@ -43,7 +45,8 @@ export class Deployment {
   /**
    * @param dir dir is used for git collector to collect information
    */
-  public static create(config : Config, dir:string, tag:string = null) : Deployment {
+  public static create(config : Config, tag:string = null) : Deployment {
+    let dir = config.app.directory || config.app.root || path.resolve('.');
     let revInfo = GitRevCollector.collect(dir);
     if (!tag) {
       tag = revInfo.describe;

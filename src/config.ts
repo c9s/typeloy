@@ -156,7 +156,6 @@ export class ConfigParser {
       config = cjson.load(configPath);
     }
 
-
     let newconfig = this.preprocess(config);
     this.validate(newconfig);
 
@@ -184,13 +183,13 @@ export class ConfigParser {
     }
 
     // app was a string in legacy config format
-    config.app = {} as AppConfig;
+    if (typeof config.app === "undefined") {
+      config.app = {} as AppConfig;
+    }
 
     if (typeof _config.app === "string") {
       config.app.directory = _config.app;
     }
-
-    config.app.settings = {};
 
     if (typeof _config.appName === "string") {
       config.app.name = _config.appName;
@@ -212,14 +211,16 @@ export class ConfigParser {
   public static preprocess(_config) : Config {
     // cast legacy config to typeloy config
     let config = <Config>_config;
+
     config.env = config.env || {};
     config.setup = config.setup || {} as SetupConfig;
     config.deploy = config.deploy || {} as DeployConfig;
     config.sites = config.sites || {} as SiteMapConfig;
     config.meteor = config.meteor || {} as MeteorConfig;
     config.app = config.app || {} as AppConfig;
-
     config = this.convertLegacyConfig(config, _config);
+
+    console.log(JSON.stringify(config, null, "  "));
 
     config.meteor.binary = (config.meteor.binary) ? canonicalizePath(config.meteor.binary) : 'meteor';
     if (typeof config.app.name === "undefined") {
@@ -256,7 +257,7 @@ export class ConfigParser {
     });
 
     // rewrite ~ with $HOME
-    (<AppConfig>config.app).directory = expandPath((<AppConfig>config.app).directory);
+    config.app.directory = expandPath(config.app.directory);
     if (config.ssl) {
       config.ssl.backendPort = config.ssl.backendPort || 80;
       config.ssl.pem = path.resolve(expandPath(config.ssl.pem));
@@ -332,8 +333,8 @@ export function readConfig(configPath:string) : Config {
 
 
 function loadMeteorSettings(config : Config) {
-  if (!config.app) {
-    return;
+  if (typeof config.app === "undefined") {
+    config.app = {} as AppConfig;
   }
   if (typeof config.app.settings === "object") {
     return config.app.settings;

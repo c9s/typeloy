@@ -37,14 +37,12 @@ prog.command('deploy [sites...]')
   .option("-C, --no-clean", 'whether to clean up the bundle files.')
   .action((sites : Array<string>, options : CmdDeployOptions) => {
     let config = readConfig(prog.config);
-
+    let deployment = Deployment.create(config, options.tag);
 
     let a = new DeployAction(config);
-    let deployment = Deployment.create(config, config.app.root || cwd, options.tag);
     let afterDeploy = a.run(deployment, sites, options);
     afterDeploy.then((mapResult : SummaryMap) => {
       console.log(JSON.stringify(mapResult, null, "  "));
-
       var errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
       console.log("returned code", errorCode);
       // console.log("After deploy", mapResult);
