@@ -88,8 +88,8 @@ export interface LegacyConfig {
   enableUploadProgressBar: boolean;
 
   // legacy options
-  app: string;
-  appName: string;
+  app: string; // path to the app
+  appName: string; // the name of the app
   meteorBinary: string;
   deployCheckWaitTime?: number;
 
@@ -182,11 +182,14 @@ export class ConfigParser {
     }
 
     // app was a string in legacy config format
+    config.app = {} as AppConfig;
+
     if (typeof _config.app === "string") {
-      let appDir = _config.app;
-      config.app = {} as AppConfig;
-      config.app.directory = appDir;
+      config.app.directory = _config.app;
     }
+
+    config.app.settings = {};
+
     if (typeof _config.appName === "string") {
       config.app.name = _config.appName;
     }
@@ -327,6 +330,9 @@ export function readConfig(configPath:string) : Config {
 
 
 function loadMeteorSettings(config : Config) {
+  if (!config.app) {
+    return;
+  }
   if (typeof config.app.settings === "object") {
     return config.app.settings;
   }
