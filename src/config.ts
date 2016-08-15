@@ -75,11 +75,15 @@ export interface SetupConfig {
   mongo?: boolean;
 }
 
+export interface BuildConfig {
+  arch ?: string; // --architecture os.linux.x86_64
+  architecture ?: string;
+}
+
 export interface DeployConfig {
   checkDelay?: number;
   exposeSiteName?: boolean;
   exposeVersionInfo?: boolean;
-  arch?: string; // --architecture os.linux.x86_64
 }
 
 
@@ -103,8 +107,9 @@ export interface LegacyConfig {
 }
 
 export interface Config {
-  setup?: SetupConfig;
-  deploy?: DeployConfig;
+  setup ?: SetupConfig;
+  deploy ?: DeployConfig;
+  build ?: BuildConfig;
 
   // We will convert servers into "default" => servers => [ .... ]
   sites: SiteMapConfig;
@@ -117,6 +122,7 @@ export interface Config {
   ssl?: SslConfig;
   deployCheckWaitTime?: number;
   plugins: Array<any>;
+
 
   dirname ?: string;
 }
@@ -217,11 +223,12 @@ export class ConfigParser {
 
     config.env = config.env || {};
     config.setup = config.setup || {} as SetupConfig;
-    config.deploy = config.deploy || {
+    config.deploy = config.deploy || { } as DeployConfig;
+    config.build = config.build || {
       // most servers are using linux x86_64,
       // users may override this from config.
       'arch': 'os.linux.x86_64'
-    } as DeployConfig;
+    } as BuildConfig;
     config.sites = config.sites || {} as SiteMapConfig;
     config.meteor = config.meteor || {} as MeteorConfig;
     config.app = config.app || {} as AppConfig;

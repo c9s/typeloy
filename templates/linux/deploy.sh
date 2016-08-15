@@ -9,6 +9,9 @@ BUNDLE_DIR=$TMP_DIR/bundle
 BUNDLE_TARBALL_FILENAME=bundle.tar.gz
 DEPLOY_CHECK_WAIT_TIME=<%= deployCheckWaitTime %>
 
+# This is for fixing the arch binary issue
+REBUILD_NPM_MODULES=0
+
 # utilities
 gyp_rebuild_inside_node_modules () {
   for npmModule in ./*; do
@@ -97,8 +100,10 @@ cd ${BUNDLE_DIR}/programs/server
 
 # the prebuilt binary files might differ, we will need to rebuild everything to
 # solve the binary incompatible issues
-if [ -d npm ]; then
-  (cd npm && rebuild_binary_npm_modules)
+if [[ $REBUILD_NPM_MODULES == "1" ]] ; then
+  if [ -d npm ]; then
+    (cd npm && rebuild_binary_npm_modules)
+  fi
 fi
 
 if [ -d node_modules ]; then

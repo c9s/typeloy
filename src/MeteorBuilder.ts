@@ -109,7 +109,7 @@ export class MeteorBuilder extends EventEmitter {
     let args : Array<string> = [
       "build",
       "--directory", buildLocation, 
-      "--architecture", this.config.deploy.arch,
+      "--architecture", (this.config.build.architecture || this.config.build.arch || "os.linux.x86_64"),
       "--server", (this.config.meteor.server || "http://localhost:3000"),
     ];
 
