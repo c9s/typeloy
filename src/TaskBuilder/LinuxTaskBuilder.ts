@@ -359,7 +359,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     return taskList;
   }
 
-  public deploy(config : Config, bundlePath:string, env, checkDelay) {
+  public deploy(config : Config, bundlePath : string, env) {
     let taskList = this.taskList("Deploy app '" + config.app.name + "' (linux)");
 
     let copyBundle = new CopyBundleDeployTask(config, bundlePath);
@@ -376,12 +376,12 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
       dest: DEPLOY_PREFIX + '/' + config.app.name + '/build.sh',
       vars: {
         deployPrefix: DEPLOY_PREFIX,
-        deployCheckWaitTime: checkDelay || 10,
+        deployCheckWaitTime: config.deploy.checkDelay || 10,
         appName: config.app.name
       }
     });
 
-    let startProcess = new StartProcessTask(config, { checkDelay });
+    let startProcess = new StartProcessTask(config, { 'checkDelay': config.deploy.checkDelay });
     startProcess.build(taskList);
 
     return taskList;

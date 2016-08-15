@@ -12,7 +12,7 @@ export abstract class BaseTaskBuilder {
 
   abstract setup(config:Config);
 
-  abstract deploy(config:Config, bundlePath:string, env, checkDelay);
+  abstract deploy(config:Config, bundlePath : string, env);
 
   abstract reconfig(env, config:Config);
 
