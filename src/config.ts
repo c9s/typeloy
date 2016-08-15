@@ -183,7 +183,7 @@ export class ConfigParser {
     }
 
     // app was a string in legacy config format
-    if (typeof config.app === "undefined") {
+    if (typeof config.app === "undefined" || typeof config.app === "string") {
       config.app = {} as AppConfig;
     }
 
@@ -210,7 +210,7 @@ export class ConfigParser {
 
   public static preprocess(_config) : Config {
     // cast legacy config to typeloy config
-    let config = <Config>_config;
+    let config = <Config>_.extend({}, _config);
 
     config.env = config.env || {};
     config.setup = config.setup || {} as SetupConfig;
