@@ -1,6 +1,9 @@
 
 import {GitSync, GitCommit, GitAuthor} from "./GitSync";
 
+const path = require('path');
+const fs = require('fs');
+
 export class GitRevInfo {
   public commits : Array<GitCommit>;
   public latestTag : string;
@@ -13,9 +16,9 @@ export class GitRevInfo {
 export interface RevCollector { }
 
 function parseGitRepo(cwd:string) : GitRevInfo {
-  let repo = new GitSync(cwd);
-  let latestTag = repo.describeTags(0);
-  let commits = repo.logSince(latestTag, 'HEAD');
+  const repo = new GitSync(cwd);
+  const latestTag = repo.describeTags(0);
+  const commits = repo.logSince(latestTag, 'HEAD');
   return {
     latestTag: latestTag,
     commits: commits,
@@ -23,8 +26,23 @@ function parseGitRepo(cwd:string) : GitRevInfo {
   } as GitRevInfo;
 }
 
+function findGitWorkingRootDir(dir : string) : string {
+  dir = path.resolve(dir);
+  while (dir && dir.length > 1) {
+    let gitDir = path.join(dir, ".git");
+    if (fs.existsSync(gitDir)) {
+      return dir;
+    }
+    dir = path.dirname(dir);
+  }
+  return null;
+}
+
 export class GitRevCollector implements RevCollector {
-  public static collect(cwd:string) {
-    return parseGitRepo(cwd);
+  public static collect(dir : string) : GitRevInfo {
+    if (dir = findGitWorkingRootDir(dir)) {
+      return parseGitRepo(dir);
+    }
+    return null;
   }
 }
