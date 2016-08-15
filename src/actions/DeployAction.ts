@@ -96,6 +96,11 @@ export class DeployAction extends BaseAction {
                                       this.config.env || {},
                                       siteConfig.env || {},
                                       session._serverConfig.env || {});
+
+                      if (typeof env['ROOT_URL'] === "undefined") {
+                        console.log("**WARNING** ROOT_URL is undefined.");
+                      }
+
                       const taskList = taskBuilder.deploy(
                                     this.config,
                                     bundlePath,
