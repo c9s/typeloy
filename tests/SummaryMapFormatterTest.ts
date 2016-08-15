@@ -65,7 +65,7 @@ let summaryMap : any = {
 describe('SummaryMapFormatter', () => {
   describe('#format', () => {
     it('should format summary map into console text', () => {
-      console.log(SummaryMapConsoleFormatter.format(summaryMap));
+      SummaryMapConsoleFormatter.format(summaryMap);
     });
   });
 });
