@@ -160,7 +160,9 @@ export class ConfigParser {
     this.validate(newconfig);
 
     newconfig.dirname = path.dirname(configPath);
-    loadMeteorSettings(newconfig);
+    if (!loadMeteorSettings(newconfig)) {
+      console.error("**WARNING**: settings.json not found.");
+    }
     return newconfig;
   }
 
@@ -368,5 +370,4 @@ function loadMeteorSettings(config : Config) {
       return config.app.settings = require(settingsFilename);
     }
   }
-  console.error("**WARNING**: settings.json not found.");
 }
