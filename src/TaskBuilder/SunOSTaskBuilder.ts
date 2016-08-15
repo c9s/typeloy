@@ -22,7 +22,7 @@ function reconfig(taskList, appName : string, env) {
 
 export default class SunOSTaskBuilder extends BaseTaskBuilder {
 
-  public setup(config:Config) {
+  public setup(config : Config) {
     let installMongo = config.setup.mongo;
     let setupNode = config.setup.node;
     let nodeVersion = config.setup.node;
@@ -73,7 +73,8 @@ export default class SunOSTaskBuilder extends BaseTaskBuilder {
     return taskList;
   }
 
-  public deploy(bundlePath, env, deployCheckWaitTime, appName : string) {
+  public deploy(config : Config, bundlePath : string, env) {
+    const appName = config.app.name;
     const taskList = nodemiral.taskList("Deploy app '" + appName + "' (sunos)");
 
     taskList.copy('Uploading bundle', {
@@ -87,7 +88,7 @@ export default class SunOSTaskBuilder extends BaseTaskBuilder {
     taskList.executeScript('Invoking deployment process', {
       script: path.resolve(TEMPLATES_DIR, 'deploy.sh'),
       vars: {
-        deployCheckWaitTime: deployCheckWaitTime || 10,
+        deployCheckWaitTime: config.deploy.checkDelay || 10,
         appName: appName
       }
     });

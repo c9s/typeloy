@@ -40,7 +40,6 @@ export class DeployAction extends BaseAction {
     this.debug(`Build Location: ${buildLocation}`);
     this.debug(`Bundle Path: ${bundlePath}`);
 
-    const deployCheckWaitTime = this.config.deploy.checkDelay;
     const builder = new MeteorBuilder(this.config);
 
     propagate(builder, this);
@@ -104,8 +103,7 @@ export class DeployAction extends BaseAction {
                       const taskList = taskBuilder.deploy(
                                     this.config,
                                     bundlePath,
-                                    env,
-                                    deployCheckWaitTime);
+                                    env);
                       // propagate task events
                       this.propagateTaskEvents(taskList);
                         taskList.run(session, (summaryMap : SummaryMap) => {

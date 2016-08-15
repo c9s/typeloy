@@ -81,7 +81,8 @@ export interface BuildConfig {
 }
 
 export interface DeployConfig {
-  checkDelay?: number;
+  backupMongo ?: boolean;
+  checkDelay ?: number;
   exposeSiteName?: boolean;
   exposeVersionInfo?: boolean;
 }
