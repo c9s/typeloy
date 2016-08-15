@@ -218,6 +218,8 @@ export class ConfigParser {
     config.env = config.env || {};
     config.setup = config.setup || {} as SetupConfig;
     config.deploy = config.deploy || {
+      // most servers are using linux x86_64,
+      // users may override this from config.
       'arch': 'os.linux.x86_64'
     } as DeployConfig;
     config.sites = config.sites || {} as SiteMapConfig;
