@@ -69,11 +69,12 @@ export class DeployAction extends BaseAction {
             "public": {},
             "private": {},
             "log": { "level": "warn" }
-          }, this.config.app.settings || {});
+          }, siteConfig.settings || this.config.app.settings || {}); // prefer site config over the app settings
 
           // always update
-          if (this.config.deploy.exposeSiteName) {
-            meteorSettings['public']['site'] = site;
+          if (this.config.deploy.exposeSiteName && typeof meteorSettings['public']['site'] === "undefined") {
+            // XXX: apply siteName from siteConfig
+            meteorSettings['public']['site'] = siteConfig.siteName || site;
           }
           if (this.config.deploy.exposeVersionInfo) {
             meteorSettings['public']['version'] = deployment.brief();
@@ -123,7 +124,6 @@ export class DeployAction extends BaseAction {
         });
       }
       return sitesPromise.then((summaryMap : SummaryMap) => {
-        console.log(JSON.stringify(summaryMap, null, "  "));
         this.pluginRunner.whenAfterDeployed(deployment);
         if (options.clean) {
           this.log(`Cleaning up ${buildLocation}`);

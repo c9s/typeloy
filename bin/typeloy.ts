@@ -8,6 +8,7 @@ import {BaseAction, DeployAction, SetupAction, StartAction, RestartAction, StopA
 import {CmdDeployOptions} from '../src/options';
 import {SessionManager, SessionGroup, SessionsMap} from '../src/SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../src/SummaryMap";
+import {SummaryMapConsoleFormatter} from "../src/SummaryMapConsoleFormatter";
 
 import {Deployment} from '../src/Deployment';
 import debug from '../src/Debug';
@@ -42,7 +43,7 @@ prog.command('deploy [sites...]')
     let a = new DeployAction(config);
     let afterDeploy = a.run(deployment, sites, options);
     afterDeploy.then((mapResult : SummaryMap) => {
-      console.log(JSON.stringify(mapResult, null, "  "));
+      console.log(SummaryMapConsoleFormatter.format(mapResult));
       var errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
       console.log("returned code", errorCode);
       // console.log("After deploy", mapResult);
