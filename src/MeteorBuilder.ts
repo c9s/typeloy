@@ -109,8 +109,10 @@ export class MeteorBuilder extends EventEmitter {
     let args : Array<string> = [
       "build",
       "--directory", buildLocation, 
+      "--architecture", this.config.deploy.arch,
       "--server", (this.config.meteor.server || "http://localhost:3000"),
     ];
+
     
     let isWin = /^win/.test(process.platform);
     if (isWin) {

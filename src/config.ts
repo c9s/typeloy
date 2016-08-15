@@ -79,6 +79,7 @@ export interface DeployConfig {
   checkDelay?: number;
   exposeSiteName?: boolean;
   exposeVersionInfo?: boolean;
+  arch?: string; // --architecture os.linux.x86_64
 }
 
 
@@ -216,7 +217,9 @@ export class ConfigParser {
 
     config.env = config.env || {};
     config.setup = config.setup || {} as SetupConfig;
-    config.deploy = config.deploy || {} as DeployConfig;
+    config.deploy = config.deploy || {
+      'arch': 'os.linux.x86_64'
+    } as DeployConfig;
     config.sites = config.sites || {} as SiteMapConfig;
     config.meteor = config.meteor || {} as MeteorConfig;
     config.app = config.app || {} as AppConfig;
