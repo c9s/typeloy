@@ -33,7 +33,7 @@ sudo mv ${NODE_DIST} /opt/nodejs
 
 sudo ln -sf /opt/nodejs/bin/node /usr/bin/node
 sudo ln -sf /opt/nodejs/bin/npm /usr/bin/npm
-npm install -g forever 
-npm install -g wait-for-mongo
-npm install -g node-pre-gyp
-npm install -g node-gyp
+sudo npm install -g forever 
+sudo npm install -g wait-for-mongo
+sudo npm install -g node-pre-gyp
+sudo npm install -g node-gyp
