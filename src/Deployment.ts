@@ -35,8 +35,12 @@ export class Deployment {
       if (this.revInfo.commits && this.revInfo.commits.length > 0) {
         let commit = this.revInfo.commits[0];
         o['commit'] = commit.hash;
-        o['author'] = commit.author.name;
-        o['committedAt'] = commit.date.toLocaleString();
+        if (commit.author) {
+          o['author'] = commit.author.name;
+        }
+        if (commit.date) {
+          o['committedAt'] = commit.date.toLocaleString();
+        }
       }
     }
     return o;

@@ -72,7 +72,7 @@ export class DeployAction extends BaseAction {
           }, siteConfig.settings || this.config.app.settings || {}); // prefer site config over the app settings
 
           // always update
-          if (this.config.deploy.exposeSiteName && typeof meteorSettings['public']['site'] === "undefined") {
+          if (this.config.deploy.exposeSiteName && meteorSettings['public'] && typeof meteorSettings['public']['site'] === "undefined") {
             // XXX: apply siteName from siteConfig
             meteorSettings['public']['site'] = siteConfig.siteName || site;
           }
