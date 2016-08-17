@@ -41,6 +41,7 @@ The difference between **typeloy** and **meteor-up**:
 - [x] Add plugin architect
     - [x] Slack plugin to integrate Slack notification
 - [x] Add server list site name support
+- [ ] SystemD init support
 - [ ] Add promise support for the actions.
 - [ ] Remove process.exit from code
 - [ ] Ability to deploy just one site from the multiple server list.
