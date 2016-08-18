@@ -1,5 +1,6 @@
 import {SummaryMap} from "./SummaryMap";
-import {Deployment} from "./Deployment":
+import {Deployment} from "./Deployment";
+import {GitRevInfo} from "./collectors";
 
 var _ = require('underscore');
 
@@ -20,36 +21,47 @@ interface SlackAttachment {
   fallback? : string;
 }
 
-function createDeploymentReportAttachment(deployment : Deployment) : any {
+class SlackMessage {
 
-}
+  public static createDeploymentReportAttachment(deployment : Deployment) : SlackAttachment {
+    const revInfo = deployment.revInfo;
+    const lastCommit = revInfo.commits ? revInfo.commits[0] : null; // the latest commit after the tag.
 
-    const attachment = {
-      "title": "Commit Message",
-      "author_name": process.env['USER'],
-      "text": latestCommit.message,
-      "fields": [{
-          "title": "Commit",
-          "value": this.linkCommitHref(revInfo.latestCommit().hash),
-          "short": true
-        }, {
-          "title": "Author",
-          "value": latestCommit.author.name,
-          "short": true
-        }, {
-          "title": "Date",
-          "value": latestCommit.date,
-          "short": true
-        }, {
+    const fields = [];
+
+    if (lastCommit) {
+      fields.push({
+        "title": "Commit",
+        "value": lastCommit.hash,
+        "short": true });
+
+      fields.push({
+        "title": "Author",
+        "value": lastCommit.author.name,
+        "short": true });
+
+      fields.push({
+        "title": "Committed Date",
+        "value": lastCommit.date,
+        "short": true });
+
+      fields.push({
           "title": "Latest Tag",
           "value": revInfo.latestTag,
           "short": true,
-        }],
+      });
+    }
+
+    const attachment = {
+      "title" : "Deployment Report",
+      // "text": latestCommit.message,
+      "fields": fields,
       "mrkdwn_in": ["text","fields"],
-      "fallback": "The attachement isn't supported."
-    };
+    } as SlackAttachment;
 
-
+    return attachment;
+  }
+}
 
 export class SummaryMapSlackFormatter {
 
