@@ -9,6 +9,7 @@ import {CmdDeployOptions} from '../src/options';
 import {SessionManager, SessionGroup, SessionsMap} from '../src/SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../src/SummaryMap";
 import {SummaryMapConsoleFormatter} from "../src/SummaryMapConsoleFormatter";
+import {SummaryMapSlackFormatter} from "../src/SummaryMapSlackFormatter";
 
 import {Deployment} from '../src/Deployment';
 import debug from '../src/Debug';
