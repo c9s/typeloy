@@ -109,6 +109,10 @@ export class GitRepo {
     const cmd = this.baseCommand().join(' ');
     const cmdopts = commandOptions({
       "all": ["--all", Boolean],
+      "prune": ["--prune", Boolean],
+      "tags": ["--tags", Boolean],
+      "quiet": ["--quiet", Boolean],
+      "verbose": ["--verbose", Boolean],
     }, options);
 
     return new Promise(resolve => {
