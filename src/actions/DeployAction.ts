@@ -17,20 +17,19 @@ var path = require('path');
 var rimraf = require('rimraf');
 var _ = require('underscore');
 
+const getDefaultBuildDirName = function(appName : string, tag : string) : string {
+  return (appName || "app") + "-" + (tag || uuid.v4());
+};
 
 export class DeployAction extends BaseAction {
 
   public run(deployment : Deployment, sites : Array<string>, options : CmdDeployOptions = {} as CmdDeployOptions) {
-
-    const appConfig = this.config.app;
-    const appName = appConfig.name;
+    console.log(this.config.app);
+    const appName = this.config.app.name || "app";
 
     this._showKadiraLink();
 
-    const getDefaultBuildDirName = function(appName : string, tag : string) : string {
-      return (appName || "meteor") + "-" + (tag || uuid.v4());
-    };
-
+    // /tmp/shaka-/Users/c9s/src/work/kaneoh/delivery/shaka1/shaka1/app/bundle.tar.gz
     const buildLocation = options.buildDir 
                           || process.env.METEOR_BUILD_DIR 
                           || path.resolve(os.tmpdir(), getDefaultBuildDirName(appName, deployment.tag));
@@ -44,7 +43,7 @@ export class DeployAction extends BaseAction {
 
     propagate(builder, this);
 
-    return builder.buildApp(appConfig.directory, buildLocation, bundlePath, () => {
+    return builder.buildApp(this.config.app.directory, buildLocation, bundlePath, () => {
       this.whenBeforeBuilding(deployment);
     }).then(() => {
       // We only want to fire once for now.

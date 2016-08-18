@@ -77,20 +77,31 @@ export class GitRepo {
     }, this.sharedOptions));
   }
 
+  public deleteBranch(branch : string, options = {}) {
+    const cmd = this.baseCommand().join(' ');
+    const cmdopts = [];
+    if (options.force) {
+      cmdopts.push('-D');
+    } else {
+      cmdopts.push('-d');
+    }
+    return new Promise<any>(resolve => {
+      let process = child_process.exec(`${cmd} branch ${cmdopts.join(' ')} ${branch}`, { cwd: this.repo }, (err, stdout, stderr) => {
+        resolve({ err, stdout, stderr });
+      });
+    });
+  }
+
   public checkout(branch : string, options = {}) : Promise<any> {
     const cmd = this.baseCommand().join(' ');
     const cmdopts = commandOptions({
       "track": ["--track", String],
+      "force": ["-f", Boolean],
     }, options);
     return new Promise<any>(resolve => {
       let process = child_process.exec(`${cmd} checkout ${cmdopts.join(' ')} ${branch}`, { cwd: this.repo }, (err, stdout, stderr) => {
         resolve({ err, stdout, stderr });
       });
-      /*
-      process.on('exit', function (code) {
-        console.log('Child process exited with exit code '+code);
-      });
-      */
     });
   }
 
