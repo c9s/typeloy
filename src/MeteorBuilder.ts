@@ -104,7 +104,7 @@ export class MeteorBuilder extends EventEmitter {
     });
   }
 
-  protected installMeteorNpm(appPath : string) : Promise<number> {
+  protected installMeteorNpm(executable, appPath : string) : Promise<number> {
     let args : Array<string> = [
       "npm",
       "install",
@@ -126,7 +126,6 @@ export class MeteorBuilder extends EventEmitter {
     if (this.config.meteor.env) {
       options['env'] = _.extend(options['env'], this.config.meteor.env);
     }
-    options['env']['BUILD_LOCATION'] = buildLocation;
 
     this.log(`Installing npm packages: ${executable} ${args.join(' ')}`);
 
