@@ -77,7 +77,7 @@ export class GitRepo {
     }, this.sharedOptions));
   }
 
-  public deleteBranch(branch : string, options = {}) {
+  public deleteBranch(branch : string, options : any = {}) {
     const cmd = this.baseCommand().join(' ');
     const cmdopts = [];
     if (options.force) {
