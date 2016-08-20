@@ -153,7 +153,8 @@ function canonicalizePath(loc : string) : string {
   if (fs.existsSync(localDir)) {
     return localDir;
   }
-  return path.resolve(expandPath(loc));
+  return loc;
+  // return path.resolve(expandPath(loc));
 }
 
 export class ConfigParser {
@@ -240,7 +241,7 @@ export class ConfigParser {
     config.app = config.app || {} as AppConfig;
     config = this.convertLegacyConfig(config, _config);
 
-    config.meteor.binary = (config.meteor.binary) ? canonicalizePath(config.meteor.binary) : 'meteor';
+    config.meteor.binary = config.meteor.binary ? canonicalizePath(config.meteor.binary) : 'meteor';
     if (typeof config.app.name === "undefined") {
       config.app.name = "meteor";
     }
