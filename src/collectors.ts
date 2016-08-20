@@ -22,7 +22,7 @@ function parseGitRepo(cwd:string) : GitRevInfo {
   return {
     latestTag: latestTag,
     commits: commits,
-    describe: repo.describe()
+    describe: repo.describe({ tags: true })
   } as GitRevInfo;
 }
 
