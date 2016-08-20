@@ -7,7 +7,7 @@ export interface SummaryMap {
 }
 
 export interface SummaryMapResult {
-  error: any;
+  error: boolean;
   history: Array<SummaryMapHistory>;
 }
 
