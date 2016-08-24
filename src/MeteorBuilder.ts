@@ -34,17 +34,16 @@ export class MeteorBuilder extends EventEmitter {
     }
 
     const buildFinish = new Promise<number>((resolve, reject) => {
-
       this.log(`Building started: ${appName}`);
       this.emit('build.started', { message: 'Build started', bundlePath, buildLocation });
 
       start();
-
-      this.buildMeteorApp(appPath, meteorBinary, buildLocation)
+      this.installMeteorNpm(appPath, meteorBinary)
         .then((code : number) => {
-
+          return this.buildMeteorApp(appPath, meteorBinary, buildLocation);
+        })
+        .then((code : number) => {
           this.log(`Builder returns: ${code}`);
-
           if (code == 0) {
             resolve(code);
           } else {
@@ -104,7 +103,7 @@ export class MeteorBuilder extends EventEmitter {
     });
   }
 
-  protected installMeteorNpm(executable, appPath : string) : Promise<number> {
+  protected installMeteorNpm(appPath : string, executable : string) : Promise<number> {
     let args : Array<string> = [
       "npm",
       "install",
@@ -127,7 +126,7 @@ export class MeteorBuilder extends EventEmitter {
       options['env'] = _.extend(options['env'], this.config.meteor.env);
     }
 
-    this.log(`Installing npm packages: ${executable} ${args.join(' ')}`);
+    this.log(`Installing meteor npm packages: ${executable} ${args.join(' ')}`);
 
     return new Promise<number>( (resolve, reject) => {
       let meteor = spawn(executable, args, options);
