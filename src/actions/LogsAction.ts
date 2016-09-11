@@ -31,7 +31,7 @@ export class LogsAction extends BaseAction {
     }, logConfig);
   }
 
-  public run(deployment : Deployment, sites : Array<string>, options : LogsOptions) {
+  public run(deployment : Deployment, sites : Array<string>, options : LogsOptions) : Promise<any> {
 
     const self = this;
     let tailOptions = [];
@@ -51,30 +51,39 @@ export class LogsAction extends BaseAction {
       }
     }
 
-    _.map(sites, (site : string) => {
-      let siteConfig = this.getSiteConfig(site);
-      let sessionsMap = this.createSiteSessionsMap(siteConfig);
-      for (let os in sessionsMap) {
-        let sessionGroup : SessionGroup = sessionsMap[os];
-        sessionGroup.sessions.forEach((session : Session) => {
-          let hostPrefix = `(${site}) [${session._host}] `;
-          let serverConfig = session._serverConfig;
-          let isSystemd = serverConfig.init === "systemd" || siteConfig.init === "systemd" || options.init === "systemd";
-          let command = isSystemd
-              ? journalctl(this.config, tailOptions)
-              : tailCommand(this.config, tailOptions, os)
-              ;
-          session.execute(command, {
-            "onStdout": (data) => {
-              this.logConfig.onStdout(hostPrefix, data);
-            },
-            "onStderr": (data) => {
-              this.logConfig.onStderr(hostPrefix, data);
-            }
-          });
+    let sitesPromise = Promise.resolve({});
+    for (let i = 0; i < sites.length; i++) {
+        const site = sites[i];
+        sitesPromise = sitesPromise.then(() => {
+            const siteConfig = this.getSiteConfig(site);
+            const sessionsMap = this.createSiteSessionsMap(siteConfig);
+            let sessionGroupPromises = _.map(sessionsMap, (sessionGroup : SessionGroup, os : string) => {
+                const sessionPromises = sessionGroup.sessions.map((session : Session) => {
+                    let hostPrefix = `(${site}) [${session._host}] `;
+                    let serverConfig = session._serverConfig;
+                    let isSystemd = serverConfig.init === "systemd" || siteConfig.init === "systemd" || options.init === "systemd";
+                    let command = isSystemd
+                        ? journalctl(this.config, tailOptions)
+                        : tailCommand(this.config, tailOptions, os)
+                        ;
+                    return new Promise(resolve => {
+                        session.execute(command, {
+                          "onStdout": (data) => {
+                            this.logConfig.onStdout(hostPrefix, data);
+                          },
+                          "onStderr": (data) => {
+                            this.logConfig.onStderr(hostPrefix, data);
+                          }
+                        }, () => {
+                          resolve();
+                        });
+                    });
+                });
+                return Promise.all(sessionPromises);
+            });
+            return Promise.all(sessionGroupPromises);
         });
-      }
-    });
-
+    }
+    return sitesPromise;
   }
 }
