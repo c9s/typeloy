@@ -33,7 +33,6 @@ export class BaseAction extends EventEmitter {
   constructor(config : Config) {
     super();
     this.config = config;
-
     this.sessionManager = new SessionManager({
       "keepAlive": false 
     } as SessionManagerConfig);

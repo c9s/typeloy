@@ -4,7 +4,7 @@ import {Deployment} from '../Deployment';
 import {Session} from '../Session';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 
-var _ = require('underscore');
+const _ = require('underscore');
 
 export interface LogsOptions {
   tail?: boolean;
@@ -17,6 +17,20 @@ function journalctl(config : Config, tailOptions) {
 
 export class LogsAction extends BaseAction {
 
+  protected logConfig : any;
+
+  constructor(config : Config, logConfig = {}) {
+    super(config);
+    this.logConfig = _.extend({
+      "onStdout": (hostPrefix, data) => {
+        process.stdout.write(hostPrefix + data.toString());
+      },
+      "onStderr": (hostPrefix, data) => {
+        process.stderr.write(hostPrefix + data.toString());
+      }
+    }, logConfig);
+  }
+
   public run(deployment : Deployment, sites : Array<string>, options : LogsOptions) {
 
     const self = this;
@@ -25,7 +39,6 @@ export class LogsAction extends BaseAction {
       tailOptions.push('-f');
     }
     const tailOptionArgs = tailOptions.join(' ');
-
 
     function tailCommand(config : Config, tailOptions, os : string = 'linux') {
       if (os == 'linux') {
@@ -53,10 +66,10 @@ export class LogsAction extends BaseAction {
               ;
           session.execute(command, {
             "onStdout": (data) => {
-              process.stdout.write(hostPrefix + data.toString());
+              this.logConfig.onStdout(hostPrefix, data);
             },
             "onStderr": (data) => {
-              process.stderr.write(hostPrefix + data.toString());
+              this.logConfig.onStderr(hostPrefix, data);
             }
           });
         });
