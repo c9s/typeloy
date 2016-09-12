@@ -43,16 +43,14 @@ function translateBackupMongoConfigVars(config : Config) : any {
 // 'backupMongo': translateBackupMongoConfigVars(this.config),
 
 
-export default class LinuxTaskBuilder extends BaseTaskBuilder {
 
-  protected taskList(title : string) {
-    return nodemiral.taskList(title);
-  }
+class SetupTaskListBuilder {
 
-  public setup(config : Config) {
-    const taskList = this.taskList('Setup (linux)');
+  static build(config : Config) : Array<Task> {
 
-    let tasks : Array<Task> = [];
+    const taskList = nodemiral.taskList('Setup Tasks');
+
+    const tasks : Array<Task> = [];
     tasks.push(new AptGetUpdateTask(config));
 
     // Installation
@@ -82,36 +80,40 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     tasks.forEach((t:Task) => {
       t.build(taskList);
     });
+    return tasks;
+  }
+}
+
+class DeployTaskListBuilder {
+
+  static build(config : Config, bundlePath : string, env : any) : Array<Task> {
+    const taskList = nodemiral.taskList("Deploy app '" + config.app.name + "'");
+
+    const tasks : Array<Task> = [];
+    tasks.push(new CopyBundleDeployTask(config, bundlePath));
+    tasks.push(new BashEnvVarsTask(config, env));
+    tasks.push(new EnvVarsTask(config, env));
+    tasks.push(new StartProcessTask(config));
+    tasks.forEach((t:Task) => {
+      t.build(taskList);
+    });
     return taskList;
   }
+}
 
-  public deploy(config : Config, bundlePath : string, env) {
-    let taskList = this.taskList("Deploy app '" + config.app.name + "' (linux)");
 
-    let copyBundle = new CopyBundleDeployTask(config, bundlePath);
-    copyBundle.build(taskList);
+export default class LinuxTaskBuilder extends BaseTaskBuilder {
 
-    let bashEnvVars = new BashEnvVarsTask(config, env);
-    bashEnvVars.build(taskList);
+  protected taskList(title : string) {
+    return nodemiral.taskList(title);
+  }
 
-    let envVars = new EnvVarsTask(config, env);
-    envVars.build(taskList);
+  public setup(config : Config) : Array<Task> {
+    return SetupTaskListBuilder.build(config);
+  }
 
-    taskList.copy('Creating build.sh', {
-      src: path.resolve(TEMPLATES_DIR, 'deploy.sh'),
-      dest: DEPLOY_PREFIX + '/' + config.app.name + '/build.sh',
-      vars: {
-        deployPrefix: DEPLOY_PREFIX,
-        deployCheckWaitTime: config.deploy.checkDelay || 10,
-        backupMongo: translateBackupMongoConfigVars(config),
-        appName: config.app.name
-      }
-    });
-
-    let startProcess = new StartProcessTask(config);
-    startProcess.build(taskList);
-
-    return taskList;
+  public deploy(config : Config, bundlePath : string, env : any) {
+    return DeployTaskListBuilder.build(config, bundlePath, env);
   };
 
   public reconfig(env, config : Config) {
