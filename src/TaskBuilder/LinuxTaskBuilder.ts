@@ -20,7 +20,11 @@ import {
   MongoSetupTask,
   SslSetupTask,
   SystemdSetupTask,
-  UpstartSetupTask
+  UpstartSetupTask,
+  EnvVarsTask,
+  BashEnvVarsTask,
+  DeployTask,
+  StartProcessTask
 } from "../tasks";
 
 function translateBackupMongoConfigVars(config : Config) : any {
@@ -35,100 +39,8 @@ function translateBackupMongoConfigVars(config : Config) : any {
   }
   return null;
 }
+// 'backupMongo': translateBackupMongoConfigVars(this.config),
 
-
-
-
-
-/**
- * EnvVars with export statement
- */
-class EnvVarsTask extends Task {
-
-  protected env;
-
-  constructor(config : Config, env) {
-    super(config);
-    this.env = env;
-  }
-
-  public describe() : string {
-    return 'Setting up environment variable file';
-  }
-
-  protected buildEnvDict() {
-    let bashenv = {};
-    for (let key in this.env) {
-      let val = this.env[key];
-      if (typeof val === "object") {
-        // Do proper escape
-        bashenv[key] = JSON.stringify(val).replace(/[\""]/g, '\\"')
-      } else if (typeof val === "string") {
-        bashenv[key] = val.replace(/[\""]/g, '\\"');
-      } else {
-        bashenv[key] = val;
-      }
-    }
-    return bashenv;
-  }
-
-  public build(taskList) {
-    let bashenv = this.buildEnvDict();
-    taskList.copy(this.describe(), {
-      'src': path.resolve(TEMPLATES_DIR, 'env-vars'),
-      'dest': this.appRoot + '/config/env-vars',
-      'vars': this.extendArgs({ 'env': bashenv }),
-    });
-  }
-}
-
-
-
-/**
- * Bash EnvVars with export statement
- */
-class BashEnvVarsTask extends EnvVarsTask {
-
-  public describe() : string {
-    return 'Setting up environment variable file for bash';
-  }
-
-  public build(taskList) {
-    let bashenv = this.buildEnvDict();
-    taskList.copy(this.describe(), {
-      'src': path.resolve(TEMPLATES_DIR, 'env.sh'),
-      'dest': this.appRoot + '/config/env.sh',
-      'vars': this.extendArgs({ 'env': bashenv }),
-    });
-  }
-}
-
-abstract class DeployTask extends Task { }
-
-
-class StartProcessTask extends DeployTask {
-
-  constructor(config : Config) {
-    super(config);
-  }
-
-  public describe() : string {
-    return 'Invoking deployment process';
-  }
-
-  public build(taskList) {
-    const appName = this.config.app.name;
-    taskList.executeScript(this.describe(), {
-      'script': path.resolve(TEMPLATES_DIR, 'deploy.sh'),
-      'vars': this.extendArgs({
-        'backupMongo': translateBackupMongoConfigVars(this.config),
-        'deployCheckWaitTime': this.config.deploy.checkDelay || 10
-      })
-    });
-  }
-
-
-}
 
 
 class CopyBundleDeployTask extends DeployTask {
