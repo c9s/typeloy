@@ -12,3 +12,4 @@ export * from "./tasks/EnvVarsTask.ts";
 export * from "./tasks/DeployTask.ts";
 export * from "./tasks/StartProcessTask.ts";
 export * from "./tasks/CopyBundleDeployTask.ts";
+export * from "./tasks/RestartTask.ts";
