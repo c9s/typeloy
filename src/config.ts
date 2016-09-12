@@ -291,7 +291,7 @@ export class ConfigParser {
 
     // Convert legacy ssl config
     if (config.ssl) {
-      config.ssl.backendPort = config.ssl.backendPort || 80;
+      config.ssl.backendPort = config.ssl.backendPort || 8000;
       config.ssl.pem = path.resolve(expandPath(config.ssl.pem));
     }
     return config;
