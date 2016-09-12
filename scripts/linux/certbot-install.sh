@@ -13,10 +13,3 @@ gpg2 --recv-key A2CFB51FA275A7286234E7B24D17C995CD9775F2
 gpg2 --trusted-key 4D17C995CD9775F2 --verify certbot-auto.asc certbot-auto
 
 ./certbot-auto certonly --standalone --quiet --email $EMAIL -d $DOMAIN
-
-# ./certbot-auto renew --standalone --quiet
-
-for d in /etc/letsencrypt/live/* ; do
-    echo "Generating ssl pem in $d"
-    (cd $d && cat privkey.pem cert.pem > ssl.pem)
-done
