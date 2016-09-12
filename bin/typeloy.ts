@@ -57,12 +57,13 @@ prog.command('deploy [sites...]')
 
 prog.command('setup [sites...]')
   .description('setup the requirements on the target server.')
+  .option("-t, --tasks <tasks>", 'tasks')
   .action((sites : Array<string>, options) => {
     let config = readConfig(prog.config);
     let a = new SetupAction(config);
 
     let deployment = Deployment.create(config, config.app.root || cwd);
-    a.run(deployment, sites);
+    a.run(deployment, sites, options.tasks ? options.tasks.split(/,/) : null);
   })
   ;
 
