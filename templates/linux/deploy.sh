@@ -10,11 +10,6 @@ BUNDLE_DIR=$TMP_DIR/bundle
 BUNDLE_TARBALL_FILENAME=bundle.tar.gz
 DEPLOY_CHECK_WAIT_TIME=<%= deployCheckWaitTime %>
 
-BACKUP_MONGO=<%= backupMongo ? 1 : 0 %>
-BACKUP_MONGO_HOST=<%= backupMongo ? backupMongo.host || 'localhost' : 0 %>
-BACKUP_MONGO_PORT=<%= backupMongo ? backupMongo.port || 27017 : 0 %>
-
-BACKUP_FILENAME=${APP_NAME}_${TODAY}.gz
 
 # This is for fixing the arch binary issue
 REBUILD_NPM_MODULES=1
@@ -92,12 +87,6 @@ set -e
 # set -o xtrace
 
 cd ${TMP_DIR}
-
-if [[ $BACKUP_MONGO == "1" ]] ; then
-  echo "Backing up mongodb ..."
-  mongodump -h $BACKUP_MONGO_HOST -p $BACKUP_MONGO_PORT  --archive=$BACKUP_FILENAME --gzip --db $APP_NAME
-fi
-
 echo "Removing existing bundle..."
 sudo rm -rf $TMP_DIR/bundle
 
