@@ -24,6 +24,7 @@ export interface SiteConfig {
   servers : Array<ServerConfig>;
   init? : string;
   env? : Env;
+  domain?: string; // the domain name of the site
 }
 
 
@@ -40,6 +41,7 @@ export interface ServerConfig {
   os?: string; // linux or sunos
   pem?: string;
   env?: Env;
+  domain?: string; // the domain name of the server
   sshOptions: SshOptions;
   init? : string; // systemd or upstart
 }

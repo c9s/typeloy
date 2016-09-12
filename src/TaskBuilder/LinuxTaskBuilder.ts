@@ -25,7 +25,8 @@ import {
   BashEnvVarsTask,
   DeployTask,
   StartProcessTask,
-  CopyBundleDeployTask
+  CopyBundleDeployTask,
+  RestartTask
 } from "../tasks";
 
 function translateBackupMongoConfigVars(config : Config) : any {
@@ -108,11 +109,11 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     return nodemiral.taskList(title);
   }
 
-  public setup(config : Config) : Array<Task> {
+  public setup(config : Config) {
     return SetupTaskListBuilder.build(config);
   }
 
-  public deploy(config : Config, bundlePath : string, env : any) : Array<Task> {
+  public deploy(config : Config, bundlePath : string, env : any) {
     return DeployTaskListBuilder.build(config, bundlePath, env);
   };
 
@@ -139,16 +140,14 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   }
 
   public restart(config : Config) {
-    let taskList = this.taskList("Restarting Application (linux)");
-    if (this.sessionGroup._siteConfig.init === "systemd") {
-      taskList.execute('Restarting app', {
-        command: `sudo systemctl restart ${config.app.name}.service`
-      });
-    } else {
-      taskList.execute('Restarting app', {
-        command: '(sudo stop ' + config.app.name + ' || :) && (sudo start ' + config.app.name + ')'
-      });
-    }
+
+    const tasks : Array<Task> = [];
+    tasks.push(new RestartTask(config));
+
+    const taskList = this.taskList("Restarting Application (linux)");
+    tasks.forEach((t : Task) => {
+      t.build(taskList);
+    });
     return taskList;
   }
 
