@@ -41,15 +41,13 @@ prog.command('deploy [sites...]')
     let config = readConfig(prog.config);
     let deployment = Deployment.create(config, options.tag);
 
-    let a = new DeployAction(config);
-    let afterDeploy = a.run(deployment, sites, options);
-    afterDeploy.then((mapResult : SummaryMap) => {
+    const a = new DeployAction(config);
+    const done = a.run(deployment, sites, options);
+    done.then((mapResult : SummaryMap) => {
       console.log(SummaryMapConsoleFormatter.format(mapResult));
-      var errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
-      console.log("returned code", errorCode);
-      // console.log("After deploy", mapResult);
+      const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
     });
-    afterDeploy.catch( (res) => {
+    done.catch( (res) => {
       console.error(res);
     });
   })
@@ -59,11 +57,17 @@ prog.command('setup [sites...]')
   .description('setup the requirements on the target server.')
   .option("-t, --tasks <tasks>", 'tasks')
   .action((sites : Array<string>, options) => {
-    let config = readConfig(prog.config);
-    let a = new SetupAction(config);
-
-    let deployment = Deployment.create(config, config.app.root || cwd);
-    a.run(deployment, sites, options.tasks ? options.tasks.split(/,/) : null);
+    const config = readConfig(prog.config);
+    const a = new SetupAction(config);
+    const deployment = Deployment.create(config, config.app.root || cwd);
+    const done = a.run(deployment, sites, options.tasks ? options.tasks.split(/,/) : null);
+    done.then((mapResult : SummaryMap) => {
+      console.log(SummaryMapConsoleFormatter.format(mapResult));
+      const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
+    });
+    done.catch( (res) => {
+      console.error(res);
+    });
   })
   ;
 

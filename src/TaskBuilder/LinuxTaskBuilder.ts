@@ -2,8 +2,9 @@ const nodemiral = require('nodemiral');
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
+const _ = require('underscore');
 
-import {Config, AppConfig} from "../config";
+import {Config, AppConfig, SiteConfig} from "../config";
 
 const DEPLOY_PREFIX = "/opt";
 
@@ -20,6 +21,7 @@ import {
   MongoSetupTask,
   StudSetupTask,
   CertbotSetupTask,
+  CertbotRenewTask,
   SystemdSetupTask,
   UpstartSetupTask,
   EnvVarsTask,
@@ -49,49 +51,90 @@ function translateBackupMongoConfigVars(config : Config) : any {
 
 class SetupTaskListBuilder {
 
-  static build(config : Config) : Array<Task> {
+  protected builder;
 
-    const taskList = nodemiral.taskList('Setup Tasks');
+  constructor(builder) {
+    this.builder = builder;
+  }
 
+  public definitions(config : Config) {
+    const defs =  {
+      "updatePackages": new AptGetUpdateTask(config),
+      "node": new NodeJsSetupTask(config),
+      "phantom": new PhantomJsSetupTask(config),
+      "environment": new MeteorEnvSetupTask(config),
+      "mongo": new MongoSetupTask(config),
+      "upstart": new UpstartSetupTask(config),
+      "systemd": new SystemdSetupTask(config),
+    }
+    const siteConfig = this.builder.getSiteConfig();
+
+    if (siteConfig.ssl) {
+      defs["stud"] = new StudSetupTask(config, siteConfig.ssl);
+
+      if (siteConfig.ssl.certbot) {
+        const certbotConfig = siteConfig.ssl.certbot;
+        if (!certbotConfig.domain) {
+          throw new Error("certbot.domain is not defined");
+        }
+        if (!certbotConfig.email) {
+          throw new Error("certbot.email is not defined");
+        }
+        defs["certbotSetup"] = new CertbotSetupTask(config, certbotConfig.domain, certbotConfig.email);
+        defs["certbotRenew"] = new CertbotRenewTask(config, certbotConfig.domain, certbotConfig.email);
+      }
+    }
+    return defs;
+  }
+
+  public buildDefaultTasks(config : Config, definitions) {
     const tasks : Array<Task> = [];
-    tasks.push(new AptGetUpdateTask(config));
+    tasks.push(definitions.updatePackages);
 
     // Installation
     if (config.setup && config.setup.node) {
-      tasks.push(new NodeJsSetupTask(config));
+      tasks.push(definitions.node);
     }
 
     if (config.setup && config.setup.phantom) {
-      tasks.push(new PhantomJsSetupTask(config));
+      tasks.push(definitions.phantom);
     }
 
-    tasks.push(new MeteorEnvSetupTask(config));
+    tasks.push(definitions.environment);
 
     if (config.setup.mongo) {
-      tasks.push(new MongoSetupTask(config));
+      tasks.push(definitions.mongo);
     }
 
-    // XXX: Support ssl customization from SiteConfig
+    // Global ssl setup (work for all sites)
     if (config.ssl) {
-      tasks.push(new StudSetupTask(config));
+      tasks.push(definitions.stud);
     }
-
-    tasks.push(new UpstartSetupTask(config));
-    tasks.push(new SystemdSetupTask(config));
-
-    // build tasks into taskList
-    tasks.forEach((t:Task) => {
-      t.build(taskList);
-    });
+    tasks.push(definitions.upstart);
+    tasks.push(definitions.systemd);
     return tasks;
+  }
+
+  public build(config : Config, taskNames : Array<string>) : Array<Task> {
+    const taskList = nodemiral.taskList('Setup Tasks');
+    const taskDefinitions = this.definitions(config);
+    if (taskNames) {
+      const tasks = _(taskNames).chain().map((taskName) => {
+        return taskDefinitions[taskName];
+      }).filter(x => x ? true : false).value();
+      tasks.forEach((t:Task) => t.build(taskList));
+    } else {
+      const tasks = this.buildDefaultTasks(config, taskDefinitions);
+      tasks.forEach((t:Task) => t.build(taskList));
+    }
+    return taskList;
   }
 }
 
 class DeployTaskListBuilder {
 
-  static build(config : Config, bundlePath : string, env : any) : Array<Task> {
+  static build(config : Config, bundlePath : string, env : any) {
     const taskList = nodemiral.taskList("Deploy app '" + config.app.name + "'");
-
     const tasks : Array<Task> = [];
     tasks.push(new CopyBundleDeployTask(config, bundlePath));
     tasks.push(new BashEnvVarsTask(config, env));
@@ -107,12 +150,17 @@ class DeployTaskListBuilder {
 
 export default class LinuxTaskBuilder extends BaseTaskBuilder {
 
+  public getSiteConfig() : SiteConfig {
+    return this.sessionGroup._siteConfig; 
+  }
+
   protected taskList(title : string) {
     return nodemiral.taskList(title);
   }
 
-  public setup(config : Config) {
-    return SetupTaskListBuilder.build(config);
+  public setup(config : Config, taskNames : Array<string>) {
+    const builder = new SetupTaskListBuilder(this);
+    return builder.build(config, taskNames);
   }
 
   public deploy(config : Config, bundlePath : string, env : any) {

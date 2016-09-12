@@ -1,0 +1,8 @@
+[Unit]
+Description=Stud
+
+[Service]
+ExecStart=/usr/local/bin/stud --config=<%= deployPrefix %>/stud/stud.conf
+
+[Install]
+WantedBy=multi-user.target
