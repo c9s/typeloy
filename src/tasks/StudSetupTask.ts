@@ -26,7 +26,7 @@ export class StudSetupTask extends SetupTask {
 
   public installStud(taskList) {
     taskList.executeScript('Installing Stud', {
-      script: path.resolve(SCRIPT_DIR, 'install-stud.sh')
+      script: path.resolve(SCRIPT_DIR, 'stud-install.sh')
     });
   }
 
