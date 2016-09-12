@@ -3,5 +3,17 @@ set -e
 mkdir -p /opt/certbot
 cd /opt/certbot
 
+APP_NAME="<%= appName %>"
+EMAIL="<%= email %>"
+DOMAIN="<%= domain %>"
+
+. /opt/functions.sh
+
 # This will renew all domain name
-./certbot-auto renew --standalone --quiet
+service_stop $APP_NAME
+./certbot-auto renew --standalone \
+    --verbose \
+    --non-interactive \
+    --text \
+    --keep-until-expiring
+service_start $APP_NAME

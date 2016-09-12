@@ -1,20 +1,19 @@
 #!/bin/bash
 
-#remove the lock
+# Remove the lock
 set +e
 sudo rm /var/lib/dpkg/lock > /dev/null
 sudo rm /var/cache/apt/archives/lock > /dev/null
 sudo dpkg --configure -a
+mkdir -p /etc/systemd/system
 set -e
 
 sudo apt-get -y install libev4 libev-dev gcc make libssl-dev git
 cd /tmp
-sudo rm -rf stud
+sudo rm -rf /tmp/stud
 sudo git clone https://github.com/bumptech/stud.git stud
-cd stud
-sudo make install
-cd ..
-sudo rm -rf stud
+(cd stud && sudo make install)
+sudo rm -rf /tmp/stud
 
 #make sure comet folder exists
 sudo mkdir -p /opt/stud

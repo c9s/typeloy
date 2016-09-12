@@ -99,7 +99,6 @@ export class BaseAction extends EventEmitter {
 
   protected executePararell(actionName : string, deployment : Deployment, sites : Array<string>, args) : Promise<SummaryMap> {
     let sitesPromise = Promise.resolve({});
-
     for (let i = 0; i < sites.length; i++) {
       const site = sites[i];
       sitesPromise = sitesPromise.then((previousSummaryMap : SummaryMap) => {
