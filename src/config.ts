@@ -14,19 +14,32 @@ export interface SshOptions {
   port?: number;
 }
 
+export interface SslConfig {
+  backendPort?: number;
+
+  // pem or certbot
+  pem?: string; // the pem file
+  certbot?: CertbotConfig;
+}
+
+export interface CertbotConfig {
+  domain : string;
+
+  email : string;
+}
 
 export interface SiteConfig {
   // the site name
   siteName ?: string;
   settings ?: any;
-  ssl ?: string;
 
   servers : Array<ServerConfig>;
   init? : string;
   env? : Env;
-  domain?: string; // the domain name of the site
-}
 
+  domain?: string; // the domain name of the site
+  ssl?: any; // could be string or boolean
+}
 
 export interface SiteMapConfig {
   [name:string] : SiteConfig;
@@ -46,10 +59,6 @@ export interface ServerConfig {
   init? : string; // systemd or upstart
 }
 
-export interface SslConfig {
-  backendPort: number;
-  pem: string;
-}
 
 export type MeteorSettings = any;
 
@@ -279,6 +288,8 @@ export class ConfigParser {
 
     // rewrite ~ with $HOME
     config.app.directory = expandPath(config.app.directory);
+
+    // Convert legacy ssl config
     if (config.ssl) {
       config.ssl.backendPort = config.ssl.backendPort || 80;
       config.ssl.pem = path.resolve(expandPath(config.ssl.pem));

@@ -1,14 +1,15 @@
-import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
+import {SCRIPT_DIR, TEMPLATES_DIR, Task} from "./Task";
 import {SetupTask} from "./SetupTask";
+import {Config} from "../Config";
 
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
 
-export class SslSetupTask extends SetupTask {
+export class StudSetupTask extends SetupTask {
 
   public describe() : string {
-    return 'Setting up ssl';
+    return 'Setting up stud';
   }
 
   public build(taskList) {
@@ -24,7 +25,6 @@ export class SslSetupTask extends SetupTask {
 
   public configureStud(taskList, pemFilePath, port) {
     const backend = {host: '127.0.0.1', port: port};
-
     taskList.copy('Configuring Stud for Upstart', {
       src: path.resolve(TEMPLATES_DIR, 'stud.init.conf'),
       dest: '/etc/init/stud.conf'

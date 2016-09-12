@@ -18,7 +18,8 @@ import {
   MeteorEnvSetupTask,
   PhantomJsSetupTask,
   MongoSetupTask,
-  SslSetupTask,
+  StudSetupTask,
+  CertbotSetupTask,
   SystemdSetupTask,
   UpstartSetupTask,
   EnvVarsTask,
@@ -28,6 +29,7 @@ import {
   CopyBundleDeployTask,
   RestartTask
 } from "../tasks";
+
 
 function translateBackupMongoConfigVars(config : Config) : any {
   if (config.deploy.backupMongo) {
@@ -71,7 +73,7 @@ class SetupTaskListBuilder {
 
     // XXX: Support ssl customization from SiteConfig
     if (config.ssl) {
-      tasks.push(new SslSetupTask(config));
+      tasks.push(new StudSetupTask(config));
     }
 
     tasks.push(new UpstartSetupTask(config));
