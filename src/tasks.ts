@@ -6,3 +6,5 @@ export * from "./tasks/MeteorEnvSetupTask";
 export * from "./tasks/MongoSetupTask";
 export * from "./tasks/SslSetupTask";
 export * from "./tasks/PhantomJsSetupTask";
+export * from "./tasks/SystemdSetupTask";
+export * from "./tasks/UpstartSetupTask";

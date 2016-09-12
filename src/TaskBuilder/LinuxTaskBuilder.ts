@@ -18,8 +18,9 @@ import {
   MeteorEnvSetupTask,
   PhantomJsSetupTask,
   MongoSetupTask,
-  SslSetupTask
-
+  SslSetupTask,
+  SystemdSetupTask,
+  UpstartSetupTask
 } from "../tasks";
 
 function translateBackupMongoConfigVars(config : Config) : any {
@@ -36,52 +37,6 @@ function translateBackupMongoConfigVars(config : Config) : any {
 }
 
 
-class SystemdSetupTask extends SetupTask {
-
-  public describe() : string {
-    return 'Configuring systemd: ' + this.getConfigPath();
-  }
-
-  protected getConfigPath() : string {
-    return `/lib/systemd/system/${this.getAppName()}.service`;
-  }
-
-  public build(taskList) {
-    taskList.copy(this.describe(), {
-      'src': path.resolve(TEMPLATES_DIR, 'meteor/systemd.conf'),
-      'dest': this.getConfigPath(),
-      'vars': this.extendArgs({}),
-    });
-  }
-}
-
-
-class UpstartSetupTask extends SetupTask {
-
-  public describe() : string {
-    return 'Configuring upstart: ' + this.getUpstartConfigPath();
-  }
-
-  protected getUpstartConfigPath() : string {
-    return '/etc/init/' + this.config.app.name + '.conf';
-  }
-
-  protected getAppName() : string {
-    return (<AppConfig>this.config.app).name;
-  }
-
-  public build(taskList) {
-    var upstartConfig : string = this.getUpstartConfigPath();
-    taskList.copy(this.describe(), {
-      src: path.resolve(TEMPLATES_DIR, 'meteor/upstart.conf'),
-      dest: upstartConfig,
-      vars: {
-        deployPrefix: this.deployPrefix,
-        appName: this.getAppName()
-      }
-    });
-  }
-}
 
 
 
