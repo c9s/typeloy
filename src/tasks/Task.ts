@@ -1,9 +1,10 @@
-
-
 import {Config, AppConfig} from "../config";
 
-var path = require('path');
-var _ = require('underscore');
+const path = require('path');
+const _ = require('underscore');
+
+export const SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/linux');
+export const TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/linux');
 
 export abstract class Task {
 
