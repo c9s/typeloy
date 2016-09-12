@@ -1,18 +1,22 @@
-var nodemiral = require('nodemiral');
-var fs = require('fs');
-var path = require('path');
-var util = require('util');
+const nodemiral = require('nodemiral');
+const fs = require('fs');
+const path = require('path');
+const util = require('util');
 
 import {Config, AppConfig} from "../config";
 
-const SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/linux');
-const TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/linux');
 const DEPLOY_PREFIX = "/opt";
 
 import {BaseTaskBuilder} from "./BaseTaskBuilder";
 
-import {Task} from "./Task";
-
+import {
+  SCRIPT_DIR, TEMPLATES_DIR,
+  Task,
+  SetupTask,
+  AptGetUpdateTask,
+  NodeJsSetupTask,
+  MeteorEnvSetupTask
+} from "../tasks";
 
 function translateBackupMongoConfigVars(config : Config) : any {
   if (config.deploy.backupMongo) {
@@ -25,65 +29,6 @@ function translateBackupMongoConfigVars(config : Config) : any {
     return backupConfig;
   }
   return null;
-}
-
-
-
-abstract class SetupTask extends Task {
-
-}
-
-class AptGetUpdateTask extends Task {
-
-  public describe() : string {
-    return 'Updating package index';
-  }
-
-  public build(taskList) {
-    taskList.executeScript(this.describe(), {
-      script: path.resolve(SCRIPT_DIR, 'apt-update.sh'), vars: { }
-    });
-  }
-}
-
-
-class NodeJsSetupTask extends SetupTask {
-
-  public describe() : string {
-    return 'Installing Node.js: ' + this.getNodeVersion();
-  }
-
-  protected getNodeVersion() {
-    return this.config.setup.nodeVersion || '0.10.44';
-  }
-
-  public build(taskList) {
-    taskList.executeScript(this.describe(), {
-      script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
-      vars: {
-        nodeVersion: this.getNodeVersion(),
-        deployPrefix: this.deployPrefix
-      }
-    });
-  }
-
-}
-
-class MeteorEnvSetupTask extends SetupTask {
-  public describe() : string {
-    return 'Setting up environment for meteor application';
-  }
-
-  public build(taskList) {
-    taskList.executeScript(this.describe(), {
-      script: path.resolve(SCRIPT_DIR, 'setup-env.sh'),
-      vars: {
-        appName: this.config.app.name,
-        deployPrefix: this.deployPrefix
-      }
-    });
-  }
-
 }
 
 class PhantomJsSetupTask extends SetupTask {
