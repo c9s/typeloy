@@ -12,7 +12,6 @@ export class StartProcessTask extends DeployTask {
   }
 
   public build(taskList) {
-    const appName = this.config.app.name;
     taskList.executeScript(this.describe(), {
       'script': path.resolve(TEMPLATES_DIR, 'deploy.sh'),
       'vars': this.extendArgs({
