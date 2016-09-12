@@ -112,12 +112,12 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     return SetupTaskListBuilder.build(config);
   }
 
-  public deploy(config : Config, bundlePath : string, env : any) {
+  public deploy(config : Config, bundlePath : string, env : any) : Array<Task> {
     return DeployTaskListBuilder.build(config, bundlePath, env);
   };
 
   public reconfig(env, config : Config) {
-    var taskList = this.taskList("Updating configurations (linux)");
+    const taskList = this.taskList("Updating configurations (linux)");
     taskList.copy('Setting up Environment Variables', {
       src: path.resolve(TEMPLATES_DIR, 'env.sh'),
       dest: DEPLOY_PREFIX + '/' + config.app.name + '/config/env.sh',
@@ -126,7 +126,6 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
         appName: config.app.name
       }
     });
-
     if (this.sessionGroup._siteConfig.init === "systemd") {
       taskList.execute('Restarting app', {
         command: `sudo systemctl restart ${config.app.name}.service`
