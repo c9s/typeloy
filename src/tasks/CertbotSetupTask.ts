@@ -1,6 +1,6 @@
 import {SCRIPT_DIR, TEMPLATES_DIR, Task} from "./Task";
 import {SetupTask} from "./SetupTask";
-import {Config} from "../Config";
+import {Config} from "../config";
 
 const fs = require('fs');
 const path = require('path');
