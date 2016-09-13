@@ -6,9 +6,12 @@ DEPLOY_PREFIX="<%= deployPrefix %>"
 
 . /opt/functions.sh
 
+cd /opt
+openssl dhparam -rand - 1024 > /opt/dhparam.pem
+
 for d in /etc/letsencrypt/live/* ; do
     echo "Generating ssl pem in $d"
-    (cd $d && cat privkey.pem cert.pem > ssl.pem)
+    (cd $d && cat privkey.pem cert.pem /opt/dhparam.pem > ssl.pem)
 done
 
 STUD_DIR=$DEPLOY_PREFIX/stud

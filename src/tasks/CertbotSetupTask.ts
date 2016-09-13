@@ -22,7 +22,7 @@ export abstract class CertbotBaseTask extends Task {
 export class CertbotRenewTask extends CertbotBaseTask {
 
   public describe() : string {
-    return 'Renewing ssl keys with certbot';
+    return 'Renewing SSL with Certbot';
   }
 
   public build(taskList) {
