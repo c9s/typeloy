@@ -59,7 +59,7 @@ export class StudSetupTask extends SetupTask {
       }
     });
 
-    taskList.execute('Verifying SSL Configurations', {
+    taskList.executeScript('Verifying SSL Configurations', {
       // restart will check the config
       'script': path.resolve(SCRIPT_DIR, 'stud-restart.sh'),
       'vars': this.extendArgs({}),
