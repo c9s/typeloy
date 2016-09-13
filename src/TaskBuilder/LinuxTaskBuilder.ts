@@ -80,7 +80,7 @@ class SetupTaskListBuilder {
         if (!certbotConfig.email) {
           throw new Error("certbot.email is not defined");
         }
-        defs["certbotSetup"] = new CertbotSetupTask(config, certbotConfig.domain, certbotConfig.email);
+        defs["certbot"] = new CertbotSetupTask(config, certbotConfig.domain, certbotConfig.email);
         defs["certbotRenew"] = new CertbotRenewTask(config, certbotConfig.domain, certbotConfig.email);
       }
     }
