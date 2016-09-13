@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+# set -e
 mkdir -p /opt/certbot
 cd /opt/certbot
 curl -O https://dl.eff.org/certbot-auto
@@ -15,6 +15,10 @@ DOMAIN="<%= domain %>"
 # gpg2 --trusted-key 4D17C995CD9775F2 --verify certbot-auto.asc certbot-auto
 . /opt/functions.sh
 
+
+if [[ -n $(ps aux | grep -v grep | grep stud) ]] ; then
+    service_stop stud
+fi
 service_stop $APP_NAME
 ./certbot-auto certonly --standalone \
     --verbose \
