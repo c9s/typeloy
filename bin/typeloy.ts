@@ -18,7 +18,7 @@ require('colors');
 
 var prog = require('commander');
 
-var version = '1.3.0';
+const version = 1.6.0;
 var cwd = path.resolve('.');
 
 prog.version(version);
