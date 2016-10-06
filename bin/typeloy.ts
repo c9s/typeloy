@@ -120,7 +120,7 @@ prog.command('restart [sites...]')
   ;
 
 prog.command('init')
-  .description('init the mup.json config.')
+  .description('init the typeloy.json config.')
   .action( (env, options) => {
     let config = readConfig(prog.config);
     let actions = new BaseAction(config);
