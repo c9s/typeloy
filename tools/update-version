@@ -1,3 +1,5 @@
 #!/bin/bash
 VERSION=$(jq -r '.version' package.json)
 perl -i.bak -pe "s/const version = .*$/const version = '$VERSION';/gm" bin/typeloy.ts
+GIT_TAG=$(git describe --tags)
+git tag -f $GIT_TAG
