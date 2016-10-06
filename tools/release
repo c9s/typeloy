@@ -1,5 +1,9 @@
 #!/bin/bash
 TYPE=$1
+if [[ -z $TYPE ]] ; then
+    echo "release [major|minor|patch]"
+    exit 1
+fi
 echo "Bump version"
 npm version $TYPE
 echo "Updating version in program"
