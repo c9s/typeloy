@@ -1,9 +1,12 @@
 var spawn = require('child_process').spawn;
 var archiver = require('archiver');
-var fs = require('fs');
-var pathResolve = require('path').resolve;
+const fs = require('fs');
+const path = require('path');
+
+var pathResolve = path.resolve;
 
 var _ = require('underscore');
+
 import {Config} from './config';
 
 import {EventEmitter} from 'events';
@@ -33,23 +36,31 @@ export class MeteorBuilder extends EventEmitter {
       return Promise.resolve(0);
     }
 
-    const buildFinish = new Promise<number>((resolve, reject) => {
+    const buildFinish = Promise.resolve(0);
+
+    buildFinish.then(() => {
       this.log(`Building started: ${appName}`);
       this.emit('build.started', { message: 'Build started', bundlePath, buildLocation });
-
       start();
-      this.installMeteorNpm(appPath, meteorBinary)
-        .then((code : number) => {
-          return this.buildMeteorApp(appPath, meteorBinary, buildLocation);
-        })
-        .then((code : number) => {
-          this.log(`Builder returns: ${code}`);
-          if (code == 0) {
-            resolve(code);
-          } else {
-            reject(code);
-          }
-        });
+      return Promise.resolve(0);
+    });
+
+    buildFinish.then((code : number) => {
+      const npmJsonConfig = pathResolve(appPath,"package.json");
+      if (fs.existsSync(npmJsonConfig)) {
+        return this.installMeteorNpm(appPath, meteorBinary);
+      }
+      return Promise.resolve(0);
+    });
+    buildFinish.then((code : number) => {
+      return this.buildMeteorApp(appPath, meteorBinary, buildLocation);
+    });
+    buildFinish.then((code : number) => {
+      this.log(`Builder returns: ${code}`);
+      if (code == 0) {
+        return Promise.resolve(code);
+      }
+      return Promise.reject(code);
     });
     buildFinish.catch((code : number) => {
       console.error("\n=> Build Error. Check the logs printed above.");
