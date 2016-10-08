@@ -2,7 +2,8 @@ import {GitRevCollector, GitRevInfo} from "./collectors";
 
 import {Config} from "./config";
 
-var path = require('path');
+const path = require('path');
+const uuid = require('uuid');
 
 export class Deployment {
 
@@ -55,6 +56,9 @@ export class Deployment {
     let revInfo = GitRevCollector.collect(dir);
     if (!tag && revInfo) {
       tag = revInfo.describe;
+    }
+    if (!tag) {
+      tag = uuid.v4();
     }
     return new Deployment(config, tag, revInfo);
   }
