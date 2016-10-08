@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import path = require('path');
 import fs = require('fs');
-var _ = require('underscore');
+const _ = require('underscore');
+
 import {readConfig, Config} from '../src/config';
 
 import {BaseAction, DeployAction, SetupAction, StartAction, RestartAction, StopAction, LogsAction} from '../src/actions';
@@ -19,7 +20,7 @@ require('colors');
 var prog = require('commander');
 
 const version = '1.6.3';
-var cwd = path.resolve('.');
+const cwd = process.cwd();
 
 prog.version(version);
 prog.usage('[options] <subcommand> ...');
