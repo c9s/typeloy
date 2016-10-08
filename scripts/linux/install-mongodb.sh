@@ -7,10 +7,46 @@ sudo rm -f /var/cache/apt/archives/lock > /dev/null
 sudo dpkg --configure -a
 set -e
 
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
-sudo apt-get install mongodb-org mongodb-org-server mongodb-org-shell mongodb-org-tools -y
 
-# Restart mongodb
-sudo stop mongod || :
-sudo start mongod
+# to read Ubuntu distrib ID vars
+# DISTRIB_ID=Ubuntu
+# DISTRIB_RELEASE=16.04
+# DISTRIB_CODENAME=xenial
+# DISTRIB_DESCRIPTION="Ubuntu 16.04.1 LTS"
+[[ -e /etc/lsb-release ]] && source /etc/lsb-release
+
+
+if [[ -n "$DISTRIB_CODENAME" ]] ; then
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
+    echo "deb http://repo.mongodb.org/apt/ubuntu $DISTRIB_CODENAME/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+else
+    # For backward compatiblity
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+    echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
+fi
+
+sudo apt-get update -y
+sudo apt-get install -y mongodb-org mongodb-org-server mongodb-org-shell mongodb-org-tools
+
+# Always generate mongod service entry
+cat <<END > /lib/systemd/system/mongod.service
+[Unit]
+Description=High-performance, schema-free document-oriented database
+After=network.target
+Documentation=https://docs.mongodb.org/manual
+
+[Service]
+User=mongodb
+Group=mongodb
+ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+
+[Install]
+WantedBy=multi-user.target
+END
+
+source /opt/functions.sh
+
+# Restart mongodb for upstart
+service_reload
+service_stop || :
+service_start mongo
