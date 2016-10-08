@@ -9,13 +9,14 @@ import {MeteorBuilder} from '../MeteorBuilder';
 
 import fs = require('fs');
 import os = require('os');
-var uuid = require('uuid');
-var propagate = require('propagate');
-var format = require('util').format;
-var extend = require('util')._extend;
-var path = require('path');
-var rimraf = require('rimraf');
-var _ = require('underscore');
+
+const uuid = require('uuid');
+const propagate = require('propagate');
+const format = require('util').format;
+const extend = require('util')._extend;
+const path = require('path');
+const rimraf = require('rimraf');
+const _ = require('underscore');
 
 const getDefaultBuildDirName = function(appName : string, tag : string) : string {
   return (appName || "app") + "-" + (tag || uuid.v4());
