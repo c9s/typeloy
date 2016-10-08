@@ -141,6 +141,7 @@ export interface Config {
   plugins: Array<any>;
 
 
+  // the dirname that contains "typeloy.json" config file.
   dirname ?: string;
 }
 
@@ -371,27 +372,26 @@ function loadMeteorSettings(config : Config) {
   if (typeof config.app.settings === "object") {
     return config.app.settings;
   }
-  let settingsFilename = config.app.settings;
+  let settingsFilename = config.app.settings || "settings.json";
   if (typeof settingsFilename === "string") {
     let dir;
-    let settingsFile;
 
     if (dir = config.dirname) {
-      settingsFile = path.resolve(dir, settingsFilename);
+      let settingsFile = path.resolve(dir, settingsFilename);
       if (fs.existsSync(settingsFile)) {
         console.log(`Found ${settingsFile}`);
         return config.app.settings = require(settingsFile);
       }
     }
     if (dir = config.app.directory) {
-      settingsFile = path.resolve(dir, settingsFilename);
+      let settingsFile = path.resolve(dir, settingsFilename);
       if (fs.existsSync(settingsFile)) {
         console.log(`Found ${settingsFile}`);
         return config.app.settings = require(settingsFile);
       }
     }
     if (dir = config.app.root) {
-      settingsFile = path.resolve(dir, settingsFilename);
+      let settingsFile = path.resolve(dir, settingsFilename);
       if (fs.existsSync(settingsFile)) {
         console.log(`Found ${settingsFile}`);
         return config.app.settings = require(settingsFile);
