@@ -29,6 +29,7 @@ export class Deployment {
     let o = {
       deployment: this.tag
     };
+    // rev info maybe null
     if (this.revInfo) {
       o['latestTag'] = this.revInfo.latestTag;
       o['describe'] = this.revInfo.describe;
@@ -52,7 +53,7 @@ export class Deployment {
   public static create(config : Config, tag:string = null) : Deployment {
     let dir = config.app.directory || config.app.root || path.resolve('.');
     let revInfo = GitRevCollector.collect(dir);
-    if (!tag) {
+    if (!tag && revInfo) {
       tag = revInfo.describe;
     }
     return new Deployment(config, tag, revInfo);
