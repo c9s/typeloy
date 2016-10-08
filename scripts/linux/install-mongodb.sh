@@ -2,8 +2,8 @@
 
 # Remove the lock
 set +e
-sudo rm /var/lib/dpkg/lock > /dev/null
-sudo rm /var/cache/apt/archives/lock > /dev/null
+sudo rm -f /var/lib/dpkg/lock > /dev/null
+sudo rm -f /var/cache/apt/archives/lock > /dev/null
 sudo dpkg --configure -a
 set -e
 
