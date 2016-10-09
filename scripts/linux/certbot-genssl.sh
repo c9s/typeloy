@@ -4,7 +4,7 @@ EMAIL="<%= email %>"
 DOMAIN="<%= domain %>"
 DEPLOY_PREFIX="<%= deployPrefix %>"
 
-. /opt/functions.sh
+. /opt/lib/functions.sh
 
 cd /opt
 openssl dhparam -rand - 1024 > /opt/dhparam.pem

@@ -44,7 +44,7 @@ ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
 WantedBy=multi-user.target
 END
 
-source /opt/functions.sh
+source /opt/lib/functions.sh
 
 # Restart mongodb for upstart
 service_reload
