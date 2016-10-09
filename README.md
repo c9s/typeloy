@@ -68,7 +68,7 @@ For the new config structure please check [the example config file](https://gith
 
 #### Production Quality Meteor Deployments
 
-Meteor Up (mup for short) is a command line tool that allows you to deploy any [Meteor](http://meteor.com) app to your own server. It supports only Debian/Ubuntu flavours and Open Solaris at the moments. (PRs are welcome)
+Typeloy is a command line tool that allows you to deploy any [Meteor](http://meteor.com) app to your own server. It supports only Debian/Ubuntu flavours and Open Solaris at the moments. (PRs are welcome)
 
 You can use install and use Meteor Up from Linux, Mac and Windows.
 
@@ -224,7 +224,7 @@ Sometimes, you might be using `mrt`, or Meteor from a git checkout. By default, 
 
 ### Access Logs
 
-    mup logs -f
+    typeloy logs -f
 
 Mup can tail logs from the server and supports all the options of `tail`.
 
@@ -232,13 +232,13 @@ Mup can tail logs from the server and supports all the options of `tail`.
 
 After you've edit environmental variables or `settings.json`, you can reconfigure the app without deploying again. Use the following command to do update the settings and restart the app.
 
-    mup reconfig
+    typeloy reconfig
 
 If you want to stop, start or restart your app for any reason, you can use the following commands to manage it.
 
-    mup stop
-    mup start
-    mup restart
+    typeloy stop
+    typeloy start
+    typeloy restart
 
 ### Accessing the Database
 
@@ -308,7 +308,7 @@ Then add following configuration to your `typeloy.json` file.
 }
 ~~~
 
-Now, simply do `mup setup` and now you've the SSL support.
+Now, simply do `typeloy setup` and now you've the SSL support.
 
 > * By default, it'll think your Meteor app is running on port 80. If it's not, change it with the `backendPort` configuration field.
 > * SSL terminator will run on the default SSL port `443`
@@ -317,11 +317,11 @@ Now, simply do `mup setup` and now you've the SSL support.
 
 ### Updating
 
-To update `mup` to the latest version, just type:
+To update `typeloy` to the latest version, just type:
 
-    npm update mup -g
+    npm update typeloy -g
 
-You should try and keep `mup` up to date in order to keep up with the latest Meteor changes. But note that if you need to update your Node version, you'll have to run `mup setup` again before deploying.
+You should try and keep `typeloy` up to date in order to keep up with the latest Meteor changes. But note that if you need to update your Node version, you'll have to run `typeloy setup` again before deploying.
 
 ### Troubleshooting
 
@@ -330,16 +330,16 @@ You should try and keep `mup` up to date in order to keep up with the latest Met
 Your issue might not always be related to Meteor Up. So make sure you can connect to your instance first, and that your credentials are working properly.
 
 #### Check Logs
-If you suddenly can't deploy your app anymore, first use the `mup logs -f` command to check the logs for error messages.
+If you suddenly can't deploy your app anymore, first use the `typeloy logs -f` command to check the logs for error messages.
 
 One of the most common problems is your Node version getting out of date. In that case, see “Updating” section above.
 
 #### Verbose Output
 If you need to see the output of `meteor-up` (to see more precisely where it's failing or hanging, for example), run it like so:
 
-    DEBUG=* mup <command>
+    DEBUG=* typeloy <command>
 
-where `<command>` is one of the `mup` commands such as `setup`, `deploy`, etc.
+where `<command>` is one of the `typeloy` commands such as `setup`, `deploy`, etc.
 
 ### Binary Npm Module Support
 
