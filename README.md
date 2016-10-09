@@ -46,8 +46,8 @@ The difference between **typeloy** and **meteor-up**:
 - [x] Remove process.exit from code
 - [x] Ability to deploy just one site from the multiple server list.
 - [x] Run specific setup tasks on servers.
-- [ ] Auto deployment
-- [ ] Provide easy-to-use nodejs API.
+- [x] Auto deployment
+- [x] Provide easy-to-use nodejs API.
 - [ ] Docker composer support
 
 ### Installation
@@ -63,58 +63,7 @@ The config filename will be checked by this order:
 
 `typeloy.js`, `typeloy.json`, `typeloy.config.json`, `mup.json`
 
-`typeloy.js` is used by when you have some node modules need to be integrated
-with typeloy, for example, SlackNotificationPlugin ...
-
-
-typeloy.js
-```
-var SlackNotificationPlugin = require('typeloy').SlackNotificationPlugin;
-module.exports = {
-  "servers": [
-    {
-      "host": "11.22.33.44",
-      "username": "root",
-      "password": "12341234",
-      "env": {
-        "ROOT_URL": "http://yoursite.com"
-      }
-    }
-  ],
-  "setup": {
-    "mongo": false,
-    "phantom": false,
-    "node": "0.10.44",
-  },
-  "deploy": {
-    "checkDelay": 30,
-  },
-  "enableUploadProgressBar": true,
-  "appName": "shaka",
-  "app": "./app",
-  "plugins": [
-    new SlackNotificationPlugin({
-      hookUrl: 'https://hooks.slack.com/services/.../.../...',
-      username: 'typeloy',
-      channel: '#deploy',
-      github: {
-        org: "c9s",
-        repo: "typeloy"
-      },
-    })
-  ],
-  "env": {
-    "PORT": 80,
-    "MAIL_URL": "....",
-    "MONGO_URL": "...",
-    "MONGO_OPLOG_URL": "..."
-  }
-}
-```
-
-
-
-
+For the new config structure please check [the example config file](https://github.com/c9s/typeloy/blob/master/example/typeloy.json)
 
 
 #### Production Quality Meteor Deployments
