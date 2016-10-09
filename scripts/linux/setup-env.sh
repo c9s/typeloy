@@ -2,6 +2,7 @@
 sudo mkdir -p /opt/<%= appName %>/
 sudo mkdir -p /opt/<%= appName %>/config
 sudo mkdir -p /opt/lib
+sudo mkdir -p /opt/bin
 sudo mkdir -p /opt/<%= appName %>/tmp
 
 sudo chown ${USER} -R /opt/<%= appName %> /opt/lib 
