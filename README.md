@@ -15,13 +15,13 @@ The difference between **typeloy** and **meteor-up**:
 
         METEOR_BUILD_DIR=/tmp/meteor-dd2ca2e9-9bc9-4531-b85f-93f1443b1176 typeloy deploy $(date +%s)
 
-        typeloy --config mup.json deploy --no-clean v0.0.3
+        typeloy deploy --no-clean v0.0.3
 
-        typeloy --config mup.json deploy --build-dir /tmp v0.0.3
+        typeloy deploy --build-dir /tmp v0.0.3
 
     Send your existing bundle file without rebuilding the tarball file:
 
-        typeloy --config mup.json deploy --bundle-file /tmp/bundle.tar.gz /tmp v0.0.3
+        typeloy deploy --bundle-file /tmp/bundle.tar.gz /tmp v0.0.3
 
 - Don't export environment variables with weird escaping.
 
@@ -61,7 +61,7 @@ with `mup.json`.
 
 The config filename will be checked by this order:
 
-`typeloy.js`, `typeloy.json`, `typeloy.config.json`, `mup.json`
+`typeloy.js`, `typeloy.json`, `typeloy.config.json`, `typeloy.json`
 
 For the new config structure please check [the example config file](https://github.com/c9s/typeloy/blob/master/example/typeloy.json)
 
@@ -81,7 +81,6 @@ You can use install and use Meteor Up from Linux, Mac and Windows.
     - [SSH-key-based authentication (with passphrase)](#ssh-keys-with-passphrase-or-ssh-agent-support)
 - [Installation](#installation)
 - [Creating a Meteor Up Project](#creating-a-meteor-up-project)
-- [Example File](#example-file)
 - [Setting Up a Server](#setting-up-a-server)
 - [Deploying an App](#deploying-an-app)
 - [Additional Setup/Deploy Information](#additional-setupdeploy-information)
@@ -119,7 +118,6 @@ You can use install and use Meteor Up from Linux, Mac and Windows.
 * Secured MongoDB Installation (Optional)
 * Pre-Installed PhantomJS (Optional)
 
-
 ### Creating a Meteor Up Project
 
     mkdir ~/my-meteor-deployment
@@ -128,79 +126,20 @@ You can use install and use Meteor Up from Linux, Mac and Windows.
 
 This will create two files in your Meteor Up project directory:
 
-  * mup.json - Meteor Up configuration file
+  * typeloy.json - Meteor Up configuration file
   * settings.json - Settings for Meteor's [settings API](http://docs.meteor.com/#meteor_settings)
 
-`mup.json` is commented and easy to follow (it supports JavaScript comments).
-
-### Example File
-
-```js
-{
-  // Server authentication info
-  "servers": [
-    {
-      "host": "hostname",
-      "username": "root",
-      "password": "password",
-      // or pem file (ssh based authentication)
-      //"pem": "~/.ssh/id_rsa",
-      // Also, for non-standard ssh port use this
-      //"sshOptions": { "port" : 49154 },
-      // server specific environment variables
-      "env": {}
-    }
-  ],
-
-  // Install MongoDB on the server. Does not destroy the local MongoDB on future setups
-  "setupMongo": true,
-
-  // WARNING: Node.js is required! Only skip if you already have Node.js installed on server.
-  "setupNode": true,
-
-  // WARNING: nodeVersion defaults to 0.10.36 if omitted. Do not use v, just the version number.
-  "nodeVersion": "0.10.36",
-
-  // Install PhantomJS on the server
-  "setupPhantom": true,
-
-  // Show a progress bar during the upload of the bundle to the server.
-  // Might cause an error in some rare cases if set to true, for instance in Shippable CI
-  "enableUploadProgressBar": true,
-
-  // Application name (no spaces).
-  "appName": "meteor",
-
-  // Location of app (local directory). This can reference '~' as the users home directory.
-  // i.e., "app": "~/Meteor/my-app",
-  // This is the same as the line below.
-  "app": "/Users/arunoda/Meteor/my-app",
-
-  // Configure environment
-  // ROOT_URL must be set to https://YOURDOMAIN.com when using the spiderable package & force SSL
-  // your NGINX proxy or Cloudflare. When using just Meteor on SSL without spiderable this is not necessary
-  "env": {
-    "PORT": 80,
-    "ROOT_URL": "http://myapp.com",
-    "MONGO_URL": "mongodb://arunoda:fd8dsjsfh7@hanso.mongohq.com:10023/MyApp",
-    "MAIL_URL": "smtp://postmaster%40myapp.mailgun.org:adj87sjhd7s@smtp.mailgun.org:587/"
-  },
-
-  // Meteor Up checks if the app comes online just after the deployment.
-  // Before mup checks that, it will wait for the number of seconds configured below.
-  "deployCheckWaitTime": 15
-}
-```
+`typeloy.json` is commented and easy to follow (it supports JavaScript comments).
 
 ### Setting Up a Server
 
-    mup setup
+    typeloy setup [site1] [site2] ...
 
 This will setup the server for the `mup` deployments. It will take around 2-5 minutes depending on the server's performance and network availability.
 
 ### Deploying an App
 
-    mup deploy
+    typeloy deploy [site1] [site2] ...
 
 This will bundle the Meteor project and deploy it to the server.
 
@@ -208,7 +147,7 @@ This will bundle the Meteor project and deploy it to the server.
 
 #### Deploy Wait Time
 
-Meteor Up checks if the deployment is successful or not just after the deployment. By default, it will wait 10 seconds before the check. You can configure the wait time with the `deployCheckWaitTime` option in the `mup.json`
+Meteor Up checks if the deployment is successful or not just after the deployment. By default, it will wait 10 seconds before the check. You can configure the wait time with the `deployCheckWaitTime` option in the `typeloy.json`
 
 #### SSH keys with passphrase (or ssh-agent support)
 
@@ -219,7 +158,7 @@ passphrase.
 
 Here's the process:
 
-* First remove your `pem` field from the `mup.json`. So, your `mup.json` only has the username and host only.
+* First remove your `pem` field from the `typeloy.json`. So, your `typeloy.json` only has the username and host only.
 * Then start a ssh agent with `eval $(ssh-agent)`
 * Then add your ssh key with `ssh-add <path-to-key>`
 * Then you'll asked to enter the passphrase to the key
@@ -269,7 +208,7 @@ For more information see [`lib/taskLists.js`](https://github.com/arunoda/meteor-
 
 You can use an array to deploy to multiple servers at once.
 
-To deploy to *different* environments (e.g. staging, production, etc.), use separate Meteor Up configurations in separate directories, with each directory containing separate `mup.json` and `settings.json` files, and the `mup.json` files' `app` field pointing back to your app's local directory.
+To deploy to *different* environments (e.g. staging, production, etc.), use separate Meteor Up configurations in separate directories, with each directory containing separate `typeloy.json` and `settings.json` files, and the `typeloy.json` files' `app` field pointing back to your app's local directory.
 
 #### Custom Meteor Binary
 
@@ -309,7 +248,7 @@ You can't access the MongoDB from the outside the server. To access the MongoDB 
 
 ### Server Specific Environment Variables
 
-It is possible to provide server specific environment variables. Add the `env` object along with the server details in the `mup.json`. Here's an example:
+It is possible to provide server specific environment variables. Add the `env` object along with the server details in the `typeloy.json`. Here's an example:
 
 ~~~js
 {
@@ -337,7 +276,7 @@ Let's assume, we need to deploy production and staging versions of the app to th
 
 We need to have two separate Meteor Up projects. For that, create two directories and initialize Meteor Up and add the necessary configurations.
 
-In the staging `mup.json`, add a field called `appName` with the value `staging`. You can add any name you prefer instead of `staging`. Since we are running our staging app on port 8000, add an environment variable called `PORT` with the value 8000.
+In the staging `typeloy.json`, add a field called `appName` with the value `staging`. You can add any name you prefer instead of `staging`. Since we are running our staging app on port 8000, add an environment variable called `PORT` with the value 8000.
 
 Now setup both projects and deploy as you need.
 
@@ -354,7 +293,7 @@ Meteor Up has the built in SSL support. It uses [stud](https://github.com/bumpte
 
 Now you need combine SSL certificate(s) with the private key and save it in the mup config directory as `ssl.pem`. Check this [guide](http://alexnj.com/blog/configuring-a-positivessl-certificate-with-stud) to do that.
 
-Then add following configuration to your `mup.json` file.
+Then add following configuration to your `typeloy.json` file.
 
 ~~~js
 {
