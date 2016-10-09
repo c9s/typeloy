@@ -5,7 +5,7 @@ export DEBIAN_FRONTEND=noninteractive
 set +e
 sudo rm -f /var/lib/dpkg/lock > /dev/null
 sudo rm -f /var/cache/apt/archives/lock > /dev/null
-sudo dpkg --configure -a
+sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a
 set -e
 
 # Install Node.js - either nodeVersion or which works with latest Meteor release

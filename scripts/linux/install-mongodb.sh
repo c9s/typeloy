@@ -5,7 +5,7 @@ export DEBIAN_FRONTEND=noninteractive
 set +e
 sudo rm -f /var/lib/dpkg/lock > /dev/null
 sudo rm -f /var/cache/apt/archives/lock > /dev/null
-sudo dpkg --configure -a
+sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a
 set -e
 
 
@@ -18,11 +18,11 @@ set -e
 
 
 if [[ -n "$DISTRIB_CODENAME" ]] ; then
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
+    sudo DEBIAN_FRONTEND=noninteractive apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
     echo "deb http://repo.mongodb.org/apt/ubuntu $DISTRIB_CODENAME/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
 else
     # For backward compatiblity
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+    sudo DEBIAN_FRONTEND=noninteractive apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
     echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
 fi
 
