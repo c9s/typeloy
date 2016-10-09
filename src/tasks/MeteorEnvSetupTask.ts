@@ -20,7 +20,7 @@ export class MeteorEnvSetupTask extends SetupTask {
     });
     taskList.copy("Setting up shared bash functions", {
       src: path.resolve(SCRIPT_DIR, 'functions.sh'),
-      dest: '/opt/lib/functions.sh',
+      dest: this.deployPrefix + '/lib/functions.sh',
       vars: this.extendArgs({ }),
     });
   }
