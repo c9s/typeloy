@@ -13,7 +13,7 @@ DOMAIN="<%= domain %>"
 # wget -N https://dl.eff.org/certbot-auto.asc
 # gpg2 --recv-key A2CFB51FA275A7286234E7B24D17C995CD9775F2
 # gpg2 --trusted-key 4D17C995CD9775F2 --verify certbot-auto.asc certbot-auto
-. /opt/functions.sh
+. /opt/lib/functions.sh
 
 
 if [[ -n $(ps aux | grep -v grep | grep stud) ]] ; then

@@ -7,7 +7,7 @@ APP_NAME="<%= appName %>"
 EMAIL="<%= email %>"
 DOMAIN="<%= domain %>"
 
-. /opt/functions.sh
+. /opt/lib/functions.sh
 
 # This will renew all domain name
 service_stop $APP_NAME
