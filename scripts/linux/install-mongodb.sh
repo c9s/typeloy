@@ -30,7 +30,13 @@ sudo apt-get update -y
 sudo apt-get install -y mongodb-org mongodb-org-server mongodb-org-shell mongodb-org-tools
 
 # Always generate mongod service entry
-cat <<END | sudo tee /lib/systemd/system/mongod.service
+if [[ -e /lib/systemd/system/mongod.service ]] ; then
+    systemctl stop mongod || :
+    rm -rf /lib/systemd/system/mongod.service
+    systemctl daemon-reload
+fi
+
+cat <<END | sudo tee /lib/systemd/system/mongo.service
 [Unit]
 Description=High-performance, schema-free document-oriented database
 After=network.target
