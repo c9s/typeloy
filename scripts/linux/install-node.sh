@@ -12,7 +12,7 @@ set -e
 <% if (nodeVersion) { %>
   NODE_VERSION=<%= nodeVersion %>
 <% } else {%>
-  NODE_VERSION=0.10.44
+  NODE_VERSION=0.10.47
 <% } %>
 
 ARCH=$(python -c 'import platform; print platform.architecture()[0]')
