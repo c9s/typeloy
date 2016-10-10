@@ -13,7 +13,7 @@ export class NodeJsSetupTask extends SetupTask {
   }
 
   protected getNodeVersion() {
-    return this.config.setup.nodeVersion || '0.10.44';
+    return this.config.setup.node || '0.10.44';
   }
 
   public build(taskList) {
