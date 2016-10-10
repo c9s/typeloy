@@ -8,7 +8,6 @@ sudo rm -f /var/cache/apt/archives/lock > /dev/null
 sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a
 set -e
 
-
 # to read Ubuntu distrib ID vars
 # DISTRIB_ID=Ubuntu
 # DISTRIB_RELEASE=16.04
@@ -31,9 +30,11 @@ sudo apt-get install -y mongodb-org mongodb-org-server mongodb-org-shell mongodb
 
 # Always generate mongod service entry
 if [[ -e /lib/systemd/system/mongod.service ]] ; then
-    systemctl stop mongod || :
-    rm -rf /lib/systemd/system/mongod.service
-    systemctl daemon-reload
+    set +e
+    sudo systemctl stop mongod || :
+    sudo rm -rf /lib/systemd/system/mongod.service
+    sudo systemctl daemon-reload
+    set -e
 fi
 
 cat <<END | sudo tee /lib/systemd/system/mongo.service
