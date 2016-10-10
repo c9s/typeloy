@@ -49,5 +49,5 @@ source /opt/lib/functions.sh
 
 # Restart mongodb for upstart
 service_reload
-service_stop || :
+service_stop mongo || :
 service_start mongo
