@@ -25,6 +25,7 @@
     }
   },
 
+
   "setup": {
     // Install MongoDB in the server, does not destroy local MongoDB on future setup
     "mongo": false,
@@ -34,6 +35,14 @@
 
     // Install PhantomJS in the server
     "phantom": false
+  },
+
+  "build": {
+      // optional: server option for --server http://localhost:3000
+      "server": "http://localhost:3000",
+
+      // optional: arch
+      "architecture": "os.linux.x86_64"
   },
 
   "meteor": {
