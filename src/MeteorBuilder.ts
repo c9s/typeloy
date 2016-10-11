@@ -36,32 +36,33 @@ export class MeteorBuilder extends EventEmitter {
       return Promise.resolve(0);
     }
 
-    const buildFinish = Promise.resolve(0);
+    let buildFinish = Promise.resolve(0);
 
-    buildFinish.then(() => {
+    buildFinish = buildFinish.then(() => {
       this.log(`Building started: ${appName}`);
       this.emit('build.started', { message: 'Build started', bundlePath, buildLocation });
       start();
       return Promise.resolve(0);
     });
 
-    buildFinish.then((code : number) => {
+    buildFinish = buildFinish.then((code : number) => {
       const npmJsonConfig = pathResolve(appPath,"package.json");
       if (fs.existsSync(npmJsonConfig)) {
         return this.installMeteorNpm(appPath, meteorBinary);
       }
       return Promise.resolve(0);
     });
-    buildFinish.then((code : number) => {
+    buildFinish = buildFinish.then((code : number) => {
       return this.buildMeteorApp(appPath, meteorBinary, buildLocation);
     });
-    buildFinish.then((code : number) => {
+    buildFinish = buildFinish.then((code : number) => {
       this.log(`Builder returns: ${code}`);
       if (code == 0) {
         return Promise.resolve(code);
       }
       return Promise.reject(code);
     });
+
     buildFinish.catch((code : number) => {
       console.error("\n=> Build Error. Check the logs printed above.");
 
