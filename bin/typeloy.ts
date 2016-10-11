@@ -19,7 +19,7 @@ require('colors');
 
 var prog = require('commander');
 
-const version = '1.6.10';
+const version = '1.6.11';
 const cwd = process.cwd();
 
 prog.version(version);
