@@ -61,7 +61,7 @@ with `mup.json`.
 
 The config filename will be checked by this order:
 
-`typeloy.js`, `typeloy.json`, `typeloy.config.json`, `typeloy.json`
+`typeloy.js`, `typeloy.json`, `typeloy.config.json`.
 
 For the new config structure please check [the example config file](https://github.com/c9s/typeloy/blob/master/example/typeloy.json)
 
