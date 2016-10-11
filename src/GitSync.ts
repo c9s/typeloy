@@ -253,7 +253,7 @@ export class GitSync extends GitRepo {
     return output.trim();
   }
 
-  public describeTags(abbrev = 5) {
+  public describeTags(abbrev : number = 5) {
     const cmd = this.baseCommand().join(' ');
     let output = child_process.execSync(`${cmd} describe --tags --abbrev=${abbrev}`, {
       "encoding": "utf8"
