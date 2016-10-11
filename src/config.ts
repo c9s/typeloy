@@ -81,7 +81,6 @@ export interface MeteorConfig {
 
   env?: Env;
 
-  server?: string; // server option for --server http://localhost:3000
 }
 
 export interface SetupConfig {
@@ -94,6 +93,7 @@ export interface SetupConfig {
 export interface BuildConfig {
   arch ?: string; // --architecture os.linux.x86_64
   architecture ?: string;
+  server?: string; // server option for --server http://localhost:3000
 }
 
 export interface DeployConfig {

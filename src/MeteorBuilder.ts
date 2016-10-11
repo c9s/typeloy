@@ -157,12 +157,13 @@ export class MeteorBuilder extends EventEmitter {
   }
 
   protected buildMeteorApp(appPath : string, executable : string, buildLocation : string) : Promise<number> {
-    let args : Array<string> = [
-      "build",
-      "--directory", buildLocation, 
-      "--architecture", (this.config.build.architecture || this.config.build.arch || "os.linux.x86_64"),
-      "--server", (this.config.meteor.server || "http://localhost:3000"),
-    ];
+    let args : Array<string> = [ "build", "--directory", buildLocation ];
+    if (this.config.build.architecture || this.config.build.arch) {
+      args.push("--architecture", this.config.build.architecture || this.config.build.arch);
+    }
+    if (this.config.build.server) {
+      args.push("--server", this.config.build.server);
+    }
     
     let isWin = /^win/.test(process.platform);
     if (isWin) {
