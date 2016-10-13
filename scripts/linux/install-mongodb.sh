@@ -29,6 +29,12 @@ fi
 sudo apt-get update -y
 sudo apt-get install -y mongodb-org mongodb-org-server mongodb-org-shell mongodb-org-tools
 
+
+# setup mongodb log directory
+sudo mkdir -p /var/log/mongodb
+sudo chown -R mongodb: /var/log/mongodb
+
+
 if [[ -e /lib/systemd ]] ; then
 cat <<END | sudo tee /lib/systemd/system/mongo.service
 [Unit]
