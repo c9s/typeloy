@@ -34,6 +34,12 @@ sudo apt-get install -y mongodb-org mongodb-org-server mongodb-org-shell mongodb
 sudo mkdir -p /var/log/mongodb
 sudo chown -R mongodb: /var/log/mongodb
 
+cat <<END | sudo tee /etc/mongodb.conf
+bind_ip = 127.0.0.1
+dbpath=/var/lib/mongodb/
+logpath=/var/log/mongodb/mongodb.log
+logappend=true
+END
 
 if [[ -e /lib/systemd ]] ; then
 cat <<END | sudo tee /lib/systemd/system/mongo.service
