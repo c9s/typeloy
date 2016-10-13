@@ -25,6 +25,8 @@ else
     echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
 fi
 
+# run update the get the new source list
+sudo apt-get update -y
 sudo apt-get install -y mongodb-org mongodb-org-server mongodb-org-shell mongodb-org-tools
 
 cat <<END | sudo tee /lib/systemd/system/mongo.service
