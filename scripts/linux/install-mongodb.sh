@@ -38,6 +38,7 @@ Documentation=https://docs.mongodb.org/manual
 User=mongodb
 Group=mongodb
 ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
