@@ -5,7 +5,12 @@ sudo mkdir -p /opt/lib
 sudo mkdir -p /opt/bin
 sudo mkdir -p /opt/<%= appName %>/tmp
 
-sudo chown ${USER} -R /opt/<%= appName %> /opt/lib 
+sudo chown ${USER} -R /opt/<%= appName %>
+sudo chown ${USER} -R /opt/lib 
+sudo chown ${USER} -R /opt/bin 
+sudo chown ${USER} -R /opt/<%= appName %>/tmp 
+sudo chown ${USER} -R /opt/<%= appName %>/config 
+
 sudo chown ${USER} /etc/init
 sudo chown ${USER} /etc/
 
