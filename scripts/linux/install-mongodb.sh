@@ -15,7 +15,6 @@ set -e
 # DISTRIB_DESCRIPTION="Ubuntu 16.04.1 LTS"
 [[ -e /etc/lsb-release ]] && source /etc/lsb-release
 
-
 if [[ -n "$DISTRIB_CODENAME" ]] ; then
     sudo DEBIAN_FRONTEND=noninteractive apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
     echo "deb http://repo.mongodb.org/apt/ubuntu $DISTRIB_CODENAME/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
@@ -29,12 +28,11 @@ fi
 sudo apt-get update -y
 sudo apt-get install -y mongodb-org mongodb-org-server mongodb-org-shell mongodb-org-tools
 
-
 # setup mongodb log directory
 sudo mkdir -p /var/log/mongodb
 sudo chown -R mongodb: /var/log/mongodb
 
-cat <<END | sudo tee /etc/mongodb.conf
+cat <<END | sudo tee /etc/mongod.conf
 bind_ip = 127.0.0.1
 dbpath=/var/lib/mongodb/
 logpath=/var/log/mongodb/mongodb.log
