@@ -22,7 +22,8 @@ else
   NODE_ARCH=x86
 fi
 
-sudo apt-get -y install build-essential libssl-dev git curl
+sudo apt-get install lib32stdc++6
+sudo apt-get -y install build-essential libssl-dev git curl 
 
 NODE_DIST=node-v${NODE_VERSION}-linux-${NODE_ARCH}
 
