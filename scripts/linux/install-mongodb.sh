@@ -29,6 +29,7 @@ fi
 sudo apt-get update -y
 sudo apt-get install -y mongodb-org mongodb-org-server mongodb-org-shell mongodb-org-tools
 
+if [[ -e /lib/systemd ]] ; then
 cat <<END | sudo tee /lib/systemd/system/mongo.service
 [Unit]
 Description=High-performance, schema-free document-oriented database
@@ -44,6 +45,9 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 END
+    systemctl daemon-reload
+    systemctl enable mongo
+fi
 
 source /opt/lib/functions.sh
 
