@@ -8,6 +8,8 @@ sudo rm -f /var/cache/apt/archives/lock > /dev/null
 sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a
 set -e
 
+source /opt/lib/functions.sh
+
 # to read Ubuntu distrib ID vars
 # DISTRIB_ID=Ubuntu
 # DISTRIB_RELEASE=16.04
@@ -59,7 +61,6 @@ END
     sudo systemctl enable mongo
 fi
 
-source /opt/lib/functions.sh
 
 # Restart mongodb for upstart
 service_reload
