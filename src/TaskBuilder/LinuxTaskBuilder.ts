@@ -22,8 +22,6 @@ import {
   StudSetupTask,
   CertbotSetupTask,
   CertbotRenewTask,
-  SystemdSetupTask,
-  UpstartSetupTask,
   EnvVarsTask,
   BashEnvVarsTask,
   DeployTask,
@@ -64,8 +62,6 @@ class SetupTaskListBuilder {
       "phantom": new PhantomJsSetupTask(config),
       "environment": new MeteorEnvSetupTask(config),
       "mongo": new MongoSetupTask(config),
-      "upstart": new UpstartSetupTask(config),
-      "systemd": new SystemdSetupTask(config),
     }
     const siteConfig = this.builder.getSiteConfig();
 
@@ -110,8 +106,6 @@ class SetupTaskListBuilder {
     if (config.ssl) {
       tasks.push(definitions.stud);
     }
-    tasks.push(definitions.upstart);
-    tasks.push(definitions.systemd);
     return tasks;
   }
 

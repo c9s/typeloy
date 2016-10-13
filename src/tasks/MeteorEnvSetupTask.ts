@@ -13,10 +13,7 @@ export class MeteorEnvSetupTask extends SetupTask {
   public build(taskList) {
     taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'setup-env.sh'),
-      vars: {
-        appName: this.config.app.name,
-        deployPrefix: this.deployPrefix
-      }
+      vars: this.extendArgs({})
     });
     taskList.copy("Setting up shared bash functions", {
       src: path.resolve(SCRIPT_DIR, 'functions.sh'),

@@ -21,11 +21,12 @@ if [[ ${ARCH} == '64bit' ]]; then
 else
   NODE_ARCH=x86
 fi
+NODE_DIST=node-v${NODE_VERSION}-linux-${NODE_ARCH}
 
-sudo apt-get install lib32stdc++6
+
+sudo apt-get -y install lib32stdc++6
 sudo apt-get -y install build-essential libssl-dev git curl 
 
-NODE_DIST=node-v${NODE_VERSION}-linux-${NODE_ARCH}
 
 cd /tmp
 wget http://nodejs.org/dist/v${NODE_VERSION}/${NODE_DIST}.tar.gz

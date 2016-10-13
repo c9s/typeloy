@@ -170,6 +170,10 @@ echo "Waiting for MongoDB to initialize. (5 minutes)"
 . $APP_ROOT/config/env.sh
 wait-for-mongo $MONGO_URL 300000
 
+
+source /opt/lib/functions.sh
+service_reload
+
 # check upstart
 UPSTART=0
 if [ -x /sbin/initctl ] && /sbin/initctl version 2>/dev/null | /bin/grep -q upstart; then
@@ -178,12 +182,8 @@ fi
 
 # restart app
 echo "Restarting the app"
-if [[ $UPSTART == 1 ]] ; then
-  sudo stop $APP_NAME || :
-  sudo start $APP_NAME || :
-else
-  sudo systemctl restart ${APP_NAME}.service
-fi
+service_stop $APP_NAME || :
+service_start $APP_NAME
 
 echo "Waiting for $DEPLOY_CHECK_WAIT_TIME seconds while app is booting up"
 sleep $DEPLOY_CHECK_WAIT_TIME
