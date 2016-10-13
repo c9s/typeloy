@@ -10,7 +10,7 @@ export class CopyBundleDeployTask extends DeployTask {
 
   protected bundlePath : string;
 
-  constructor(config : Config, bundlePath:string) {
+  constructor(config : Config, bundlePath : string) {
     super(config);
     this.bundlePath = bundlePath;
   }
