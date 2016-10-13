@@ -55,8 +55,8 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 END
-    systemctl daemon-reload
-    systemctl enable mongo
+    sudo systemctl daemon-reload
+    sudo systemctl enable mongo
 fi
 
 source /opt/lib/functions.sh
