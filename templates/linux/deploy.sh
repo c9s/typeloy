@@ -9,10 +9,10 @@ APP_DIR=$APP_ROOT/app
 BUNDLE_DIR=$TMP_DIR/bundle
 BUNDLE_TARBALL_FILENAME=bundle.tar.gz
 DEPLOY_CHECK_WAIT_TIME=<%= deployCheckWaitTime %>
-
-
 # This is for fixing the arch binary issue
 REBUILD_NPM_MODULES=1
+
+source /opt/lib/functions.sh
 
 # utilities
 gyp_rebuild_inside_node_modules () {
@@ -66,11 +66,11 @@ rebuild_binary_npm_modules () {
 }
 
 revert_app () {
-  if [[ -d old_app ]]; then
-    sudo rm -rf app
-    sudo mv old_app app
-    sudo stop <%= appName %> || :
-    sudo start <%= appName %> || :
+  if [[ -d $APP_ROOT/old_app ]]; then
+    sudo rm -rf $APP_ROOT/app
+    sudo mv $APP_ROOT/old_app $APP_ROOT/app
+    service_stop $APP_NAME || :
+    service_start $APP_NAME || :
     echo "Latest deployment failed! Reverted back to the previous version." 1>&2
     exit 1
   else
@@ -171,7 +171,7 @@ echo "Waiting for MongoDB to initialize. (5 minutes)"
 wait-for-mongo $MONGO_URL 300000
 
 
-source /opt/lib/functions.sh
+# reload the service entry
 service_reload
 
 # check upstart
