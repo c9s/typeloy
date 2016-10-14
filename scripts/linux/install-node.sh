@@ -23,8 +23,8 @@ else
 fi
 NODE_DIST=node-v${NODE_VERSION}-linux-${NODE_ARCH}
 
-
-sudo apt-get -y install lib32stdc++6
+# Note: lib32stdc++-5-dev libx32stdc++6 are included in g++-multilib
+sudo apt-get -y install g++-multilib lib32stdc++6
 sudo apt-get -y install build-essential libssl-dev git curl 
 
 
