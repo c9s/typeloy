@@ -12,7 +12,6 @@ DEPLOY_CHECK_WAIT_TIME=<%= deployCheckWaitTime %>
 # This is for fixing the arch binary issue
 REBUILD_NPM_MODULES=1
 
-source /opt/lib/functions.sh
 
 # utilities
 gyp_rebuild_inside_node_modules () {
@@ -65,6 +64,8 @@ rebuild_binary_npm_modules () {
   done
 }
 
+[[ -e /opt/lib/functions.sh ]] && source /opt/lib/functions.sh
+
 revert_app () {
   if [[ -d $APP_ROOT/old_app ]]; then
     sudo rm -rf $APP_ROOT/app
@@ -78,6 +79,71 @@ revert_app () {
     exit 1
   fi
 }
+
+
+# Install systemd for app
+if [ -d /lib/systemd/system ] ; then
+echo "Installing systemd ${APP_NAME} service"
+cat <<END | sudo tee /lib/systemd/system/${APP_NAME}.service
+[Unit]
+Description=Meteor Application Service of <%= appName %>
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=<%= appRoot %>
+EnvironmentFile=<%= appRoot %>/config/env-vars
+
+# User=meteoruser
+# Group=meteoruser
+
+Restart=always
+# ExecStartPre=/usr/bin/mkdir -p \${statedir}
+ExecStart=/usr/bin/node <%= appRoot %>/app/main.js
+
+[Install]
+WantedBy=multi-user.target
+END
+fi
+
+
+if [ -d /etc/init ] ; then
+cat <<END | sudo tee /etc/init/${APP_NAME}.conf
+#!upstart
+description "Typeloy - <%= appName %>"
+author      "Arunoda Susiripala, <arunoda.susiripala@gmail.com>"
+
+start on runlevel [2345]
+stop on runlevel [06]
+
+respawn
+
+limit nofile 65536 65536
+
+script
+    cd /opt/<%= appName %>
+
+    ## add userdown config
+    export USERDOWN_UID=meteoruser USERDOWN_GID=meteoruser
+
+    ## add custom enviromntal variables
+    if [ -f config/env.sh ]; then
+      . config/env.sh
+    fi
+    if [ -z \$UPSTART_UID ]; then
+      ## start the app using userdown
+      forever -c userdown --minUptime 2000 --spinSleepTime 1000 app/main.js
+    else
+      ## start the app as UPSTART_UID
+      exec su -s /bin/sh -c 'exec "\$0" "\$@"' \$UPSTART_UID -- forever --minUptime 2000 --spinSleepTime 1000 app/main.js
+    fi
+end script
+END
+fi
+
+
+
+
 
 # logic
 set -e
@@ -93,8 +159,6 @@ sudo rm -rf $TMP_DIR/bundle
 echo "Extracing $TMP_DIR/$BUNDLE_TARBALL_FILENAME"
 sudo tar xvzf $TMP_DIR/$BUNDLE_TARBALL_FILENAME > /dev/null
 
-# why are we adding execute mode?
-sudo chmod -R +x *
 sudo chown -R ${USER} ${BUNDLE_DIR}
 
 # rebuilding fibers
@@ -104,11 +168,9 @@ cd ${BUNDLE_DIR}/programs/server
 # the prebuilt binary files might differ, we will need to rebuild everything to
 # solve the binary incompatible issues
 if [[ $REBUILD_NPM_MODULES == "1" ]] ; then
-
   if [ -d npm ]; then
     (cd npm && rebuild_binary_npm_modules)
   fi
-
   if [ -d node_modules ]; then
     (cd node_modules && gyp_rebuild_inside_node_modules)
   fi
@@ -118,26 +180,26 @@ if [[ $REBUILD_NPM_MODULES == "1" ]] ; then
   # @see https://github.com/meteor/meteor/issues/7513
 
   # for 1.3 
-  if [[ -e npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt ]] ; then
-      rm -rf npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
-      npm install --update-binary -f bcrypt
+  if [ -d npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt ] ; then
+      sudo rm -rf npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
+      sudo npm install --update-binary -f bcrypt
       cp -r node_modules/bcrypt npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
   fi
-  if [[ -e npm/node_modules/bignum ]] ; then
-      rm -rf npm/node_modules/bignum
-      npm install --update-binary -f bignum
+  if [ -d npm/node_modules/bignum ] ; then
+      sudo rm -rf npm/node_modules/bignum
+      sudo npm install --update-binary -f bignum
       cp -r node_modules/bignum npm/node_modules/bignum
   fi
-  if [[ -e npm/npm-container/node_modules/nsq.js/node_modules/bignum ]] ; then
+  if [ -d npm/npm-container/node_modules/nsq.js/node_modules/bignum ] ; then
       # for meteor 1.2, we have npm-container
-      rm -rf npm/npm-container/node_modules/nsq.js/node_modules/bignum
-      npm install --update-binary -f bignum
+      sudo rm -rf npm/npm-container/node_modules/nsq.js/node_modules/bignum
+      sudo npm install --update-binary -f bignum
       cp -r node_modules/bignum npm/npm-container/node_modules/nsq.js/node_modules/bignum
   fi
-  if [[ -e npm/node_modules/nsq.js/node_modules/bignum ]] ; then
+  if [ -d npm/node_modules/nsq.js/node_modules/bignum ] ; then
       # for meteor 1.3, we have bignum used in nsq.js
-      rm -rf npm/node_modules/nsq.js/node_modules/bignum
-      npm install --update-binary -f bignum
+      sudo rm -rf npm/node_modules/nsq.js/node_modules/bignum
+      sudo npm install --update-binary -f bignum
       cp -r node_modules/bignum npm/node_modules/nsq.js/node_modules/bignum
   fi
 fi
@@ -146,10 +208,6 @@ if [ -f package.json ]; then
   echo "Found package.json, running npm install ..."
   # support for 0.9
   sudo npm install
-else
-  # support for older versions
-  sudo npm install fibers
-  sudo npm install bcrypt
 fi
 
 cd $APP_ROOT
@@ -160,7 +218,7 @@ if [ -d $APP_ROOT/old_app ]; then
 fi
 
 ## backup current version
-if [[ -d $APP_ROOT/app ]]; then
+if [ -d $APP_ROOT/app ]; then
   sudo mv $APP_ROOT/app $APP_ROOT/old_app
 fi
 sudo mv $APP_ROOT/tmp/bundle $APP_DIR
@@ -170,9 +228,13 @@ echo "Waiting for MongoDB to initialize. (5 minutes)"
 . $APP_ROOT/config/env.sh
 wait-for-mongo $MONGO_URL 300000
 
-
 # reload the service entry
 service_reload
+
+
+if [ -e /lib/systemd ] ; then
+  sudo systemctl enable ${APP_NAME}.service
+fi
 
 # check upstart
 UPSTART=0
@@ -189,7 +251,7 @@ echo "Waiting for $DEPLOY_CHECK_WAIT_TIME seconds while app is booting up"
 sleep $DEPLOY_CHECK_WAIT_TIME
 
 echo "Checking is app booted or not?"
-curl localhost:${PORT} || revert_app
+curl --connect-timeout 30 localhost:${PORT} || revert_app
 
 # chown to support dumping heapdump and etc
 sudo chown -R meteoruser: $APP_DIR
