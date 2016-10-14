@@ -19,9 +19,12 @@ export class ReconfigAction extends BaseAction {
         for (let os in sessionsMap) {
           let sessionGroup : SessionGroup = sessionsMap[os];
           sessionGroup.sessions.forEach( (session) => {
-            var env = _.extend({}, this.config.env, session._serverConfig.env);
-            let taskListsBuilder = this.createTaskBuilderByOs(sessionGroup);
-            var taskList = taskListsBuilder.reconfig(env, this.config);
+            const env = _.extend({},
+                this.config.env || {},
+                siteConfig.env || {},
+                session._serverConfig.env || {});
+            const taskListsBuilder = this.createTaskBuilderByOs(sessionGroup);
+            const taskList = taskListsBuilder.reconfig(env, this.config);
             sessionInfoList.push({
               'taskList': taskList,
               'session': session

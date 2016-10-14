@@ -93,9 +93,9 @@ export class DeployAction extends BaseAction {
                   (session : Session) => {
                     return new Promise<SummaryMap>(resolveTask => {
                       const env = _.extend({},
-                                      this.config.env || {},
-                                      siteConfig.env || {},
-                                      session._serverConfig.env || {});
+                          this.config.env || {},
+                          siteConfig.env || {},
+                          session._serverConfig.env || {});
 
                       if (typeof env['ROOT_URL'] === "undefined") {
                         console.log("**WARNING** ROOT_URL is undefined.");
@@ -107,9 +107,9 @@ export class DeployAction extends BaseAction {
                                     env);
                       // propagate task events
                       this.propagateTaskEvents(taskList);
-                        taskList.run(session, (summaryMap : SummaryMap) => {
-                          resolveTask(summaryMap);
-                        });
+                      taskList.run(session, (summaryMap : SummaryMap) => {
+                        resolveTask(summaryMap);
+                      });
                     });
                   });
                 return Promise.all(sessionPromises).then((summaryMaps) => {
