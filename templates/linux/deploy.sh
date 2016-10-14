@@ -11,7 +11,6 @@ BUNDLE_TARBALL_FILENAME=bundle.tar.gz
 # This is for fixing the arch binary issue
 REBUILD_NPM_MODULES=1
 
-
 # utilities
 gyp_rebuild_inside_node_modules () {
   for npmModule in ./*; do
@@ -39,12 +38,12 @@ gyp_rebuild_inside_node_modules () {
 
     if [ $isBinaryModule = "yes" ]; then
       echo " > $npmModule: npm install due to binary npm modules"
-      rm -rf node_modules
-      npm install
+      sudo rm -rf node_modules
+      sudo npm install
       # always rebuild because the node version might be different.
-      npm rebuild
+      sudo npm rebuild
       if [ -f binding.gyp ]; then
-        node-gyp rebuild || :
+        sudo node-gyp rebuild || :
       fi
     fi
     cd ..
@@ -79,6 +78,7 @@ Type=simple
 WorkingDirectory=<%= appRoot %>
 EnvironmentFile=<%= appRoot %>/config/env-vars
 
+# Running meteoruser might need root permission at port 80
 # User=meteoruser
 # Group=meteoruser
 
@@ -138,8 +138,6 @@ set -e
 # set -o xtrace
 
 cd ${TMP_DIR}
-echo "Removing existing bundle..."
-sudo rm -rf $TMP_DIR/bundle
 
 echo "Extracing $TMP_DIR/$BUNDLE_TARBALL_FILENAME"
 sudo tar xvzf $TMP_DIR/$BUNDLE_TARBALL_FILENAME > /dev/null
@@ -148,7 +146,6 @@ sudo chown -R ${USER} ${BUNDLE_DIR}
 
 # rebuilding fibers
 cd ${BUNDLE_DIR}/programs/server
-
 
 # the prebuilt binary files might differ, we will need to rebuild everything to
 # solve the binary incompatible issues
@@ -171,21 +168,17 @@ if [[ $REBUILD_NPM_MODULES == "1" ]] ; then
       cp -r node_modules/bcrypt npm/node_modules/meteor/npm-bcrypt/node_modules/bcrypt
   fi
   if [ -d npm/node_modules/bignum ] ; then
-      sudo rm -rf npm/node_modules/bignum
-      sudo npm install --update-binary -f bignum
-      cp -r node_modules/bignum npm/node_modules/bignum
+      (cd npm && sudo npm install --update-binary -f bignum)
   fi
+  # we have bignum used in nsq.js
+  if [ -d npm/node_modules/nsq.js/node_modules/bignum ] ; then
+      (cd npm/node_modules/nsq.js && sudo npm install --update-binary -f bignum)
+  fi
+  # for meteor 1.2, we have npm-container
   if [ -d npm/npm-container/node_modules/nsq.js/node_modules/bignum ] ; then
-      # for meteor 1.2, we have npm-container
       sudo rm -rf npm/npm-container/node_modules/nsq.js/node_modules/bignum
       sudo npm install --update-binary -f bignum
       cp -r node_modules/bignum npm/npm-container/node_modules/nsq.js/node_modules/bignum
-  fi
-  if [ -d npm/node_modules/nsq.js/node_modules/bignum ] ; then
-      # for meteor 1.3, we have bignum used in nsq.js
-      sudo rm -rf npm/node_modules/nsq.js/node_modules/bignum
-      sudo npm install --update-binary -f bignum
-      cp -r node_modules/bignum npm/node_modules/nsq.js/node_modules/bignum
   fi
 fi
 

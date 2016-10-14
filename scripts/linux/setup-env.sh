@@ -6,12 +6,12 @@ APP_ROOT=$DEPLOY_PREFIX/$APP_NAME
 sudo mkdir -p $APP_ROOT
 sudo mkdir -p $APP_ROOT/config
 sudo mkdir -p $APP_ROOT/tmp
-sudo mkdir -p /opt/lib
-sudo mkdir -p /opt/bin
+sudo mkdir -p $DEPLOY_PREFIX/lib
+sudo mkdir -p $DEPLOY_PREFIX/bin
 
-sudo chown ${USER} -R /opt/lib 
-sudo chown ${USER} -R /opt/bin 
-sudo chown ${USER} -R /opt/<%= appName %>
+sudo chown ${USER} -R $DEPLOY_PREFIX/lib 
+sudo chown ${USER} -R $DEPLOY_PREFIX/bin
+sudo chown ${USER} -R $DEPLOY_PREFIX/<%= appName %>
 
 sudo npm install -g forever userdown wait-for-mongo node-gyp
 
