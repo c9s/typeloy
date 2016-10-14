@@ -8,7 +8,6 @@ TMP_DIR=$APP_ROOT/tmp
 APP_DIR=$APP_ROOT/app
 BUNDLE_DIR=$TMP_DIR/bundle
 BUNDLE_TARBALL_FILENAME=bundle.tar.gz
-DEPLOY_CHECK_WAIT_TIME=<%= deployCheckWaitTime %>
 # This is for fixing the arch binary issue
 REBUILD_NPM_MODULES=1
 
@@ -64,22 +63,8 @@ rebuild_binary_npm_modules () {
   done
 }
 
-[[ -e /opt/lib/functions.sh ]] && source /opt/lib/functions.sh
-
-revert_app () {
-  if [[ -d $APP_ROOT/old_app ]]; then
-    sudo rm -rf $APP_ROOT/app
-    sudo mv $APP_ROOT/old_app $APP_ROOT/app
-    service_stop $APP_NAME || :
-    service_start $APP_NAME || :
-    echo "Latest deployment failed! Reverted back to the previous version." 1>&2
-    exit 1
-  else
-    echo "App did not pick up! Please check app logs." 1>&2
-    exit 1
-  fi
-}
-
+. $DEPLOY_PREFIX/lib/functions.sh
+. $APP_ROOT/config/env.sh
 
 # Install systemd for app
 if [ -d /lib/systemd/system ] ; then
@@ -208,6 +193,9 @@ if [ -f package.json ]; then
   echo "Found package.json, running npm install ..."
   # support for 0.9
   sudo npm install
+else
+  sudo npm install bignum --update-binary
+  sudo npm install fibers --update-binary
 fi
 
 cd $APP_ROOT
@@ -223,15 +211,15 @@ if [ -d $APP_ROOT/app ]; then
 fi
 sudo mv $APP_ROOT/tmp/bundle $APP_DIR
 
+# chown to support dumping heapdump and etc
+sudo chown -R meteoruser: $APP_DIR
+
 # wait and check
 echo "Waiting for MongoDB to initialize. (5 minutes)"
-. $APP_ROOT/config/env.sh
 wait-for-mongo $MONGO_URL 300000
 
 # reload the service entry
 service_reload
-
-
 if [ -e /lib/systemd ] ; then
   sudo systemctl enable ${APP_NAME}.service
 fi
@@ -244,14 +232,4 @@ fi
 
 # restart app
 echo "Restarting the app"
-service_stop $APP_NAME || :
-service_start $APP_NAME
-
-echo "Waiting for $DEPLOY_CHECK_WAIT_TIME seconds while app is booting up"
-sleep $DEPLOY_CHECK_WAIT_TIME
-
-echo "Checking is app booted or not?"
-curl --connect-timeout 30 localhost:${PORT} || revert_app
-
-# chown to support dumping heapdump and etc
-sudo chown -R meteoruser: $APP_DIR
+service_restart $APP_NAME
