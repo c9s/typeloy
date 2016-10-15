@@ -34,7 +34,7 @@ export class ReconfigAction extends BaseAction {
             });
           });
         }
-        let sessionPromises = _.map(sessionInfoList, (sessionInfo) => {
+        const sessionPromises = _.map(sessionInfoList, (sessionInfo) => {
           return new Promise<SummaryMap>(resolve => {
             sessionInfo.taskList.run(sessionInfo.session, (summaryMap : SummaryMap) => {
               resolve(summaryMap);

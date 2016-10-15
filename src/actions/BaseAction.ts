@@ -2,7 +2,6 @@ import path = require('path');
 import fs = require('fs');
 import {Config, AppConfig, ServerConfig, SiteConfig} from '../config';
 import LinuxTaskBuilder from "../TaskBuilder/LinuxTaskBuilder";
-import SunOSTaskBuilder from "../TaskBuilder/SunOSTaskBuilder";
 import {BaseTaskBuilder} from "../TaskBuilder/BaseTaskBuilder";
 import {Deployment} from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
@@ -48,8 +47,6 @@ export class BaseAction extends EventEmitter {
     switch (sessionGroup.os) {
       case "linux":
         return new LinuxTaskBuilder(sessionGroup);
-      case "sunos":
-        return new SunOSTaskBuilder(sessionGroup);
       default:
         throw new Error("Unsupported operating system.");
     }

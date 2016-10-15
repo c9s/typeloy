@@ -21,4 +21,6 @@ export abstract class BaseTaskBuilder {
   abstract restart(config:Config);
 
   abstract stop(config:Config);
+
+  abstract logs(config:Config, hostPrefix : string);
 }

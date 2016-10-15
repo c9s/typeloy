@@ -3,6 +3,7 @@ import {Config} from '../config';
 import {Deployment} from '../Deployment';
 import {Session} from '../Session';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
+import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors, mergeSummaryMap} from "../SummaryMap";
 
 const _ = require('underscore');
 
@@ -17,21 +18,7 @@ function journalctl(config : Config, tailOptions) {
 
 export class LogsAction extends BaseAction {
 
-  protected logConfig : any;
-
-  constructor(config : Config, logConfig = {}) {
-    super(config);
-    this.logConfig = _.extend({
-      "onStdout": (hostPrefix, data) => {
-        process.stdout.write(hostPrefix + data.toString());
-      },
-      "onStderr": (hostPrefix, data) => {
-        process.stderr.write(hostPrefix + data.toString());
-      }
-    }, logConfig);
-  }
-
-  public run(deployment : Deployment, sites : Array<string>, options : LogsOptions) : Promise<any> {
+  public run(deployment : Deployment, sites : Array<string>, options : LogsOptions) : Promise<SummaryMap> {
 
     const self = this;
     let tailOptions = [];
@@ -57,31 +44,22 @@ export class LogsAction extends BaseAction {
         sitesPromise = sitesPromise.then(() => {
             const siteConfig = this.getSiteConfig(site);
             const sessionsMap = this.createSiteSessionsMap(siteConfig);
-            let sessionGroupPromises = _.map(sessionsMap, (sessionGroup : SessionGroup, os : string) => {
+
+            const taskPromises = _.map(sessionsMap, (sessionGroup : SessionGroup, os : string) => {
                 const sessionPromises = sessionGroup.sessions.map((session : Session) => {
-                    let hostPrefix = `(${site}) [${session._host}] `;
-                    let serverConfig = session._serverConfig;
-                    let isSystemd = serverConfig.init === "systemd" || siteConfig.init === "systemd" || options.init === "systemd";
-                    let command = isSystemd
-                        ? journalctl(this.config, tailOptions)
-                        : tailCommand(this.config, tailOptions, os)
-                        ;
-                    return new Promise(resolve => {
-                        session.execute(command, {
-                          "onStdout": (data) => {
-                            this.logConfig.onStdout(hostPrefix, data);
-                          },
-                          "onStderr": (data) => {
-                            this.logConfig.onStderr(hostPrefix, data);
-                          }
-                        }, () => {
-                          resolve();
+                    return new Promise<SummaryMap>(resolve => {
+                        const hostPrefix = `(${site}) [${session._host}] `;
+                        const taskListsBuilder = this.createTaskBuilderByOs(sessionGroup);
+                        const taskList = taskListsBuilder.logs(this.config, hostPrefix);
+                        this.propagateTaskEvents(taskList);
+                        taskList.run(sessionGroup.sessions, (summaryMap : SummaryMap) => {
+                            resolve(summaryMap);
                         });
                     });
                 });
                 return Promise.all(sessionPromises);
             });
-            return Promise.all(sessionGroupPromises);
+            return Promise.all(taskPromises);
         });
     }
     return sitesPromise;

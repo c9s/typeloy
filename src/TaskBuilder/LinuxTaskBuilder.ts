@@ -27,6 +27,7 @@ import {
   DeployTask,
   StartProcessTask,
   CopyBundleDeployTask,
+  LogsTask,
   RestartTask,
   StopTask,
   StartTask
@@ -178,6 +179,16 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     const tasks : Array<Task> = [];
     tasks.push(new RestartTask(config));
     const taskList = this.taskList("Restarting Application (linux)");
+    tasks.forEach((t : Task) => {
+      t.build(taskList);
+    });
+    return taskList;
+  }
+
+  public logs(config : Config, hostPrefix : string) {
+    const tasks : Array<Task> = [];
+    tasks.push(new LogsTask(config, hostPrefix));
+    const taskList = this.taskList("Getting Application Log (linux)");
     tasks.forEach((t : Task) => {
       t.build(taskList);
     });
