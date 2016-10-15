@@ -15,13 +15,15 @@ export class MongoDumpTask extends SetupTask {
   public build(taskList) {
     // console.log(moment("20111031", "YYYYMMDD").fromNow());
     const today = moment().format('YYYYMMDD');
+    const dbName = this.config.mongo.database || this.config.app.name;
     let opts = {
         host: this.config.mongo.host || "localhost",
         port: this.config.mongo.port || 27017,
-        dbName: this.config.mongo.database || this.config.app.name,
+        dbName: dbName,
     } as any;
     if (this.config.mongo.archive && typeof this.config.mongo.archive.file === "string") {
       let file = this.config.mongo.archive.file.replace("%app_name%", this.config.app.name);
+      file = this.config.mongo.archive.file.replace("%db_name%", dbName);
       file = this.config.mongo.archive.file.replace("%today%", today);
       opts.file = file;
     }
