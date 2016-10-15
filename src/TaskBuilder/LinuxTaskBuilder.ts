@@ -185,9 +185,9 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     return taskList;
   }
 
-  public logs(config : Config, hostPrefix : string) {
+  public logs(config : Config, hostPrefix : string, logOptions : string) {
     const tasks : Array<Task> = [];
-    tasks.push(new LogsTask(config, hostPrefix));
+    tasks.push(new LogsTask(config, hostPrefix, logOptions));
     const taskList = this.taskList("Getting Application Log (linux)");
     tasks.forEach((t : Task) => {
       t.build(taskList);

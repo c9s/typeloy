@@ -27,17 +27,6 @@ export class LogsAction extends BaseAction {
     }
     const tailOptionArgs = tailOptions.join(' ');
 
-    function tailCommand(config : Config, tailOptions, os : string = 'linux') {
-      if (os == 'linux') {
-        return 'sudo tail ' + tailOptions.join(' ') + ' /var/log/upstart/' + config.app.name + '.log';
-      } else if (os == 'sunos') {
-        return 'sudo tail ' + tailOptions.join(' ') +
-          ' /var/svc/log/site-' + config.app.name + '\\:default.log';
-      } else {
-        throw new Error("Unsupported OS.");
-      }
-    }
-
     let sitesPromise = Promise.resolve({});
     for (let i = 0; i < sites.length; i++) {
         const site = sites[i];
@@ -50,7 +39,7 @@ export class LogsAction extends BaseAction {
                     return new Promise<SummaryMap>(resolve => {
                         const hostPrefix = `(${site}) [${session._host}] `;
                         const taskListsBuilder = this.createTaskBuilderByOs(sessionGroup);
-                        const taskList = taskListsBuilder.logs(this.config, hostPrefix);
+                        const taskList = taskListsBuilder.logs(this.config, hostPrefix, tailOptionArgs);
                         this.propagateTaskEvents(taskList);
                         taskList.run(sessionGroup.sessions, (summaryMap : SummaryMap) => {
                             resolve(summaryMap);
