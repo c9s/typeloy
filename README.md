@@ -224,9 +224,13 @@ Sometimes, you might be using `mrt`, or Meteor from a git checkout. By default, 
 
 ### Access Logs
 
-    typeloy logs -f
+Typeloy can tail logs from the server and supports all the options of `tail`
 
-Mup can tail logs from the server and supports all the options of `tail`.
+    typeloy logs
+
+Supported also the realtime logs monitoring
+
+    typeloy logs -f
 
 ### Reconfiguring & Restarting
 
