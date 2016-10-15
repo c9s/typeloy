@@ -47,15 +47,15 @@ The difference between **typeloy** and **meteor-up**:
 - Added `--build-dir`, `--bundle-file`, `--no-clean`, `--tag` options to the deploy command.
 - Added options for customzing build options like "architecture" and "server":
 
-          ```js
-          "build": {
-              // optional: build arch
-              "architecture": "os.linux.x86_64",
+          {
+              "build": {
+                  // optional: build arch
+                  "architecture": "os.linux.x86_64",
 
-              // optional: server option for --server http://localhost:3000 (for mobile app)
-              "server": "http://localhost:3000"
+                  // optional: server option for --server http://localhost:3000 (for mobile app)
+                  "server": "http://localhost:3000"
+              }
           }
-          ```
 
 
 ### Installation
@@ -72,7 +72,6 @@ The config filename will be checked by this order:
 `typeloy.js`, `typeloy.json`, `typeloy.config.json`.
 
 For the new config structure please check [the example config file](https://github.com/c9s/typeloy/blob/master/example/typeloy.json)
-
 
 #### Production Quality Meteor Deployments
 
