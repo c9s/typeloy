@@ -1,0 +1,7 @@
+#!/bin/bash
+APP_NAME="<%= appName %>"
+DEPLOY_PREFIX="<%= deployPrefix %>"
+APP_ROOT=$DEPLOY_PREFIX/$APP_NAME
+. $DEPLOY_PREFIX/lib/functions.sh
+echo "Stopping $APP_NAME"
+service_stop $APP_NAME

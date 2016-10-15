@@ -1,0 +1,7 @@
+#!/bin/bash
+APP_NAME="<%= appName %>"
+DEPLOY_PREFIX="<%= deployPrefix %>"
+APP_ROOT=$DEPLOY_PREFIX/$APP_NAME
+. $DEPLOY_PREFIX/lib/functions.sh
+echo "Start $APP_NAME"
+service_start $APP_NAME
