@@ -19,6 +19,7 @@ import {
   MeteorEnvSetupTask,
   PhantomJsSetupTask,
   MongoSetupTask,
+  MongoDumpTask,
   StudSetupTask,
   CertbotSetupTask,
   CertbotRenewTask,
@@ -153,6 +154,20 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     const tasks : Array<Task> = [];
     tasks.push(new EnvVarsTask(config, env));
     tasks.push(new RestartTask(config));
+    tasks.forEach((t : Task) => {
+      t.build(taskList);
+    });
+    return taskList;
+  }
+
+  public mongoDump(config : Config) {
+    const tasks : Array<Task> = [];
+    if (config.mongo) {
+      tasks.push(new MongoDumpTask(config));
+    } else {
+      console.error("mongo settings is not configured.");
+    }
+    const taskList = this.taskList("MongoDB Dump (linux)");
     tasks.forEach((t : Task) => {
       t.build(taskList);
     });

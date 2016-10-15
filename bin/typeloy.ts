@@ -5,7 +5,17 @@ const _ = require('underscore');
 
 import {readConfig, Config} from '../src/config';
 
-import {BaseAction, DeployAction, SetupAction, StartAction, RestartAction, StopAction, ReconfigAction, LogsAction} from '../src/actions';
+import {
+    BaseAction,
+    DeployAction,
+    SetupAction,
+    StartAction,
+    RestartAction,
+    StopAction,
+    MongoDumpAction,
+    ReconfigAction,
+    LogsAction
+} from '../src/actions';
 import {CmdDeployOptions} from '../src/options';
 import {SessionManager, SessionGroup, SessionsMap} from '../src/SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../src/SummaryMap";
@@ -149,6 +159,23 @@ prog.command('restart [sites...]')
     });
   });
   ;
+
+prog.command('mongo:dump [sites...]')
+  .description('dump mongodb on servers')
+  .action((sites, options) => {
+    let config = readConfig(prog.config);
+    let actions = new MongoDumpAction(config);
+    let deployment = Deployment.create(config, config.app.root || cwd);
+    let afterSetup = actions.run(deployment, sites);
+    afterSetup.then((mapResult) => {
+      console.log(SummaryMapConsoleFormatter.format(mapResult));
+      const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
+    }).catch((err) => {
+      console.error(err);
+    });
+  });
+  ;
+
 
 prog.command('init')
   .description('init the typeloy.json config.')

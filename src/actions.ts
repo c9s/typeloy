@@ -6,3 +6,4 @@ export * from "../src/actions/SetupAction";
 export * from "../src/actions/DeployAction";
 export * from "../src/actions/ReconfigAction";
 export * from "../src/actions/LogsAction";
+export * from "../src/actions/MongoDumpAction";
