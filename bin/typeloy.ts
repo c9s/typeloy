@@ -13,6 +13,7 @@ import {
     RestartAction,
     StopAction,
     MongoDumpAction,
+    MongoGetAction,
     ReconfigAction,
     LogsAction
 } from '../src/actions';
@@ -151,6 +152,23 @@ prog.command('restart [sites...]')
     let actions = new RestartAction(config);
     let deployment = Deployment.create(config, config.app.root || cwd);
     let afterSetup = actions.run(deployment, sites);
+    afterSetup.then((mapResult) => {
+      console.log(SummaryMapConsoleFormatter.format(mapResult));
+      const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
+    }).catch((err) => {
+      console.error(err);
+    });
+  });
+  ;
+
+
+prog.command('mongo:get [site] [file]')
+  .description('get mongodb archive from servers')
+  .action((site, file, options) => {
+    let config = readConfig(prog.config);
+    let actions = new MongoGetAction(config);
+    let deployment = Deployment.create(config, config.app.root || cwd);
+    let afterSetup = actions.run(deployment, site, file);
     afterSetup.then((mapResult) => {
       console.log(SummaryMapConsoleFormatter.format(mapResult));
       const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;

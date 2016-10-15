@@ -20,6 +20,7 @@ import {
   PhantomJsSetupTask,
   MongoSetupTask,
   MongoDumpTask,
+  MongoGetTask,
   StudSetupTask,
   CertbotSetupTask,
   CertbotRenewTask,
@@ -159,6 +160,22 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     });
     return taskList;
   }
+
+
+  public mongoGet(config : Config, file : string) {
+    const tasks : Array<Task> = [];
+    if (config.mongo) {
+      tasks.push(new MongoGetTask(config, file));
+    } else {
+      console.error("mongo settings is not configured.");
+    }
+    const taskList = this.taskList("MongoDB Get (linux)");
+    tasks.forEach((t : Task) => {
+      t.build(taskList);
+    });
+    return taskList;
+  }
+
 
   public mongoDump(config : Config) {
     const tasks : Array<Task> = [];

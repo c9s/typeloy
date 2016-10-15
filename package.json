@@ -18,7 +18,7 @@
     "es6-promise": "^3.2.1",
     "moment": "^2.15.1",
     "node-slack": "0.0.7",
-    "nodemiral": "^1.1.1",
+    "nodemiral": "c9s/nodemiral",
     "propagate": "^1.0.0",
     "request": "^2.74.0",
     "rimraf": "^2.5.4",

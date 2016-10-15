@@ -55,6 +55,7 @@ The difference between **typeloy** and **meteor-up**:
                  }
           }
 
+- Added `mongo:dump [sites...]` command for dumping mongo archive files.
 
 - Added options for customzing build options like "architecture" and "server":
 

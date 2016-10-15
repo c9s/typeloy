@@ -5,6 +5,7 @@ APP_NAME="<%= appName %>"
 DEPLOY_PREFIX="<%= deployPrefix %>"
 APP_ROOT=$DEPLOY_PREFIX/$APP_NAME
 ARCHIVE_ROOT=$DEPLOY_PREFIX/db/archive
+LATEST_ARCHIVE_FILE=$DEPLOY_PREFIX/db/archive/latest
 MONGO_HOST=<%= host %>
 MONGO_PORT=<%= port %>
 DB_NAME="<%= dbName %>"
@@ -16,4 +17,7 @@ DB_NAME="<%= dbName %>"
 
 sudo mkdir -p $ARCHIVE_ROOT
 sudo chown ${USER} -R $ARCHIVE_ROOT
-(cd $ARCHIVE_ROOT && mongodump -h $MONGO_HOST -p $MONGO_PORT  --archive=$ARCHIVE_FILE --gzip --db $DB_NAME)
+(cd $ARCHIVE_ROOT \
+  && mongodump -h $MONGO_HOST -p $MONGO_PORT  --archive=$ARCHIVE_FILE --gzip --db $DB_NAME \
+  && rm -f $LATEST_ARCHIVE_FILE \
+  && ln -s $ARCHIVE_FILE $LATEST_ARCHIVE_FILE )
