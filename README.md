@@ -13,8 +13,6 @@ The difference between **typeloy** and **meteor-up**:
 
 - Reuse bundle file if you want, so you don't have to re-build for just debugging the deployment:
 
-        METEOR_BUILD_DIR=/tmp/meteor-dd2ca2e9-9bc9-4531-b85f-93f1443b1176 typeloy deploy $(date +%s)
-
         typeloy deploy --no-clean v0.0.3
 
         typeloy deploy --build-dir /tmp v0.0.3
@@ -29,7 +27,7 @@ The difference between **typeloy** and **meteor-up**:
 
 - Require node v4.4.7+
 
-- Plugin support! with SlackNotification.
+- Tested with Meteor 1.3 and 1.4
 
 ### Roadmap
 
@@ -145,10 +143,6 @@ This will bundle the Meteor project and deploy it to the server.
 
 ### Additional Setup/Deploy Information
 
-#### Deploy Wait Time
-
-Meteor Up checks if the deployment is successful or not just after the deployment. By default, it will wait 10 seconds before the check. You can configure the wait time with the `deployCheckWaitTime` option in the `typeloy.json`
-
 #### SSH keys with passphrase (or ssh-agent support)
 
 > This only tested with Mac/Linux
@@ -214,13 +208,14 @@ To deploy to *different* environments (e.g. staging, production, etc.), use sepa
 
 Sometimes, you might be using `mrt`, or Meteor from a git checkout. By default, Meteor Up uses `meteor`. You can ask Meteor Up to use the correct binary with the `meteorBinary` option.
 
-~~~js
+```js
 {
-  ...
-  "meteorBinary": "~/bin/meteor/meteor"
-  ...
+  "meteor": {
+    "env": { "PACKAGE_DIRS": "../private-packages" },
+    "binary": "~/bin/meteor/meteor"
+  }
 }
-~~~
+```
 
 ### Access Logs
 
@@ -254,7 +249,7 @@ You can't access the MongoDB from the outside the server. To access the MongoDB 
 
 It is possible to provide server specific environment variables. Add the `env` object along with the server details in the `typeloy.json`. Here's an example:
 
-~~~js
+```js
 {
   "servers": [
     {
@@ -265,10 +260,8 @@ It is possible to provide server specific environment variables. Add the `env` o
         "SOME_ENV": "the-value"
       }
     }
-
-  ...
 }
-~~~
+```
 
 By default, Meteor UP adds `CLUSTER_ENDPOINT_URL` to make [cluster](https://github.com/meteorhacks/cluster) deployment simple. But you can override it by defining it yourself.
 
@@ -299,19 +292,33 @@ Now you need combine SSL certificate(s) with the private key and save it in the 
 
 Then add following configuration to your `typeloy.json` file.
 
-~~~js
+```js
 {
-  ...
-
   "ssl": {
     "pem": "./ssl.pem",
     //"backendPort": 80
   }
-
   ...
 }
-~~~
+```
 
+If you're using letsencrypt, certbot setup/renew is also supported:
+
+```js
+{
+  "sites": {
+     "myapp": {
+        "servers": [ ... ],
+        "ssl": {
+            "certbot": {
+                "email": "your@email.com",
+                "domain": "thedomain.com"
+            }
+        }
+     }
+  }
+}
+```
 Now, simply do `typeloy setup` and now you've the SSL support.
 
 > * By default, it'll think your Meteor app is running on port 80. If it's not, change it with the `backendPort` configuration field.
