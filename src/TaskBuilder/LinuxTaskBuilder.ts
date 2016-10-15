@@ -210,8 +210,8 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   public start(config : Config) {
     let taskList = this.taskList("Starting Application (linux)");
     if (this.sessionGroup._siteConfig.init === "systemd") {
-      taskList.execute('Stopping app', {
-        command: 'sudo systemctl start ${config.app.name}.service'
+      taskList.execute('Starting app', {
+        command: `sudo systemctl start ${config.app.name}.service`
       });
     } else {
       taskList.execute('Starting app', { command: `(sudo start ${config.app.name})` });
