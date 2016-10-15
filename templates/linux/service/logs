@@ -1,0 +1,18 @@
+#!/bin/bash
+APP_NAME="<%= appName %>"
+DEPLOY_PREFIX="<%= deployPrefix %>"
+APP_ROOT=$DEPLOY_PREFIX/$APP_NAME
+
+LOG_LINES=20
+LOG_OPTIONS="-n${LOG_LINES} <%= logOptions %>"
+
+. $DEPLOY_PREFIX/lib/functions.sh
+
+UPSTART_LOG="/var/log/upstart/${APP_NAME}.log"
+
+if [[ -e /lib/systemd ]] ; then
+    sudo journalctl $LOG_OPTIONS --no-pager -u $APP_NAME.service
+elif [[ -e $UPSTART_LOG ]] ; then
+    sudo tail $LOG_OPTIONS $UPSTART_LOG
+fi
+
