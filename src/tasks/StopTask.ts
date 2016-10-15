@@ -5,15 +5,15 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 
-export class RestartTask extends Task {
+export class StopTask extends Task {
 
   public describe() : string {
-    return `Restart ${this.config.app.name}`;
+    return `Stop ${this.config.app.name}`;
   }
 
   public build(taskList) {
     taskList.executeScript(this.describe(), {
-      'script': path.resolve(TEMPLATES_DIR, 'service/restart'),
+      'script': path.resolve(TEMPLATES_DIR, 'service/stop'),
       'vars': this.extendArgs({ })
     });
   }

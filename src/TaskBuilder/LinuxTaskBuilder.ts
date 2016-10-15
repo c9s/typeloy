@@ -27,7 +27,9 @@ import {
   DeployTask,
   StartProcessTask,
   CopyBundleDeployTask,
-  RestartTask
+  RestartTask,
+  StopTask,
+  StartTask
 } from "../tasks";
 
 
@@ -162,32 +164,18 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   };
 
   public reconfig(env, config : Config) {
-    const taskList = this.taskList("Updating configurations (linux)");
-    taskList.copy('Setting up Environment Variables', {
-      src: path.resolve(TEMPLATES_DIR, 'env.sh'),
-      dest: DEPLOY_PREFIX + '/' + config.app.name + '/config/env.sh',
-      vars: {
-        env: env || {},
-        appName: config.app.name
-      }
+    const tasks : Array<Task> = [];
+    tasks.push(new EnvVarsTask(config, env));
+    tasks.push(new RestartTask(config));
+    tasks.forEach((t : Task) => {
+      t.build(taskList);
     });
-    if (this.sessionGroup._siteConfig.init === "systemd") {
-      taskList.execute('Restarting app', {
-        command: `sudo systemctl restart ${config.app.name}.service`
-      });
-    } else {
-      taskList.execute('Restarting app', {
-        command: '(sudo stop ' + config.app.name + ' || :) && (sudo start ' + config.app.name + ')'
-      });
-    }
     return taskList;
   }
 
   public restart(config : Config) {
-
     const tasks : Array<Task> = [];
     tasks.push(new RestartTask(config));
-
     const taskList = this.taskList("Restarting Application (linux)");
     tasks.forEach((t : Task) => {
       t.build(taskList);
