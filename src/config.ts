@@ -100,6 +100,7 @@ export interface DeployConfig {
   checkDelay ?: number;
   exposeSiteName?: boolean;
   exposeVersionInfo?: boolean;
+  uploadProgress?: boolean;
 }
 
 export interface MongoConfig {
@@ -114,7 +115,7 @@ export interface LegacyConfig {
   servers?: Array<ServerConfig>;
   env: Env;
   ssl?: SslConfig;
-  enableUploadProgressBar: boolean;
+  enableUploadProgressBar?: boolean;
 
   // legacy options
   app: string; // path to the app
@@ -140,7 +141,6 @@ export interface Config {
   app: AppConfig;
   meteor: MeteorConfig;
 
-  enableUploadProgressBar: boolean;
   env: Env;
   ssl?: SslConfig;
   deployCheckWaitTime?: number;
@@ -213,7 +213,11 @@ export class ConfigParser {
       config.setup.mongo = true;
     }
     if (typeof _config.deployCheckWaitTime !== "undefined") {
-      config.deploy.checkDelay = config.deployCheckWaitTime;
+      config.deploy.checkDelay = _config.deployCheckWaitTime;
+    }
+
+    if (typeof _config.enableUploadProgressBar !== "undefined") {
+      config.deploy.uploadProgress = _config.enableUploadProgressBar;
     }
 
     // app was a string in legacy config format
@@ -265,10 +269,6 @@ export class ConfigParser {
     }
     if (typeof config.app.directory === "undefined") {
       config.app.directory = ".";
-    }
-
-    if (typeof config.enableUploadProgressBar === "undefined") {
-      config.enableUploadProgressBar = true;
     }
 
     _.each(config.sites, (siteConfig, siteName) => {

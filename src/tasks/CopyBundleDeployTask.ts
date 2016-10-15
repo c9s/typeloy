@@ -26,7 +26,7 @@ export class CopyBundleDeployTask extends DeployTask {
     taskList.copy(this.describe(), {
       src: this.bundlePath,
       dest: this.deployPrefix + '/' + appName + '/tmp/bundle.tar.gz',
-      progressBar: this.config.enableUploadProgressBar
+      progressBar: this.config.deploy.uploadProgress
     });
   }
 }
