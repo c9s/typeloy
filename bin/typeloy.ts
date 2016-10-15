@@ -5,7 +5,7 @@ const _ = require('underscore');
 
 import {readConfig, Config} from '../src/config';
 
-import {BaseAction, DeployAction, SetupAction, StartAction, RestartAction, StopAction, LogsAction} from '../src/actions';
+import {BaseAction, DeployAction, SetupAction, StartAction, RestartAction, StopAction, ReconfigAction, LogsAction} from '../src/actions';
 import {CmdDeployOptions} from '../src/options';
 import {SessionManager, SessionGroup, SessionsMap} from '../src/SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors} from "../src/SummaryMap";
@@ -90,7 +90,14 @@ prog.command('start [sites...]')
     let actions = new StartAction(config);
 
     let deployment = Deployment.create(config, config.app.root || cwd);
-    actions.run(deployment, sites);
+    let done = actions.run(deployment, sites);
+    done.then((mapResult) => {
+      console.log(SummaryMapConsoleFormatter.format(mapResult));
+      const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
+    }).catch((err) => {
+      console.error(err);
+    });
+    
   });
   ;
 
@@ -101,7 +108,29 @@ prog.command('stop [sites...]')
     let actions = new StopAction(config);
 
     let deployment = Deployment.create(config, config.app.root || cwd);
-    actions.run(deployment, sites);
+    let done = actions.run(deployment, sites);
+    done.then((mapResult) => {
+      console.log(SummaryMapConsoleFormatter.format(mapResult));
+      const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
+    }).catch((err) => {
+      console.error(err);
+    });
+  });
+  ;
+
+prog.command('reconfig [sites...]')
+  .description('reconfig the app.')
+  .action((sites, options) => {
+    let config = readConfig(prog.config);
+    let actions = new ReconfigAction(config);
+    let deployment = Deployment.create(config, config.app.root || cwd);
+    let afterSetup = actions.run(deployment, sites);
+    afterSetup.then((mapResult) => {
+      console.log(SummaryMapConsoleFormatter.format(mapResult));
+      const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
+    }).catch((err) => {
+      console.error(err);
+    });
   });
   ;
 
@@ -112,8 +141,9 @@ prog.command('restart [sites...]')
     let actions = new RestartAction(config);
     let deployment = Deployment.create(config, config.app.root || cwd);
     let afterSetup = actions.run(deployment, sites);
-    afterSetup.then((result) => {
-      console.log(result);
+    afterSetup.then((mapResult) => {
+      console.log(SummaryMapConsoleFormatter.format(mapResult));
+      const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
     }).catch((err) => {
       console.error(err);
     });
