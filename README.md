@@ -35,8 +35,6 @@ The difference between **typeloy** and **meteor-up**:
 
 - Automatically fix the npm bcrypt invalid elf binary issue in the deploy script.
 
-- Require node v4.4.7+
-
 - Tested with Meteor 1.3 and 1.4
 
 **New Features**
@@ -45,6 +43,19 @@ The difference between **typeloy** and **meteor-up**:
 - Supports both systemd and upstart.
 - Added commander integration.
 - Added `--build-dir`, `--bundle-file`, `--no-clean`, `--tag` options to the deploy command.
+- Added ability of publishing deployment info:
+
+          {
+                "deploy": {
+                    // Meteor Up checks if the app comes online just after the deployment
+                    // before mup checks that, it will wait for no. of seconds configured below
+                    "checkDelay": 15,
+                    "exposeSiteName": true,
+                    "exposeVersionInfo": true
+                 }
+          }
+
+
 - Added options for customzing build options like "architecture" and "server":
 
           {
