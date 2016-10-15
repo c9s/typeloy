@@ -11,6 +11,10 @@
                 //"pem": "~/.ssh/id_rsa"
             }
         ],
+        "mongo": {
+            "host": "localhost",
+            "port": 27017
+        },
         "ssl": {
             "certbot": {
                 "email": "your@email.com",
@@ -54,6 +58,13 @@
     "name": "myapp",
     "directory": ".",
     "settings": "settings.json"
+  },
+
+  "mongo": {
+      "host": "localhost",
+      "port": 27017,
+      "database": "shaka",
+      "archive": { "file": "%app_name%_%today%.gz" }
   },
 
   "deploy": {

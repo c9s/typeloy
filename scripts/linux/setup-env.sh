@@ -6,6 +6,7 @@ APP_ROOT=$DEPLOY_PREFIX/$APP_NAME
 sudo mkdir -p $APP_ROOT
 sudo mkdir -p $APP_ROOT/config
 sudo mkdir -p $APP_ROOT/tmp
+sudo mkdir -p $APP_ROOT/db/archive
 sudo mkdir -p $DEPLOY_PREFIX/lib
 sudo mkdir -p $DEPLOY_PREFIX/bin
 

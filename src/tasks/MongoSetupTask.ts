@@ -13,7 +13,7 @@ export class MongoSetupTask extends SetupTask {
 
   public build(taskList) {
     taskList.executeScript('Installing MongoDB', {
-      script: path.resolve(SCRIPT_DIR, 'install-mongodb.sh')
+      script: path.resolve(SCRIPT_DIR, 'mongo-install.sh')
     });
   }
 }

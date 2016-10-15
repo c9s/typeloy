@@ -34,22 +34,6 @@ import {
 } from "../tasks";
 
 
-function translateBackupMongoConfigVars(config : Config) : any {
-  if (config.deploy.backupMongo) {
-    let backupConfig : any = {};
-    if (typeof config.deploy.backupMongo === "object") {
-      backupConfig.host = config.deploy.backupMongo.host || 'localhost';
-      backupConfig.port = config.deploy.backupMongo.port || 27017;
-      backupConfig.db = config.deploy.backupMongo.db || config.app.name;
-    }
-    return backupConfig;
-  }
-  return null;
-}
-// 'backupMongo': translateBackupMongoConfigVars(this.config),
-
-
-
 class SetupTaskListBuilder {
 
   protected builder;

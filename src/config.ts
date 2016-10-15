@@ -97,12 +97,17 @@ export interface BuildConfig {
 }
 
 export interface DeployConfig {
-  backupMongo ?: any;
   checkDelay ?: number;
   exposeSiteName?: boolean;
   exposeVersionInfo?: boolean;
 }
 
+export interface MongoConfig {
+  host: string;
+  port: number;
+  database?: string; // default to appName
+  archive?: any;
+}
 
 export interface LegacyConfig {
   // common options
@@ -127,6 +132,7 @@ export interface Config {
   setup ?: SetupConfig;
   deploy ?: DeployConfig;
   build ?: BuildConfig;
+  mongo ?: MongoConfig;
 
   // We will convert servers into "default" => servers => [ .... ]
   sites: SiteMapConfig;

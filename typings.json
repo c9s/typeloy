@@ -10,6 +10,7 @@
     "fibers": "registry:dt/fibers#0.0.0+20160317120654",
     "mime": "registry:dt/mime#0.0.0+20160316155526",
     "mocha": "registry:dt/mocha#2.2.5+20160317120654",
+    "moment": "registry:dt/moment#2.11.1+20161010105546",
     "node": "registry:dt/node#6.0.0+20160728152422",
     "serve-static": "registry:dt/serve-static#0.0.0+20160606155157",
     "underscore": "registry:dt/underscore#1.7.0+20160720002543",
