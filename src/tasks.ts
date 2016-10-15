@@ -14,3 +14,5 @@ export * from "./tasks/DeployTask";
 export * from "./tasks/StartProcessTask";
 export * from "./tasks/CopyBundleDeployTask";
 export * from "./tasks/RestartTask";
+export * from "./tasks/StopTask";
+export * from "./tasks/StartTask";

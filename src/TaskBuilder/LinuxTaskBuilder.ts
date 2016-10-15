@@ -164,6 +164,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   };
 
   public reconfig(env, config : Config) {
+    const taskList = this.taskList("Reconfiguring Application (linux)");
     const tasks : Array<Task> = [];
     tasks.push(new EnvVarsTask(config, env));
     tasks.push(new RestartTask(config));
@@ -185,25 +186,21 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
 
   public stop(config : Config) {
     let taskList = this.taskList("Stopping Application (linux)");
-    if (this.sessionGroup._siteConfig.init === "systemd") {
-      taskList.execute('Stopping app', {
-        command: `sudo systemctl stop ${config.app.name}.service`
-      });
-    } else {
-      taskList.execute('Stopping app', { command: `(sudo stop ${config.app.name})` });
-    }
+    const tasks : Array<Task> = [];
+    tasks.push(new StopTask(config));
+    tasks.forEach((t : Task) => {
+      t.build(taskList);
+    });
     return taskList;
   }
 
   public start(config : Config) {
     let taskList = this.taskList("Starting Application (linux)");
-    if (this.sessionGroup._siteConfig.init === "systemd") {
-      taskList.execute('Starting app', {
-        command: `sudo systemctl start ${config.app.name}.service`
-      });
-    } else {
-      taskList.execute('Starting app', { command: `(sudo start ${config.app.name})` });
-    }
+    const tasks : Array<Task> = [];
+    tasks.push(new StartTask(config));
+    tasks.forEach((t : Task) => {
+      t.build(taskList);
+    });
     return taskList;
   }
 }
