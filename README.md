@@ -9,11 +9,11 @@ Thank you Arunoda Susiripala for the hard work*
 
 The difference between **typeloy** and **meteor-up**:
 
-**Requirements**
+**New Requirements**
 
 - Typeloy requires node v4.4+
 
-**Improvements**
+**New Improvements**
 
 - Support configuration span different sites, each site config may contains multiple servers. When deploying, site names could be specified to deploy app to the specific sites.
 
@@ -39,7 +39,7 @@ The difference between **typeloy** and **meteor-up**:
 
 - Tested with Meteor 1.3 and 1.4
 
-**Features**
+**New Features**
 
 - Supports LetEncrypt. You can easily configure/setup certbot on servers and get ssl certification easily renewed.
 - Supports both systemd and upstart.
