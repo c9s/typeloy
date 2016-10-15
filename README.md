@@ -9,13 +9,23 @@ Thank you Arunoda Susiripala for the hard work*
 
 The difference between **typeloy** and **meteor-up**:
 
+**Requirements**
+
+- Typeloy requires node v4.4+
+
+**Improvements**
+
+- Support configuration span different sites, each site config may contains multiple servers. When deploying, site names could be specified to deploy app to the specific sites.
+
 - Show information as much as possible in the console. like .. what version of node will be installed ... 
 
 - Reuse bundle file if you want, so you don't have to re-build for just debugging the deployment:
 
-        typeloy deploy --no-clean v0.0.3
+        typeloy deploy --no-clean --tag v0.0.3 site
 
-        typeloy deploy --build-dir /tmp v0.0.3
+        typeloy deploy --build-dir /tmp --tag v0.0.3 site
+        
+        typeloy deploy --tag test-build --no-clean site
 
     Send your existing bundle file without rebuilding the tarball file:
 
@@ -29,24 +39,24 @@ The difference between **typeloy** and **meteor-up**:
 
 - Tested with Meteor 1.3 and 1.4
 
-### Roadmap
+**Features**
 
-- [x] TypeScript integration
-- [x] Add commander integration
-- [x] `BUILD_DIR` should be the deploy version name.
-- [x] `--bundle-file [path]` option to reuse pre-built bundle tarball file.
-- [x] Collecting deployment metadata and pass to the handler of different phases.
-- [x] Add plugin architect
-    - [x] Slack plugin to integrate Slack notification
-- [x] Add server list site name support
-- [x] SystemD init support
-- [x] Add promise support for the actions.
-- [x] Remove process.exit from code
-- [x] Ability to deploy just one site from the multiple server list.
-- [x] Run specific setup tasks on servers.
-- [x] Auto deployment
-- [x] Provide easy-to-use nodejs API.
-- [ ] Docker composer support
+- Supports LetEncrypt. You can easily configure/setup certbot on servers and get ssl certification easily renewed.
+- Supports both systemd and upstart.
+- Added commander integration.
+- Added `--build-dir`, `--bundle-file`, `--no-clean`, `--tag` options to the deploy command.
+- Added options for customzing build options like "architecture" and "server":
+
+          ```js
+          "build": {
+              // optional: build arch
+              "architecture": "os.linux.x86_64",
+
+              // optional: server option for --server http://localhost:3000 (for mobile app)
+              "server": "http://localhost:3000"
+          }
+          ```
+
 
 ### Installation
 
@@ -217,7 +227,7 @@ Sometimes, you might be using `mrt`, or Meteor from a git checkout. By default, 
 }
 ```
 
-### Access Logs
+### Checking Logs
 
 Typeloy can tail logs from the server and supports all the options of `tail`
 
@@ -374,4 +384,23 @@ Fortunately, Meteor Up **will take care** of that job for you and it will detect
 ### LICENSE
 
 This package was forked from arunoda/meteor-up and is released under MIT.
+
+### Roadmap
+
+- [x] TypeScript integration
+- [x] Add commander integration
+- [x] `BUILD_DIR` should be the deploy version name.
+- [x] `--bundle-file [path]` option to reuse pre-built bundle tarball file.
+- [x] Collecting deployment metadata and pass to the handler of different phases.
+- [x] Add plugin architect
+    - [x] Slack plugin to integrate Slack notification
+- [x] Add server list site name support
+- [x] SystemD init support
+- [x] Add promise support for the actions.
+- [x] Remove process.exit from code
+- [x] Ability to deploy just one site from the multiple server list.
+- [x] Run specific setup tasks on servers.
+- [x] Auto deployment
+- [x] Provide easy-to-use nodejs API.
+- [ ] Docker composer support
 
