@@ -39,7 +39,7 @@
   },
 
   "build": {
-      // optional: arch
+      // optional: build arch
       "architecture": "os.linux.x86_64",
     
       // optional: server option for --server http://localhost:3000 (for mobile app)
