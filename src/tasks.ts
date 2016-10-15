@@ -13,6 +13,7 @@ export * from "./tasks/UpstartSetupTask";
 export * from "./tasks/EnvVarsTask";
 export * from "./tasks/DeployTask";
 export * from "./tasks/StartProcessTask";
+export * from "./tasks/UploadTask";
 export * from "./tasks/CopyBundleDeployTask";
 export * from "./tasks/RestartTask";
 export * from "./tasks/StopTask";
