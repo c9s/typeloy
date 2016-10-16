@@ -76,9 +76,8 @@
 
     // Show a progress bar during the upload of the bundle to the server. 
     // Might cause an error in some rare cases if set to true, for instance in Shippable CI
-    "enableUploadProgressBar": true,
+    "uploadProgress": true,
   },
-
 
   // Configure common environment for all sites
   "env": {
