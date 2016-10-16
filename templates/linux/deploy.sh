@@ -213,9 +213,7 @@ wait-for-mongo $MONGO_URL 300000
 
 # reload the service entry
 service_reload
-if [ -e /lib/systemd ] ; then
-  sudo systemctl enable ${APP_NAME}.service
-fi
+service_enable $APP_NAME
 
 # check upstart
 UPSTART=0

@@ -41,7 +41,7 @@ logpath=/var/log/mongodb/mongodb.log
 logappend=true
 END
 
-if [[ -e /lib/systemd ]] ; then
+if [[ -e /lib/systemd/system ]] ; then
 cat <<END | sudo tee /lib/systemd/system/mongo.service
 [Unit]
 Description=High-performance, schema-free document-oriented database
@@ -57,10 +57,9 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 END
-    sudo systemctl daemon-reload
-    sudo systemctl enable mongo
+    service_reload
+    service_enable mongo
 fi
-
 
 # Restart mongodb for upstart
 service_reload

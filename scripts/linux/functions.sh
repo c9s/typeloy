@@ -13,6 +13,22 @@ is_upstart()
     fi
 }
 
+
+# /bin/systemctl
+service_enable()
+{
+    if [[ $UPSTART == 0 ]] ; then
+        sudo systemctl enable ${name}.service
+    fi
+}
+
+service_disable()
+{
+    if [[ $UPSTART == 0 ]] ; then
+        sudo systemctl disable ${name}.service
+    fi
+}
+
 service_reload()
 {
     if [[ $UPSTART == 0 ]] ; then
