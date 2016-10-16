@@ -12,10 +12,6 @@ export interface LogsOptions {
   init?: string;
 }
 
-function journalctl(config : Config, tailOptions) {
-  return `sudo journalctl -u ${config.app.name}.service --since today ${tailOptions.join(' ')}`;
-}
-
 export class LogsAction extends BaseAction {
 
   public run(deployment : Deployment, sites : Array<string>, options : LogsOptions) : Promise<SummaryMap> {
