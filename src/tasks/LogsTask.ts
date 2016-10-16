@@ -9,12 +9,12 @@ export class LogsTask extends Task {
 
   protected hostPrefix : string;
 
-  protected logOptions : string;
+  protected logOptions : any;
 
-  constructor(config, hostPrefix : string, logOptions : string) {
+  constructor(config, hostPrefix : string, logOptions : any) {
     super(config);
     this.hostPrefix = hostPrefix;
-    this.logOptions = logOptions;
+    this.logOptions = logOptions || {};
   }
 
   public describe() : string {
@@ -22,20 +22,36 @@ export class LogsTask extends Task {
   }
 
   public build(taskList) {
+
+    let onStdout = this.logOptions.onStdout;
+
+    if (!onStdout) {
+      onStdout = (hostPrefix : string, data) => {
+        process.stdout.write(hostPrefix + data.toString());
+      };
+    }
+
+    let onStderr = this.logOptions.onStderr;
+    if (!onStderr) {
+      onStderr = (hostPrefix : string, data) => {
+        process.stderr.write(hostPrefix + data.toString());
+      };
+    }
+
     taskList.executeScript(this.describe(), {
       "script": path.resolve(TEMPLATES_DIR, 'service/logs'),
       "vars": this.extendArgs({
-        "logOptions": this.logOptions
+        "logOptions": this.logOptions.tail ? "-f" : ""
       }),
       "onStdout": () => {
         return (data) => {
-          process.stdout.write(this.hostPrefix + data.toString());
-        }
+          return onStdout(this.hostPrefix, data);
+        };
       },
       "onStderr": () => {
         return (data) => {
-          process.stderr.write(this.hostPrefix + data.toString());
-        }
+          return onStderr(this.hostPrefix, data);
+        };
       }
     });
   }

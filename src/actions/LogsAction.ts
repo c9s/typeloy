@@ -10,19 +10,14 @@ const _ = require('underscore');
 export interface LogsOptions {
   tail?: boolean;
   init?: string;
+  onStdout: any;
+  onStderr: any;
 }
 
 export class LogsAction extends BaseAction {
 
   public run(deployment : Deployment, sites : Array<string>, options : LogsOptions) : Promise<SummaryMap> {
-
     const self = this;
-    let tailOptions = [];
-    if (options.tail) {
-      tailOptions.push('-f');
-    }
-    const tailOptionArgs = tailOptions.join(' ');
-
     let sitesPromise = Promise.resolve({});
     for (let i = 0; i < sites.length; i++) {
         const site = sites[i];
@@ -35,7 +30,7 @@ export class LogsAction extends BaseAction {
                     return new Promise<SummaryMap>(resolve => {
                         const hostPrefix = `(${site}) [${session._host}] `;
                         const taskListsBuilder = this.createTaskBuilderByOs(sessionGroup);
-                        const taskList = taskListsBuilder.logs(this.config, hostPrefix, tailOptionArgs);
+                        const taskList = taskListsBuilder.logs(this.config, hostPrefix, options);
                         this.propagateTaskEvents(taskList);
                         taskList.run(sessionGroup.sessions, (summaryMap : SummaryMap) => {
                             resolve(summaryMap);

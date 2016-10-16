@@ -22,5 +22,5 @@ export abstract class BaseTaskBuilder {
 
   abstract stop(config:Config);
 
-  abstract logs(config:  Config, hostPrefix : string, logOptions : string);
+  abstract logs(config:  Config, hostPrefix : string, logOptions : any);
 }
