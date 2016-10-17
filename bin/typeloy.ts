@@ -13,6 +13,7 @@ import {
     RestartAction,
     StopAction,
     MongoDumpAction,
+    MongoRestoreAction,
     MongoGetAction,
     ReconfigAction,
     LogsAction
@@ -162,6 +163,22 @@ prog.command('restart [sites...]')
   ;
 
 
+prog.command('mongo:dump [sites...]')
+  .description('dump mongodb on servers')
+  .action((sites, options) => {
+    let config = readConfig(prog.config);
+    let actions = new MongoDumpAction(config);
+    let deployment = Deployment.create(config, config.app.root || cwd);
+    let afterSetup = actions.run(deployment, sites);
+    afterSetup.then((mapResult) => {
+      console.log(SummaryMapConsoleFormatter.format(mapResult));
+      const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
+    }).catch((err) => {
+      console.error(err);
+    });
+  });
+  ;
+
 prog.command('mongo:get [site] [file]')
   .description('get mongodb archive from servers')
   .action((site, file, options) => {
@@ -178,13 +195,13 @@ prog.command('mongo:get [site] [file]')
   });
   ;
 
-prog.command('mongo:dump [sites...]')
-  .description('dump mongodb on servers')
-  .action((sites, options) => {
+prog.command('mongo:restore [site] [file]')
+  .description('restore mongodb from a local archive')
+  .action((site, file, options) => {
     let config = readConfig(prog.config);
-    let actions = new MongoDumpAction(config);
+    let a = new MongoRestoreAction(config);
     let deployment = Deployment.create(config, config.app.root || cwd);
-    let afterSetup = actions.run(deployment, sites);
+    let afterSetup = a.run(deployment, site, file);
     afterSetup.then((mapResult) => {
       console.log(SummaryMapConsoleFormatter.format(mapResult));
       const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
@@ -193,6 +210,8 @@ prog.command('mongo:dump [sites...]')
     });
   });
   ;
+
+
 
 
 prog.command('init')

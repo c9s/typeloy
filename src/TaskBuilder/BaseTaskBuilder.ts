@@ -10,6 +10,7 @@ export abstract class BaseTaskBuilder {
     this.sessionGroup = sessionGroup;
   }
 
+  /*
   abstract setup(config:Config, taskNames : Array<string>);
 
   abstract deploy(config:Config, bundlePath : string, env);
@@ -23,4 +24,5 @@ export abstract class BaseTaskBuilder {
   abstract stop(config:Config);
 
   abstract logs(config:  Config, hostPrefix : string, logOptions : any);
+  */
 }

@@ -2,6 +2,7 @@ const nodemiral = require('nodemiral');
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
+const uuid = require('uuid');
 const _ = require('underscore');
 
 import {Config, AppConfig, SiteConfig} from "../config";
@@ -20,6 +21,7 @@ import {
   PhantomJsSetupTask,
   MongoSetupTask,
   MongoDumpTask,
+  MongoRestoreTask,
   MongoGetTask,
   StudSetupTask,
   CertbotSetupTask,
@@ -32,7 +34,8 @@ import {
   LogsTask,
   RestartTask,
   StopTask,
-  StartTask
+  StartTask,
+  UploadTask
 } from "../tasks";
 
 
@@ -176,6 +179,22 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     return taskList;
   }
 
+  public mongoRestore(config : Config, localFile : string) {
+    const tasks : Array<Task> = [];
+    if (config.mongo) {
+      tasks.push(new UploadTask(config, localFile, '/tmp/mongo-restore-' + uuid.v4(), true));
+      tasks.push(new StopTask(config));
+      tasks.push(new MongoRestoreTask(config, '/tmp/mongo-restore-' + uuid.v4()));
+      tasks.push(new StartTask(config));
+    } else {
+      console.error("mongo settings is not configured.");
+    }
+    const taskList = this.taskList("MongoDB Restore (linux)");
+    tasks.forEach((t : Task) => {
+      t.build(taskList);
+    });
+    return taskList;
+  }
 
   public mongoDump(config : Config) {
     const tasks : Array<Task> = [];

@@ -2,7 +2,6 @@ import path = require('path');
 import fs = require('fs');
 import {Config, AppConfig, ServerConfig, SiteConfig} from '../config';
 import LinuxTaskBuilder from "../TaskBuilder/LinuxTaskBuilder";
-import {BaseTaskBuilder} from "../TaskBuilder/BaseTaskBuilder";
 import {Deployment} from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors, mergeSummaryMap} from "../SummaryMap";
@@ -43,13 +42,8 @@ export class BaseAction extends EventEmitter {
   /**
   * Return the task builder by operating system name.
   */
-  protected createTaskBuilderByOs(sessionGroup : SessionGroup) : BaseTaskBuilder {
-    switch (sessionGroup.os) {
-      case "linux":
-        return new LinuxTaskBuilder(sessionGroup);
-      default:
-        throw new Error("Unsupported operating system.");
-    }
+  protected createTaskBuilderByOs(sessionGroup : SessionGroup) : LinuxTaskBuilder {
+    return new LinuxTaskBuilder(sessionGroup);
   }
 
   protected getSiteConfig(siteName : string) : SiteConfig {

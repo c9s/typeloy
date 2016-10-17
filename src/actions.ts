@@ -8,3 +8,4 @@ export * from "../src/actions/ReconfigAction";
 export * from "../src/actions/LogsAction";
 export * from "../src/actions/MongoDumpAction";
 export * from "../src/actions/MongoGetAction";
+export * from "../src/actions/MongoRestoreAction";

@@ -28,6 +28,8 @@ export class MongoDumpTask extends SetupTask {
       file = file.replace("%db_name%", dbName);
       file = file.replace("%today%", today);
       opts.file = file;
+    } else {
+      opts.file = "%app_name%_%db_name%_%today%.gz";
     }
     taskList.executeScript(`Dumping mongo database`, {
       "script": path.resolve(SCRIPT_DIR, 'mongo-dump.sh'),
