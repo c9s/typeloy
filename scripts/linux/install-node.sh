@@ -25,7 +25,9 @@ NODE_DIST=node-v${NODE_VERSION}-linux-${NODE_ARCH}
 
 # Note: lib32stdc++-5-dev libx32stdc++6 are included in g++-multilib
 sudo apt-get -y install g++-multilib lib32stdc++6
-sudo apt-get -y install build-essential libssl-dev git curl 
+# python is required to configure node js
+sudo apt-get -y install build-essential libssl-dev git curl python
+
 
 
 cd /tmp
