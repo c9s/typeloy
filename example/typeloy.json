@@ -11,10 +11,6 @@
                 //"pem": "~/.ssh/id_rsa"
             }
         ],
-        "mongo": {
-            "host": "localhost",
-            "port": 27017
-        },
         "ssl": {
             "certbot": {
                 "email": "your@email.com",
@@ -72,11 +68,11 @@
     // before mup checks that, it will wait for no. of seconds configured below
     "checkDelay": 15,
     "exposeSiteName": true,
-    "exposeVersionInfo": true
+    "exposeVersionInfo": true,
 
     // Show a progress bar during the upload of the bundle to the server. 
     // Might cause an error in some rare cases if set to true, for instance in Shippable CI
-    "uploadProgress": true,
+    "uploadProgress": true
   },
 
   // Configure common environment for all sites
