@@ -31,7 +31,7 @@ require('colors');
 
 var prog = require('commander');
 
-const version = '1.7.2';
+const version = '1.7.3';
 const cwd = process.cwd();
 
 prog.version(version);
