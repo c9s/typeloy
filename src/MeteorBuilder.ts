@@ -45,13 +45,18 @@ export class MeteorBuilder extends EventEmitter {
       return Promise.resolve(0);
     });
 
-    buildFinish = buildFinish.then((code : number) => {
-      const npmJsonConfig = pathResolve(appPath,"package.json");
-      if (fs.existsSync(npmJsonConfig)) {
-        return this.installMeteorNpm(appPath, meteorBinary);
-      }
-      return Promise.resolve(0);
-    });
+    const npmJsonConfig = pathResolve(appPath,"package.json");
+
+    if (fs.existsSync(npmJsonConfig)) {
+      // always rebuild npm modules because the binary format might be different.
+      buildFinish = buildFinish.then((code : number) => {
+        return this.meteorCommand(appPath, meteorBinary, ["npm", "rebuild"]);
+      });
+      buildFinish = buildFinish.then((code : number) => {
+        return this.meteorCommand(appPath, meteorBinary, ["npm", "install"]);
+      });
+    }
+
     buildFinish = buildFinish.then((code : number) => {
       return this.buildMeteorApp(appPath, meteorBinary, buildLocation);
     });
@@ -83,8 +88,6 @@ export class MeteorBuilder extends EventEmitter {
     });
   }
 
-
-
   public archiveIt(buildLocation : string, bundlePath : string, gzipOptions : any) : Promise<any> {
     let sourceDir = pathResolve(buildLocation, 'bundle');
     bundlePath = bundlePath || pathResolve(buildLocation, 'bundle.tar.gz');
@@ -115,13 +118,8 @@ export class MeteorBuilder extends EventEmitter {
     });
   }
 
-  protected installMeteorNpm(appPath : string, executable : string) : Promise<number> {
-    let args : Array<string> = [
-      "npm",
-      "install",
-    ];
-    
-    let isWin = /^win/.test(process.platform);
+  protected meteorCommand(appPath : string, executable : string, args : Array<string>) : Promise<number> {
+    const isWin = /^win/.test(process.platform);
     if (isWin) {
       // Sometimes cmd.exe not available in the path
       // See: http://goo.gl/ADmzoD
@@ -132,14 +130,12 @@ export class MeteorBuilder extends EventEmitter {
     let options = {
       "cwd": pathResolve(appPath),
     };
-
     options['env'] = process.env;
     if (this.config.meteor.env) {
       options['env'] = _.extend(options['env'], this.config.meteor.env);
     }
 
-    this.log(`Installing meteor npm packages: ${executable} ${args.join(' ')}`);
-
+    this.log(`Running meteor command: ${executable} ${args.join(' ')}`);
     return new Promise<number>( (resolve, reject) => {
       let meteor = spawn(executable, args, options);
       let stdout = "";
@@ -153,7 +149,6 @@ export class MeteorBuilder extends EventEmitter {
         resolve(code);
       });
     });
-
   }
 
   protected buildMeteorApp(appPath : string, executable : string, buildLocation : string) : Promise<number> {
