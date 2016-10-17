@@ -16,5 +16,8 @@ sudo chown ${USER} -R $DEPLOY_PREFIX/<%= appName %>
 
 sudo npm install -g forever userdown wait-for-mongo node-gyp
 
-# Creating a non-privileged user
-sudo useradd meteoruser || :
+# Creating a non-privileged user with the home directory
+sudo useradd -m meteoruser || :
+sudo mkdir -p /home/meteoruser/files
+sudo mkdir -p /home/meteoruser/logs
+sudo chown -R meteoruser: /home/meteoruser
