@@ -40,3 +40,10 @@ sudo npm install -g forever
 sudo npm install -g wait-for-mongo
 sudo npm install -g node-pre-gyp
 sudo npm install -g node-gyp
+
+if [[ -e /opt/nodejs/lib/node_modules/forever/bin/forever ]] ; then
+    ln -sf /opt/nodejs/lib/node_modules/forever/bin/forever /usr/bin/forever
+fi
+if [[ -e /opt/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo ]] ; then
+    ln -sf /opt/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo /usr/bin/wait-for-mongo
+fi
