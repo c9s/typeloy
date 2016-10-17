@@ -168,6 +168,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   public mongoGet(config : Config, file : string) {
     const tasks : Array<Task> = [];
     if (config.mongo) {
+      tasks.push(new MongoDumpTask(config));
       tasks.push(new MongoGetTask(config, file));
     } else {
       console.error("mongo settings is not configured.");
@@ -182,9 +183,11 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   public mongoRestore(config : Config, localFile : string) {
     const tasks : Array<Task> = [];
     if (config.mongo) {
-      tasks.push(new UploadTask(config, localFile, '/tmp/mongo-restore-' + uuid.v4(), true));
+      // const tmpFile = `/opt/${config.app.name}/tmp/mongo-restore-${uuid.v4()}.gz`;
+      const tmpFile = `/tmp/mongo-restore-${uuid.v4()}.gz`;
+      tasks.push(new UploadTask(config, localFile, tmpFile, true));
       tasks.push(new StopTask(config));
-      tasks.push(new MongoRestoreTask(config, '/tmp/mongo-restore-' + uuid.v4()));
+      tasks.push(new MongoRestoreTask(config, tmpFile));
       tasks.push(new StartTask(config));
     } else {
       console.error("mongo settings is not configured.");

@@ -7,5 +7,6 @@ MONGO_HOST=<%= host %>
 MONGO_PORT=<%= port %>
 DB_NAME="<%= dbName %>"
 ARCHIVE_FILE=<%= file %>
-mongorestore --gzip --archive=$ARCHIVE_FILE --db $APP_NAME --drop
+set -e
+sudo mongorestore --host $MONGO_HOST --port $MONGO_PORT --gzip --archive=$ARCHIVE_FILE --db $APP_NAME --drop
 rm -f $ARCHIVE_FILE

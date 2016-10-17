@@ -14,7 +14,7 @@ DB_NAME="<%= dbName %>"
 <% } else { %>
     ARCHIVE_FILE=${APP_NAME}_${TODAY}.gz
 <% } %>
-
+set -e
 sudo mkdir -p $ARCHIVE_ROOT
 sudo chown ${USER} -R $ARCHIVE_ROOT
 (cd $ARCHIVE_ROOT \
