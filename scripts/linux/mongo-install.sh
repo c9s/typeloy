@@ -8,7 +8,7 @@ sudo rm -f /var/cache/apt/archives/lock > /dev/null
 sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a
 set -e
 
-source /opt/lib/functions.sh
+. /opt/lib/functions.sh
 
 # to read Ubuntu distrib ID vars
 # DISTRIB_ID=Ubuntu

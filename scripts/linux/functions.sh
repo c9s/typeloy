@@ -17,14 +17,18 @@ is_upstart()
 # /bin/systemctl
 service_enable()
 {
+    local name=$1
     if [[ $UPSTART == 0 ]] ; then
+        echo "sudo systemctl enable ${name}.service"
         sudo systemctl enable ${name}.service
     fi
 }
 
 service_disable()
 {
+    local name=$1
     if [[ $UPSTART == 0 ]] ; then
+        echo "sudo systemctl disable ${name}.service"
         sudo systemctl disable ${name}.service
     fi
 }
@@ -32,6 +36,7 @@ service_disable()
 service_reload()
 {
     if [[ $UPSTART == 0 ]] ; then
+        echo "sudo systemctl daemon-reload"
         sudo systemctl daemon-reload
     fi
 }
