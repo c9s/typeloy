@@ -26,11 +26,14 @@ function parseGitRepo(cwd:string) : GitRevInfo {
   } as GitRevInfo;
 }
 
+/**
+ * Dir: absolute path for the app dir
+ */
 function findGitWorkingRootDir(dir : string) : string {
   let abspath = path.resolve(dir);
-  let parts = abspath.split(path.delimiter);
+  let parts = abspath.split(path.sep);
   while (parts.length > 1) {
-    let dir = path.join.apply(path.join, parts);
+    let dir = parts.join(path.sep);
     let gitDir = path.join(dir, ".git", "HEAD");
     if (fs.existsSync(gitDir)) {
       return dir;
