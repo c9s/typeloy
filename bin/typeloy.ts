@@ -41,6 +41,35 @@ prog.option('-c, --config <file>', 'config file');
 
 
 
+prog.command('get-login [site]')
+  .description('get the command of ssh login')
+  .action((site : string, options) => {
+    let config = readConfig(prog.config);
+    let siteConfig = config.sites[site];
+    if (!siteConfig) {
+        console.error(`${site} config not found.`);
+        return;
+    }
+    let cmds = _.map(siteConfig.servers, (server) => {
+        let cmd = ["ssh"];
+        if (server.pem) {
+            cmd.push('-i');
+            cmd.push(server.pem);
+        } else if (server.password) {
+            // sshpass -p your_password
+            cmd.unshift("sshpass", "-p", server.password);
+        }
+        if (server.sshOptions) {
+            if (server.sshOptions.port) {
+                cmd.push('-p');
+                cmd.push(server.sshOptions.port);
+            }
+        }
+        cmd.push(`${server.username}@${server.host}`);
+        console.log(cmd.join(' '));
+    });
+  })
+  ;
 
 
 prog.command('deploy [sites...]')
