@@ -18,6 +18,6 @@ DB_NAME="<%= dbName %>"
 sudo mkdir -p $ARCHIVE_ROOT
 sudo chown ${USER} -R $ARCHIVE_ROOT
 (cd $ARCHIVE_ROOT \
-  && mongodump -h $MONGO_HOST -p $MONGO_PORT  --archive=$ARCHIVE_FILE --gzip --db $DB_NAME \
+  && sudo mongodump --host $MONGO_HOST --port $MONGO_PORT  --archive=$ARCHIVE_FILE --gzip --db $DB_NAME \
   && rm -f $LATEST_ARCHIVE_FILE \
   && ln -s $ARCHIVE_FILE $LATEST_ARCHIVE_FILE )
