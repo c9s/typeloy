@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 
-export class AptGetUpdateTask extends Task {
+export class PkgUpdateTask extends Task {
   public describe() : string {
     return 'Updating package index';
   }

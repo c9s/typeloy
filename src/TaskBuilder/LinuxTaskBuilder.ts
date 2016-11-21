@@ -14,7 +14,7 @@ import {BaseTaskBuilder} from "./BaseTaskBuilder";
 import {
   Task,
   SetupTask,
-  AptGetUpdateTask,
+  PkgUpdateTask,
   NodeJsSetupTask,
   MeteorEnvSetupTask,
   PhantomJsSetupTask,
@@ -48,7 +48,7 @@ class SetupTaskListBuilder {
 
   public definitions(config : Config) {
     const defs =  {
-      "updatePackages": new AptGetUpdateTask(config),
+      "updatePackages": new PkgUpdateTask(config),
       "node": new NodeJsSetupTask(config),
       "phantom": new PhantomJsSetupTask(config),
       "environment": new MeteorEnvSetupTask(config),
