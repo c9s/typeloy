@@ -1,6 +1,6 @@
-
-
 import {ServerConfig} from "./config";
+
+
 /*
 Session {
   _host: '...',
@@ -53,3 +53,17 @@ export interface Session {
    */
   close()
 }
+
+type SessionCallback = (err, code, logs) => void;
+
+interface SessionResult {
+  err : any;
+  code : any;
+  logs : any;
+}
+
+export function executeScript(session : Session, script : string, vars : Object, cb? : SessionCallback) : Promise<SessionResult> {
+  // XXX: fix me
+  return Promise.resolve( {} as SessionResult );
+}
+
