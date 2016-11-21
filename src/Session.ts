@@ -77,6 +77,13 @@ function wrapSessionCallbackPromise(resolve, callback? : SessionCallback) : Sess
 }
 
 
+// session.copy(localFile, remoteFileLocation, options, callback)
+export function copy(session : Session, localFile : string, remoteFile : string, options : Object, callback? : SessionCallback) : Promise<SessionResult> {
+  return new Promise<SessionResult>(resolve => {
+    session.copy(localFile, remoteFile, options, wrapSessionCallbackPromise(callback));
+  });
+}
+
 export function execute(session : Session, shellCommand : string, options : Object, callback ?: SessionCallback) : Promise<SessionResult> {
   return new Promise<SessionResult>(resolve => {
     session.execute(shellCommand, options, wrapSessionCallbackPromise(resolve, callback));
