@@ -11,7 +11,7 @@ export class AptGetUpdateTask extends Task {
 
   public build(taskList) {
     taskList.executeScript(this.describe(), {
-      script: path.resolve(SCRIPT_DIR, 'apt-update.sh'), vars: { }
+      script: path.resolve(SCRIPT_DIR, 'update.sh'), vars: { }
     });
   }
 }

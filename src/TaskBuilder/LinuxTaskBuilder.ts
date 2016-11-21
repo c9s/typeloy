@@ -12,7 +12,6 @@ const DEPLOY_PREFIX = "/opt";
 import {BaseTaskBuilder} from "./BaseTaskBuilder";
 
 import {
-  SCRIPT_DIR, TEMPLATES_DIR,
   Task,
   SetupTask,
   AptGetUpdateTask,

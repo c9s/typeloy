@@ -39,4 +39,5 @@ export abstract class Task {
   public abstract describe();
 
   public abstract build(taskList);
+
 }
