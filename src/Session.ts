@@ -38,6 +38,8 @@ export interface Session {
    */
   copy(src, dest, options, callback?)
 
+  download(src, dest, options, callback?)
+
   /**
    * execute shell command on remote server
    */
@@ -47,6 +49,7 @@ export interface Session {
    * execute script on remote server
    */
   executeScript(scriptFile, options, callback?)
+
 
   /**
    * close the connection.
@@ -67,6 +70,15 @@ export interface SessionResult {
   logs : SessionResultLogs;
 }
 
+export interface SessionDownloadOptions {
+  progressBar? : boolean;
+}
+
+export interface SessionCopyOptions {
+  progressBar? : boolean;
+  vars? : any;
+}
+
 function wrapSessionCallbackPromise(resolve, callback? : SessionCallback) : SessionCallback {
   return (err, code, logs) => {
     if (callback) {
@@ -77,8 +89,13 @@ function wrapSessionCallbackPromise(resolve, callback? : SessionCallback) : Sess
 }
 
 
-// session.copy(localFile, remoteFileLocation, options, callback)
-export function copy(session : Session, localFile : string, remoteFile : string, options : Object, callback? : SessionCallback) : Promise<SessionResult> {
+export function download(session : Session, remoteFile : string, localFile : string, options : SessionDownloadOptions, callback? : SessionCallback) : Promise<SessionResult> {
+  return new Promise<SessionResult>(resolve => {
+    session.download(remoteFile, localFile, options, wrapSessionCallbackPromise(callback));
+  });
+}
+
+export function copy(session : Session, localFile : string, remoteFile : string, options : SessionCopyOptions, callback? : SessionCallback) : Promise<SessionResult> {
   return new Promise<SessionResult>(resolve => {
     session.copy(localFile, remoteFile, options, wrapSessionCallbackPromise(callback));
   });
