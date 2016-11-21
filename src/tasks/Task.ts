@@ -4,8 +4,8 @@ import {Session, SessionResult, executeScript, sync} from "../Session";
 const path = require('path');
 const _ = require('underscore');
 
-export const SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/linux');
-export const TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/linux');
+export const SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/ubuntu');
+export const TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/ubuntu');
 
 export abstract class Task {
 
