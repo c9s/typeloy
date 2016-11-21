@@ -154,7 +154,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   };
 
   public reconfig(env, config : Config) {
-    const taskList = this.taskList("Reconfiguring Application (linux)");
+    const taskList = this.taskList("Reconfiguring Application");
     const tasks : Array<Task> = [];
     tasks.push(new EnvVarsTask(config, env));
     tasks.push(new RestartTask(config));
@@ -173,7 +173,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     } else {
       console.error("mongo settings is not configured.");
     }
-    const taskList = this.taskList("MongoDB Get (linux)");
+    const taskList = this.taskList("MongoDB Get");
     tasks.forEach((t : Task) => {
       t.build(taskList);
     });
@@ -192,7 +192,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     } else {
       console.error("mongo settings is not configured.");
     }
-    const taskList = this.taskList("MongoDB Restore (linux)");
+    const taskList = this.taskList("MongoDB Restore");
     tasks.forEach((t : Task) => {
       t.build(taskList);
     });
@@ -206,7 +206,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     } else {
       console.error("mongo settings is not configured.");
     }
-    const taskList = this.taskList("MongoDB Dump (linux)");
+    const taskList = this.taskList("MongoDB Dump");
     tasks.forEach((t : Task) => {
       t.build(taskList);
     });
@@ -216,7 +216,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   public restart(config : Config) {
     const tasks : Array<Task> = [];
     tasks.push(new RestartTask(config));
-    const taskList = this.taskList("Restarting Application (linux)");
+    const taskList = this.taskList("Restarting Application");
     tasks.forEach((t : Task) => {
       t.build(taskList);
     });
@@ -226,7 +226,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   public logs(config : Config, hostPrefix : string, logOptions : any) {
     const tasks : Array<Task> = [];
     tasks.push(new LogsTask(config, hostPrefix, logOptions));
-    const taskList = this.taskList("Getting Application Log (linux)");
+    const taskList = this.taskList("Getting Application Log");
     tasks.forEach((t : Task) => {
       t.build(taskList);
     });
@@ -234,7 +234,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   }
 
   public stop(config : Config) {
-    let taskList = this.taskList("Stopping Application (linux)");
+    let taskList = this.taskList("Stopping Application");
     const tasks : Array<Task> = [];
     tasks.push(new StopTask(config));
     tasks.forEach((t : Task) => {
@@ -244,7 +244,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   }
 
   public start(config : Config) {
-    let taskList = this.taskList("Starting Application (linux)");
+    let taskList = this.taskList("Starting Application");
     const tasks : Array<Task> = [];
     tasks.push(new StartTask(config));
     tasks.forEach((t : Task) => {

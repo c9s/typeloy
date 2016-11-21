@@ -20,7 +20,7 @@ Session {
       { ROOT_URL: 'http://site.com',
         CLUSTER_ENDPOINT_URL: 'http://111.222.11.22:80' },
      sshOptions: { agent: '/tmp/ssh-RcgKVIGk8tfL/agent.4345' },
-     os: 'linux' } }
+     os: 'ubuntu' } }
 */
 export interface Session {
 
