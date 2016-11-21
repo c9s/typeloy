@@ -1,5 +1,7 @@
 import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {SetupTask} from "./SetupTask";
+import {Session, SessionResult, executeScript, run, sync} from "../Session";
+
 
 const moment = require('moment');
 

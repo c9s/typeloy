@@ -1,4 +1,6 @@
 import {Config, AppConfig} from "../config";
+import {Session, SessionResult, executeScript, run, sync} from "../Session";
+
 
 const path = require('path');
 const _ = require('underscore');
