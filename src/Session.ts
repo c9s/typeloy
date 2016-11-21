@@ -54,16 +54,41 @@ export interface Session {
   close()
 }
 
-type SessionCallback = (err, code, logs) => void;
+export type SessionCallback = (err, code, logs) => void;
 
-interface SessionResult {
+export interface SessionResultLogs {
+  stdout : string;
+  stderr : string;
+}
+
+export interface SessionResult {
   err : any;
-  code : any;
-  logs : any;
+  code : number;
+  logs : SessionResultLogs;
 }
 
-export function executeScript(session : Session, script : string, vars : Object, cb? : SessionCallback) : Promise<SessionResult> {
-  // XXX: fix me
-  return Promise.resolve( {} as SessionResult );
+function wrapSessionCallbackPromise(resolve, callback? : SessionCallback) : SessionCallback {
+  return (err, code, logs) => {
+    if (callback) {
+      callback.call(this, err, code, logs);
+    }
+    resolve({ err, code, logs });
+  };
 }
 
+
+export function execute(session : Session, shellCommand : string, options : Object, callback ?: SessionCallback) : Promise<SessionResult> {
+  return new Promise<SessionResult>(resolve => {
+    session.execute(shellCommand, options, wrapSessionCallbackPromise(resolve, callback));
+  });
+}
+
+
+/**
+ * A promise compliant wrapper for executeScript method.
+ */
+export function executeScript(session : Session, script : string, vars : Object, callback? : SessionCallback) : Promise<SessionResult> {
+  return new Promise<SessionResult>(resolve => {
+    session.executeScript(script, { 'vars': vars }, wrapSessionCallbackPromise(resolve, callback));
+  });
+}
