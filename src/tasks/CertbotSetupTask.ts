@@ -1,6 +1,7 @@
 import {SCRIPT_DIR, TEMPLATES_DIR, Task} from "./Task";
 import {SetupTask} from "./SetupTask";
 import {Config} from "../config";
+import {Session, SessionResult, executeScript, run, sync} from "../Session";
 
 const fs = require('fs');
 const path = require('path');
@@ -25,20 +26,29 @@ export class CertbotRenewTask extends CertbotBaseTask {
     return 'Renewing SSL with Certbot';
   }
 
+  public run(session : Session) : Promise<SessionResult> {
+    const args = this.extendArgs({
+      'email':  this.email,
+      'domain': this.domain,
+    });
+    return sync(
+      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot-renew.sh'), args),
+      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot-genssl.sh'), args)
+    );
+  }
+
   public build(taskList) {
+    const args = this.extendArgs({
+      'email':  this.email,
+      'domain': this.domain,
+    });
     taskList.executeScript('Renewing ssl keys', {
       'script': path.resolve(SCRIPT_DIR, 'certbot-renew.sh'),
-      'vars': this.extendArgs({
-        'email': this.email,
-        'domain': this.domain,
-      })
+      'vars': args,
     });
     taskList.executeScript('Updating pem key file', {
       'script': path.resolve(SCRIPT_DIR, 'certbot-genssl.sh'),
-      'vars': this.extendArgs({
-        'email': this.email,
-        'domain': this.domain,
-      })
+      'vars': args,
     });
   }
 }

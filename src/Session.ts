@@ -80,11 +80,11 @@ export interface SessionCopyOptions {
 }
 
 function wrapSessionCallbackPromise(resolve, callback? : SessionCallback) : SessionCallback {
-  return (err, code, logs) => {
+  return (err, code, logs : SessionResultLogs) : void => {
     if (callback) {
       callback.call(this, err, code, logs);
     }
-    resolve({ err, code, logs });
+    resolve({ err, code, logs } as SessionResult);
   };
 }
 
@@ -105,6 +105,19 @@ export function execute(session : Session, shellCommand : string, options : Obje
   return new Promise<SessionResult>(resolve => {
     session.execute(shellCommand, options, wrapSessionCallbackPromise(resolve, callback));
   });
+}
+
+// a simple helper that catch thenable result to promise
+export function run(t : Promise<SessionResult>) {
+  return (s : SessionResult) => { return t };
+}
+
+export function sync(...tasks : Array<Promise<SessionResult>>) : Promise<SessionResult> {
+  let t = Promise.resolve()
+  for (let i = 0; i < tasks.length ; i++) {
+    t = t.then(run(tasks[i]));
+  }
+  return t;
 }
 
 
