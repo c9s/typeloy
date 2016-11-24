@@ -13,6 +13,13 @@ export class StopTask extends Task {
     return `Stop ${this.config.app.name}`;
   }
 
+  public run(session : Session) : Promise<SessionResult> {
+    return executeScript(session,
+      path.resolve(TEMPLATES_DIR, 'service/stop'), {
+        'vars': this.extendArgs({ })
+      });
+  }
+
   public build(taskList) {
     taskList.executeScript(this.describe(), {
       'script': path.resolve(TEMPLATES_DIR, 'service/stop'),

@@ -2,7 +2,7 @@ import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {SetupTask} from "./SetupTask";
 import {Task} from "./Task";
 import {Config, AppConfig} from "../config";
-import {Session, SessionResult, executeScript, run, sync} from "../Session";
+import {Session, SessionResult, run, copy, sync} from "../Session";
 
 
 const fs = require('fs');
@@ -41,6 +41,11 @@ export class EnvVarsTask extends Task {
     return bashenv;
   }
 
+  public run(session : Session) : Promise<SessionResult> {
+    const bashenv = this.buildEnvDict();
+    return copy(session, path.resolve(TEMPLATES_DIR, 'env-vars'), this.appRoot + '/config/env-vars', this.extendArgs({ 'env': bashenv }));
+  }
+
   public build(taskList) {
     const bashenv = this.buildEnvDict();
     taskList.copy(this.describe(), {
@@ -61,6 +66,13 @@ export class BashEnvVarsTask extends EnvVarsTask {
     return 'Setting up environment variable file for bash';
   }
 
+  public run(session : Session) : Promise<SessionResult> {
+    const bashenv = this.buildEnvDict();
+    return copy(session, path.resolve(TEMPLATES_DIR, 'env.sh'),
+                this.appRoot + '/config/env.sh',
+                this.extendArgs({ 'env': bashenv }));
+  }
+  
   public build(taskList) {
     let bashenv = this.buildEnvDict();
     taskList.copy(this.describe(), {

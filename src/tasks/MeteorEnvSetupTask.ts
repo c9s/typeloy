@@ -12,6 +12,10 @@ export class MeteorEnvSetupTask extends SetupTask {
     return 'Setting up environment for meteor application';
   }
 
+  public run(session : Session) : Promise<SessionResult> {
+    return executeScript(session, path.resolve(SCRIPT_DIR, 'setup-env.sh'), { vars: this.extendArgs({}) });
+  }
+
   public build(taskList) {
     taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'setup-env.sh'),

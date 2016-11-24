@@ -112,7 +112,10 @@ export function run(t : Promise<SessionResult>) {
   return (s : SessionResult) => { return t };
 }
 
-export function sync(...tasks : Array<Promise<SessionResult>>) : Promise<SessionResult> {
+/**
+ * sync an array of promise
+ */
+function syncPromises(tasks : Array<Promise<SessionResult>>) : Promise<SessionResult> {
   let t = Promise.resolve()
   for (let i = 0; i < tasks.length ; i++) {
     t = t.then(run(tasks[i]));
@@ -120,12 +123,18 @@ export function sync(...tasks : Array<Promise<SessionResult>>) : Promise<Session
   return t;
 }
 
+export function sync(...tasks : Array<Promise<SessionResult>>) : Promise<SessionResult> {
+  if (tasks[0] instanceof Array) {
+    return syncPromises(tasks[0]);
+  }
+  return syncPromises(tasks);
+}
 
 /**
  * A promise compliant wrapper for executeScript method.
  */
-export function executeScript(session : Session, script : string, vars : Object, callback? : SessionCallback) : Promise<SessionResult> {
+export function executeScript(session : Session, script : string, options? : Object, callback? : SessionCallback) : Promise<SessionResult> {
   return new Promise<SessionResult>(resolve => {
-    session.executeScript(script, { 'vars': vars }, wrapSessionCallbackPromise(resolve, callback));
+    session.executeScript(script, options || {}, wrapSessionCallbackPromise(resolve, callback));
   });
 }

@@ -13,6 +13,13 @@ export class StartTask extends Task {
     return `Start ${this.config.app.name}`;
   }
 
+  public run(session : Session) : Promise<SessionResult> {
+    return executeScript(session,
+      path.resolve(TEMPLATES_DIR, 'service/start'), {
+        'vars': this.extendArgs({ })
+      });
+  }
+
   public build(taskList) {
     taskList.executeScript(this.describe(), {
       'script': path.resolve(TEMPLATES_DIR, 'service/start'),

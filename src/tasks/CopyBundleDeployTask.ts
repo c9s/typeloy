@@ -1,7 +1,7 @@
 import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {DeployTask} from "./DeployTask";
 import {Config} from "../config";
-import {Session, SessionResult, executeScript, run, sync} from "../Session";
+import {Session, SessionResult, run, sync, copy} from "../Session";
 
 
 const fs = require('fs');
@@ -19,6 +19,15 @@ export class CopyBundleDeployTask extends DeployTask {
 
   public describe() : string {
     return 'Uploading bundle: ' + this.bundlePath;
+  }
+
+  public run(session : Session) : Promise<SessionResult> {
+    const appName = this.config.app.name;
+    const remoteBundlePath = this.deployPrefix + '/' + appName + '/tmp/bundle.tar.gz'
+    console.log("Transfering " + this.bundlePath + ' => ' + remoteBundlePath);
+    return copy(session, this.bundlePath,
+         this.deployPrefix + '/' + appName + '/tmp/bundle.tar.gz',
+         { progressBar: this.config.deploy.uploadProgress });
   }
 
   public build(taskList) {

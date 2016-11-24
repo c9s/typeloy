@@ -18,6 +18,13 @@ export class NodeJsSetupTask extends SetupTask {
     return this.config.setup.node || '0.10.44';
   }
 
+  public run(session : Session) : Promise<SessionResult> {
+    return executeScript(session, path.resolve(SCRIPT_DIR, 'install-node.sh'), {
+      nodeVersion: this.getNodeVersion(),
+      deployPrefix: this.deployPrefix
+    });
+  }
+
   public build(taskList) {
     taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'install-node.sh'),
