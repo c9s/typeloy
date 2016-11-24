@@ -10,6 +10,10 @@ export class AptGetUpdateTask extends Task {
     return 'Updating package index';
   }
 
+  public run(session : Session) : Promise<SessionResult> {
+    return executeScript(session, path.resolve(SCRIPT_DIR, 'apt-update.sh'));
+  }
+
   public build(taskList) {
     taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'apt-update.sh'), vars: { }

@@ -1,7 +1,7 @@
 import {SCRIPT_DIR, TEMPLATES_DIR, Task} from "./Task";
 import {SetupTask} from "./SetupTask";
 import {Config} from "../config";
-import {Session, SessionResult, executeScript, run, sync} from "../Session";
+import {Session, SessionResult, executeScript, run, sync, copy} from "../Session";
 
 
 const fs = require('fs');
@@ -26,6 +26,16 @@ export class StudSetupTask extends SetupTask {
     this.configureStud(taskList, this.sslConfig.pem, this.sslConfig.backendPort);
   }
 
+  public run(session : Session) : Promise<SessionResult> {
+    const vars = this.extendArgs({});
+    // TODO
+    return sync(
+      executeScript(session, path.resolve(SCRIPT_DIR, 'stud-install.sh'), { vars }),
+      copy(session, path.resolve(TEMPLATES_DIR, 'stud.init.conf'), '/etc/init/stud.conf', { vars }),
+      copy(session, path.resolve(TEMPLATES_DIR, 'stud.service'), '/etc/systemd/system/stud.service', { vars }),
+    );
+  }
+
   public installStud(taskList) {
     taskList.executeScript('Installing Stud', {
       script: path.resolve(SCRIPT_DIR, 'stud-install.sh')
@@ -37,7 +47,8 @@ export class StudSetupTask extends SetupTask {
 
     taskList.copy('Creating upstart service entry', {
       src: path.resolve(TEMPLATES_DIR, 'stud.init.conf'),
-      dest: '/etc/init/stud.conf'
+      dest: '/etc/init/stud.conf',
+      vars: this.extendArgs({ })
     });
 
     taskList.copy('Creating systemd service entry', {

@@ -23,8 +23,37 @@ export class LogsTask extends Task {
     return `Log ${this.config.app.name}`;
   }
 
-  public build(taskList) {
+  public run(session : Session) : Promise<SessionResult> {
+    let onStdout = this.logOptions.onStdout;
+    if (!onStdout) {
+      onStdout = (hostPrefix : string, data) => {
+        process.stdout.write(hostPrefix + data.toString());
+      };
+    }
 
+    let onStderr = this.logOptions.onStderr;
+    if (!onStderr) {
+      onStderr = (hostPrefix : string, data) => {
+        process.stderr.write(hostPrefix + data.toString());
+      };
+    }
+
+    return executeScript(session, 
+      path.resolve(TEMPLATES_DIR, 'service/logs'),
+      {
+        "vars": this.extendArgs({
+          "logOptions": this.logOptions.tail ? "-f" : ""
+        }),
+        "onStdout": () => {
+          return (data) => onStdout(this.hostPrefix, data);
+        },
+        "onStderr": () => {
+          return (data) => onStderr(this.hostPrefix, data);
+        }
+      });
+  }
+
+  public build(taskList) {
     let onStdout = this.logOptions.onStdout;
 
     if (!onStdout) {

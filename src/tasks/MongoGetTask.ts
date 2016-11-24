@@ -1,6 +1,6 @@
 import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {SetupTask} from "./SetupTask";
-import {Session, SessionResult, executeScript, run, sync} from "../Session";
+import {Session, SessionResult, executeScript, download, sync} from "../Session";
 
 
 const fs = require('fs');
@@ -18,6 +18,14 @@ export class MongoGetTask extends SetupTask {
 
   public describe() : string {
     return 'Get latest mongo archive';
+  }
+
+  public run(session : Session) : Promise<SessionResult> {
+    return download(session, 
+      this.deployPrefix + '/db/archive/latest',
+      this.filename, {
+        "progressBar": true
+      });
   }
 
   public build(taskList) {

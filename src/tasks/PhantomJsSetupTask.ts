@@ -12,11 +12,14 @@ export class PhantomJsSetupTask extends SetupTask {
   public describe() : string {
     return 'Installing PhantomJS';
   }
+
+  public run(session : Session) : Promise<SessionResult> {
+    return executeScript(session, path.resolve(SCRIPT_DIR, 'install-phantomjs.sh'));
+  }
   
   public build(taskList) {
     taskList.executeScript(this.describe(), {
       script: path.resolve(SCRIPT_DIR, 'install-phantomjs.sh')
     });
   }
-
 }
