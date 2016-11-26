@@ -1,8 +1,7 @@
 import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {SetupTask} from "./SetupTask";
 import {Config, AppConfig} from "../config";
-import {Session, SessionResult, executeScript, run, sync} from "../Session";
-
+import {Session, SessionResult, executeScript, run, copy, sync} from "../Session";
 
 const fs = require('fs');
 const path = require('path');
@@ -22,8 +21,17 @@ export class UpstartSetupTask extends SetupTask {
     return (<AppConfig>this.config.app).name;
   }
 
+  public run(session : Session) : Promise<SessionResult> {
+    const upstartConfig = this.getUpstartConfigPath();
+    return copy(session,
+                path.resolve(TEMPLATES_DIR, 'meteor/upstart.conf'),
+                upstartConfig, {
+                  vars: this.extendArgs({ })
+                });
+  }
+
   public build(taskList) {
-    var upstartConfig : string = this.getUpstartConfigPath();
+    const upstartConfig = this.getUpstartConfigPath();
     taskList.copy(this.describe(), {
       src: path.resolve(TEMPLATES_DIR, 'meteor/upstart.conf'),
       dest: upstartConfig,
