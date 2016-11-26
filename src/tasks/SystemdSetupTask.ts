@@ -3,9 +3,9 @@ import {SetupTask} from "./SetupTask";
 import {Config, AppConfig} from "../config";
 import {Session, SessionResult, executeScript, run, copy} from "../Session";
 
+import fs from 'fs';
+import path from 'path';
 
-const fs = require('fs');
-const path = require('path');
 const util = require('util');
 
 export class SystemdSetupTask extends SetupTask {
