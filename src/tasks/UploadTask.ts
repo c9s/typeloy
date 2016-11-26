@@ -1,7 +1,7 @@
 import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {DeployTask} from "./DeployTask";
 import {Config} from "../config";
-import {Session, SessionResult, executeScript, run, sync} from "../Session";
+import {Session, SessionResult, executeScript, run, copy} from "../Session";
 
 
 const fs = require('fs');
@@ -25,6 +25,15 @@ export class UploadTask extends DeployTask {
 
   public describe() : string {
     return 'Uploading  ' + this.srcPath + ' to ' + this.destPath;
+  }
+
+  public run(session : Session) : Promise<SessionResult> {
+    return copy(session,
+      this.srcPath,
+      this.destPath, {
+        'progressBar': this.progress,
+        'vars': this.extendArgs({ })
+      });
   }
 
   public build(taskList) {
