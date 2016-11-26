@@ -59,6 +59,17 @@ export class CertbotSetupTask extends CertbotBaseTask {
     return 'Setting up certbot';
   }
 
+  public run(session : Session) : Promise<SessionResult> {
+    const options = { 'vars': this.extendArgs({
+      'email':  this.email,
+      'domain': this.domain,
+    }) };
+    return sync(
+      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot-install.sh'), options),
+      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot-genssl.sh'), options)
+    );
+  }
+
   public build(taskList) {
     taskList.executeScript('Installing certbot', {
       'script': path.resolve(SCRIPT_DIR, 'certbot-install.sh'),

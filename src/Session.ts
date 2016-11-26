@@ -123,11 +123,11 @@ function syncPromises(tasks : Array<Promise<SessionResult>>) : Promise<SessionRe
   return t;
 }
 
-export function sync(...tasks : Array<Promise<SessionResult>>) : Promise<SessionResult> {
+export function sync(...tasks : Array<any>) : Promise<SessionResult> {
   if (tasks[0] instanceof Array) {
-    return syncPromises(tasks[0]);
+    return syncPromises(tasks[0] as Array<Promise<SessionResult>>);
   }
-  return syncPromises(tasks);
+  return syncPromises(tasks as Array<Promise<SessionResult>>);
 }
 
 /**
