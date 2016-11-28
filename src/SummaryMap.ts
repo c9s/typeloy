@@ -1,4 +1,3 @@
-
 const _ = require('underscore');
 
 export interface SummaryMap {
@@ -12,9 +11,12 @@ export interface SummaryMapResult {
 }
 
 export interface SummaryMapHistory {
-  "task" : string;
-  "status" : string; // SUCCESS or FAILED
-  "error" : string;
+  "task"? : any;
+  "error" : any;
+  "status"? : any; // SUCCESS or FAILED
+
+  "code"? : any;
+  "context"? : any;
 }
 
 export function mergeSummaryMap(summaryMaps) : SummaryMap {

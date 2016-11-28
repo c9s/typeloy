@@ -1,7 +1,7 @@
 import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {SetupTask} from "./SetupTask";
 import {Config, AppConfig} from "../config";
-import {Session, SessionResult, executeScript, run, copy, sync} from "../Session";
+import {Session, SessionResult, executeScript, copy, sync} from "../Session";
 
 const fs = require('fs');
 const path = require('path');

@@ -1,7 +1,7 @@
 import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {SetupTask} from "./SetupTask";
 import {Config, AppConfig} from "../config";
-import {Session, SessionResult, executeScript, run, copy} from "../Session";
+import {Session, SessionResult, executeScript, copy} from "../Session";
 
 import fs from 'fs';
 import path from 'path';

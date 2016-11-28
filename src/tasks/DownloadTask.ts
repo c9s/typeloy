@@ -1,7 +1,7 @@
 import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {DeployTask} from "./DeployTask";
 import {Config} from "../config";
-import {Session, SessionResult, run, download} from "../Session";
+import {Session, SessionResult, download} from "../Session";
 
 
 const fs = require('fs');

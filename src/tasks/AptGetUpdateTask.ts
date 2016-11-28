@@ -1,5 +1,5 @@
 import {SCRIPT_DIR, TEMPLATES_DIR, Task} from "./Task";
-import {Session, SessionResult, executeScript, run, sync} from "../Session";
+import {Session, SessionResult, executeScript, sync} from "../Session";
 
 const fs = require('fs');
 const path = require('path');

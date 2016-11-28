@@ -15,6 +15,7 @@
     "colors": "0.6.x",
     "commander": "^2.9.0",
     "debug": "^2.2.0",
+    "ejs": "^2.5.2",
     "es6-promise": "^3.2.1",
     "moment": "^2.15.1",
     "node-slack": "0.0.7",

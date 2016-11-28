@@ -1,5 +1,11 @@
 import {ServerConfig} from "./config";
+import {SummaryMap, SummaryMapResult, SummaryMapHistory} from "./SummaryMap";
+import {Task} from "./tasks";
 
+const ejs = require('ejs');
+const fs = require('fs');
+
+const _ = require('underscore');
 
 /*
 Session {
@@ -57,17 +63,24 @@ export interface Session {
   close()
 }
 
-export type SessionCallback = (err, code, logs) => void;
+export type SessionCallback = (err, code, context) => void;
 
-export interface SessionResultLogs {
+export interface SessionResultContext {
   stdout : string;
   stderr : string;
 }
 
 export interface SessionResult {
-  err : any;
-  code : number;
-  logs : SessionResultLogs;
+  error : boolean;
+
+  status? : string;
+  task? : string;
+
+  code? : number;
+  context? : SessionResultContext;
+
+  // variables from task
+  vars? : any;
 }
 
 export interface SessionDownloadOptions {
@@ -79,46 +92,150 @@ export interface SessionCopyOptions {
   vars? : any;
 }
 
-function wrapSessionCallbackPromise(resolve, callback? : SessionCallback) : SessionCallback {
-  return (err, code, logs : SessionResultLogs) : void => {
-    if (callback) {
-      callback.call(this, err, code, logs);
+
+export class SessionRunner {
+
+  protected summaryMap : SummaryMap;
+
+  constructor() {
+    this.summaryMap = {};
+  }
+
+  protected pushResult(session : Session, result : SessionResult, extend = null) {
+    if (typeof this.summaryMap[session._host] === "undefined") {
+      this.summaryMap[session._host] = { "error": false, "history": [] };
     }
-    resolve({ err, code, logs } as SessionResult);
+    if (result.error) {
+      result.status = "FAILED";
+    } else {
+      result.status = "SUCCESS";
+    }
+    if (extend) {
+      result = _.extend(result, extend);
+    }
+    this.summaryMap[session._host].history.push(result);
+  }
+
+  public execute(session : Session, tasks : Array<any>, input : any) : Promise<SummaryMap> {
+    let done = Promise.resolve(input);
+    _.each(tasks, (t) => {
+        if (t instanceof Array) {
+            done = done.then(i => {
+                const all = _.map(t, (subt : Task) => subt.input(i).run(session).then((result : SessionResult) => {
+                  this.pushResult(session, result);
+                }));
+                return Promise.all(all);
+            });
+        } else {
+            done = done.then(i => {
+              return t.input(i).run(session);
+            }).then((result : SessionResult) => {
+              this.pushResult(session, result, { "task": t.describe() });
+              return Promise.resolve(result);
+            });
+        }
+    });
+    return done;
+  }
+
+}
+
+
+/**
+ * A private helper function that collects callback results into a summary map.
+ */
+function wrapSessionCallbackPromise(session : Session, resolve, callback? : SessionCallback, vars? : any) : SessionCallback {
+  // the parent caller
+  // callback(null, context.code, context);
+  return (err, code, context : SessionResultContext) : void => {
+    if (callback) {
+      callback.call(this, err, code, context);
+    }
+    resolve({
+      error: err,
+      code,
+      context,
+      vars
+    } as SessionResult);
   };
+}
+
+
+/*
+Helper function for returning result
+
+
+
+Return result directly:
+
+  import {result} from "./Session";
+
+  public run(session : Session) : Promise<SessionResult> {
+    return result(false, { filename: '...' });
+  }
+
+Return result inside another Promise:
+
+  import {result} from "./Session";
+
+  public run(session : Session) : Promise<SessionResult> {
+    return new Promise<SessionResult>((input)=> {
+      // do something
+      return result(false, { filename: '...' });
+    });
+  }
+
+Return result with Session tasks
+
+  import {result} from "./Session";
+
+  public run(session : Session) : Promise<SessionResult> {
+    const destFile = ......;
+    const download = download(session, srcFile, destFile);
+    return download.then(input => result(false, destFile));
+  }
+
+ */
+export function result(error : boolean, vars, input = null) : Promise<SessionResult> {
+  let res = { error, vars };
+  if (input) {
+    res = _.extend(input, res);
+  }
+  return Promise.resolve(res);
 }
 
 
 export function download(session : Session, remoteFile : string, localFile : string, options : SessionDownloadOptions, callback? : SessionCallback) : Promise<SessionResult> {
   return new Promise<SessionResult>(resolve => {
-    session.download(remoteFile, localFile, options, wrapSessionCallbackPromise(callback));
+    session.download(remoteFile, localFile, options, wrapSessionCallbackPromise(session, resolve, callback));
   });
 }
 
 export function copy(session : Session, localFile : string, remoteFile : string, options : SessionCopyOptions, callback? : SessionCallback) : Promise<SessionResult> {
   return new Promise<SessionResult>(resolve => {
-    session.copy(localFile, remoteFile, options, wrapSessionCallbackPromise(callback));
+    session.copy(localFile, remoteFile, options, wrapSessionCallbackPromise(session, resolve, callback));
   });
 }
 
 export function execute(session : Session, shellCommand : string, options : Object, callback ?: SessionCallback) : Promise<SessionResult> {
   return new Promise<SessionResult>(resolve => {
-    session.execute(shellCommand, options, wrapSessionCallbackPromise(resolve, callback));
+    session.execute(shellCommand, options, wrapSessionCallbackPromise(session, resolve, callback));
   });
 }
 
-// a simple helper that catch thenable result to promise
-export function run(t : Promise<SessionResult>) {
-  return (s : SessionResult) => { return t };
-}
+
 
 /**
  * sync an array of promise
+ *
+ * vars: result variables pass to the next task
  */
-function syncPromises(tasks : Array<Promise<SessionResult>>) : Promise<SessionResult> {
+function syncPromises(taskPromises : Array<Promise<SessionResult>>) : Promise<SessionResult> {
   let t = Promise.resolve()
-  for (let i = 0; i < tasks.length ; i++) {
-    t = t.then(run(tasks[i]));
+  for (let i = 0; i < taskPromises.length ; i++) {
+    t = t.then((result : SessionResult) => {
+      return taskPromises[i];
+    });
   }
   return t;
 }
@@ -135,6 +252,22 @@ export function sync(...tasks : Array<any>) : Promise<SessionResult> {
  */
 export function executeScript(session : Session, script : string, options? : Object, callback? : SessionCallback) : Promise<SessionResult> {
   return new Promise<SessionResult>(resolve => {
-    session.executeScript(script, options || {}, wrapSessionCallbackPromise(resolve, callback));
+    session.executeScript(script, options || {}, wrapSessionCallbackPromise(session, resolve, callback));
   });
 }
+
+
+// data[key] = ejs.compile(value)(vars);
+
+
+const applyTemplate = function(file, vars, callback) {
+  fs.readFile(file, {encoding: 'utf8'}, (err, content) => {
+    if (err) {
+      callback(err);
+    } else {
+      const ejsOptions = {};
+      const newContent = ejs.compile(content, ejsOptions)(vars || {});
+      callback(null, newContent);
+    } 
+  });
+};
