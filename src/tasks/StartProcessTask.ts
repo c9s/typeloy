@@ -1,6 +1,6 @@
 import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {DeployTask} from "./DeployTask";
-import {Session, SessionResult, executeScript, run, sync} from "../Session";
+import {Session, SessionResult, executeScript, sync} from "../Session";
 
 
 const fs = require('fs');
@@ -31,7 +31,6 @@ export class StartProcessTask extends DeployTask {
       'script': path.resolve(TEMPLATES_DIR, 'deploy.sh'),
       'vars': this.extendArgs({ })
     });
-
     taskList.executeScript("Verifying deployment", {
       'script': path.resolve(TEMPLATES_DIR, 'verify.sh'),
       'vars': this.extendArgs({

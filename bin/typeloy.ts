@@ -89,8 +89,9 @@ prog.command('deploy [sites...]')
       console.log(SummaryMapConsoleFormatter.format(mapResult));
       const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
     });
-    done.catch( (res) => {
-      console.error(res);
+    done.catch(res => {
+      // console.log(SummaryMapConsoleFormatter.format(mapResult));
+      console.error("Catch Error: ", res);
     });
   })
   ;

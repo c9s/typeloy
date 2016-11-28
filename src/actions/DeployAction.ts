@@ -1,7 +1,7 @@
 import {BaseAction} from './BaseAction';
 import {Config} from '../config';
 import {Deployment} from '../Deployment';
-import {Session} from '../Session';
+import {Session, SessionRunner} from '../Session';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
 import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors, mergeSummaryMap} from "../SummaryMap";
 import {CmdDeployOptions} from '../options';
@@ -41,7 +41,6 @@ export class DeployAction extends BaseAction {
     this.debug(`Bundle Path: ${bundlePath}`);
 
     const builder = new MeteorBuilder(this.config);
-
     propagate(builder, this);
 
     return builder.buildApp(this.config.app.directory, buildLocation, bundlePath, () => {
@@ -65,6 +64,8 @@ export class DeployAction extends BaseAction {
           // https://themeteorchef.com/snippets/making-use-of-settings-json/#tmc-using-settingsjson
           //
           // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
+          //
+          // TODO: support reading settings from command line
           const meteorSettings = _.extend({
             "public": {},
             "private": {},
@@ -91,26 +92,16 @@ export class DeployAction extends BaseAction {
                 const taskBuilder = this.createTaskBuilderByOs(sessionGroup);
                 const sessionPromises = _.map(sessionGroup.sessions,
                   (session : Session) => {
-                    return new Promise<SummaryMap>(resolveTask => {
-                      const env = _.extend({},
-                          this.config.env || {},
-                          siteConfig.env || {},
-                          session._serverConfig.env || {});
-
-                      if (typeof env['ROOT_URL'] === "undefined") {
-                        console.log("**WARNING** ROOT_URL is undefined.");
-                      }
-
-                      const taskList = taskBuilder.deploy(
-                                    this.config,
-                                    bundlePath,
-                                    env);
-                      // propagate task events
-                      this.propagateTaskEvents(taskList);
-                      taskList.run(session, (summaryMap : SummaryMap) => {
-                        resolveTask(summaryMap);
-                      });
-                    });
+                    const env = _.extend({},
+                        this.config.env || {},
+                        siteConfig.env || {},
+                        session._serverConfig.env || {});
+                    if (typeof env['ROOT_URL'] === "undefined") {
+                      console.warn("**WARNING** ROOT_URL is undefined.");
+                    }
+                    const tasks = taskBuilder.deploy(this.config, bundlePath, env);
+                    const runner = new SessionRunner;
+                    return runner.execute(session, tasks, {});
                   });
                 return Promise.all(sessionPromises).then((summaryMaps) => {
                   return Promise.resolve(mergeSummaryMap(summaryMaps));

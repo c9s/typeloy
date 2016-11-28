@@ -2,7 +2,7 @@ import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {SetupTask} from "./SetupTask";
 import {Task} from "./Task";
 import {Config, AppConfig} from "../config";
-import {Session, SessionResult, run, copy, sync} from "../Session";
+import {Session, SessionResult, copy, sync} from "../Session";
 
 
 const fs = require('fs');
@@ -43,7 +43,9 @@ export class EnvVarsTask extends Task {
 
   public run(session : Session) : Promise<SessionResult> {
     const bashenv = this.buildEnvDict();
-    return copy(session, path.resolve(TEMPLATES_DIR, 'env-vars'), this.appRoot + '/config/env-vars', this.extendArgs({ 'env': bashenv }));
+    return copy(session,
+                path.resolve(TEMPLATES_DIR, 'env-vars'),
+                this.appRoot + '/config/env-vars', { vars: this.extendArgs({ 'env': bashenv }) });
   }
 
   public build(taskList) {

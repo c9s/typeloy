@@ -1,6 +1,5 @@
 import {Config, AppConfig} from "../config";
-import {Session, SessionResult, executeScript, run, sync} from "../Session";
-
+import {Session, SessionResult, executeScript, sync} from "../Session";
 
 const path = require('path');
 const _ = require('underscore');
@@ -16,10 +15,42 @@ export abstract class Task {
 
   protected deployPrefix : string;
 
+  /**
+   * new code
+   */
+  protected _input : any;
+
+  protected _output : any;
+
   constructor(config : Config) {
     this.config = config;
     this.deployPrefix = '/opt';
     this.appRoot = this.deployPrefix + '/' + this.config.app.name;
+  }
+
+  public abstract describe();
+
+  public abstract build(taskList);
+
+  public abstract run(session : Session) : Promise<SessionResult>;
+
+  public input(i) {
+    this._input = i;
+    return this;
+  }
+
+  public output(o) {
+    this._output = o;
+    return this;
+  }
+
+
+  public getOutput() {
+    return this._output;
+  }
+
+  public getInput() {
+    return this._input;
   }
 
   protected getAppRoot() : string {
@@ -37,8 +68,4 @@ export abstract class Task {
         'appName': this.config.app.name
     }, args);
   }
-
-  public abstract describe();
-
-  public abstract build(taskList);
 }

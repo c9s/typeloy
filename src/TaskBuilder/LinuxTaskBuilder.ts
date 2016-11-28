@@ -117,19 +117,14 @@ class SetupTaskListBuilder {
   }
 }
 
-class DeployTaskListBuilder {
-
-  static build(config : Config, bundlePath : string, env : any) {
-    const taskList = nodemiral.taskList("Deploy app '" + config.app.name + "'");
-    const tasks : Array<Task> = [];
-    tasks.push(new CopyBundleDeployTask(config, bundlePath));
-    tasks.push(new BashEnvVarsTask(config, env));
-    tasks.push(new EnvVarsTask(config, env));
-    tasks.push(new StartProcessTask(config));
-    tasks.forEach((t:Task) => {
-      t.build(taskList);
-    });
-    return taskList;
+class DeployTaskList {
+  static build(config : Config, bundlePath : string, env : any) : Array<Task> {
+    return [
+      new CopyBundleDeployTask(config, bundlePath),
+      new BashEnvVarsTask(config, env),
+      new EnvVarsTask(config, env),
+      new StartProcessTask(config)
+    ];
   }
 }
 
@@ -149,8 +144,8 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     return builder.build(config, taskNames);
   }
 
-  public deploy(config : Config, bundlePath : string, env : any) {
-    return DeployTaskListBuilder.build(config, bundlePath, env);
+  public deploy(config : Config, bundlePath : string, env : any) : Array<Task> {
+    return DeployTaskList.build(config, bundlePath, env);
   };
 
   public reconfig(env, config : Config) {
