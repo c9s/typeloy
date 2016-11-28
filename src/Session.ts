@@ -130,12 +130,18 @@ export class SessionRunner {
             done = done.then(i => {
               return t.input(i).run(session);
             }).then((result : SessionResult) => {
+              // push the result into SummaryMap
               this.pushResult(session, result, { "task": t.describe() });
+
+              // pass the original result to the next task.
               return Promise.resolve(result);
             });
         }
     });
-    return done;
+    return done.then((result : SessionResult) => {
+      // pass the final summaryMap result back...
+      return Promise.resolve(this.summaryMap);
+    });
   }
 
 }

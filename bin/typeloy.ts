@@ -90,6 +90,7 @@ prog.command('deploy [sites...]')
       const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
     });
     done.catch(res => {
+        console.log(res);
       // console.log(SummaryMapConsoleFormatter.format(mapResult));
       console.error("Catch Error: ", res);
     });
