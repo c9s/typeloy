@@ -93,23 +93,32 @@ export interface SessionCopyOptions {
 }
 
 
+
+const castStatus = (error) => error ? "FAILED" : "SUCCESS";
+
+
+
 export class SessionRunner {
 
   constructor() { }
 
+  /**
+   * Helper function that pushes the result into the summary map
+   */
   protected pushResult(summaryMap : SummaryMap, session : Session, result : SessionResult, extend = null) {
     if (typeof summaryMap[session._host] === "undefined") {
       summaryMap[session._host] = { "error": false, "history": [] };
     }
+    let mapResult = summaryMap[session._host]; // get the mapResult object
+
+    result.status = castStatus(result.error);
     if (result.error) {
-      result.status = "FAILED";
-    } else {
-      result.status = "SUCCESS";
+      mapResult.error = true;
     }
     if (extend) {
       result = _.extend(result, extend);
     }
-    summaryMap[session._host].history.push(result);
+    mapResult.history.push(result);
   }
 
   public execute(session : Session, tasks : Array<any>, input : any) : Promise<SummaryMap> {
@@ -228,22 +237,18 @@ export function execute(session : Session, shellCommand : string, options : Obje
 
 
 
-/**
- * sync an array of promise
- *
- * vars: result variables pass to the next task
- */
-function syncPromises(taskPromises : Array<Promise<SessionResult>>) : Promise<SessionResult> {
-  let t = Promise.resolve()
-  for (let i = 0; i < taskPromises.length ; i++) {
-    t = t.then((result : SessionResult) => {
-      return taskPromises[i];
-    });
-  }
-  return t;
-}
-
 export function sync(...tasks : Array<any>) : Promise<SessionResult> {
+
+  const syncPromises = (taskPromises : Array<Promise<SessionResult>>) : Promise<SessionResult> => {
+    let t = Promise.resolve()
+    for (let i = 0; i < taskPromises.length ; i++) {
+      t = t.then((result : SessionResult) => {
+        return taskPromises[i];
+      });
+    }
+    return t;
+  }
+
   if (tasks[0] instanceof Array) {
     return syncPromises(tasks[0] as Array<Promise<SessionResult>>);
   }
