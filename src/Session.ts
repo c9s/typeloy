@@ -95,15 +95,11 @@ export interface SessionCopyOptions {
 
 export class SessionRunner {
 
-  protected summaryMap : SummaryMap;
+  constructor() { }
 
-  constructor() {
-    this.summaryMap = {};
-  }
-
-  protected pushResult(session : Session, result : SessionResult, extend = null) {
-    if (typeof this.summaryMap[session._host] === "undefined") {
-      this.summaryMap[session._host] = { "error": false, "history": [] };
+  protected pushResult(summaryMap : SummaryMap, session : Session, result : SessionResult, extend = null) {
+    if (typeof summaryMap[session._host] === "undefined") {
+      summaryMap[session._host] = { "error": false, "history": [] };
     }
     if (result.error) {
       result.status = "FAILED";
@@ -113,16 +109,17 @@ export class SessionRunner {
     if (extend) {
       result = _.extend(result, extend);
     }
-    this.summaryMap[session._host].history.push(result);
+    summaryMap[session._host].history.push(result);
   }
 
   public execute(session : Session, tasks : Array<any>, input : any) : Promise<SummaryMap> {
+    let summaryMap = {};
     let done = Promise.resolve(input);
     _.each(tasks, (t) => {
         if (t instanceof Array) {
             done = done.then(i => {
                 const all = _.map(t, (subt : Task) => subt.input(i).run(session).then((result : SessionResult) => {
-                  this.pushResult(session, result);
+                  this.pushResult(summaryMap, session, result);
                 }));
                 return Promise.all(all);
             });
@@ -131,7 +128,7 @@ export class SessionRunner {
               return t.input(i).run(session);
             }).then((result : SessionResult) => {
               // push the result into SummaryMap
-              this.pushResult(session, result, { "task": t.describe() });
+              this.pushResult(summaryMap, session, result, { "task": t.describe() });
 
               // pass the original result to the next task.
               return Promise.resolve(result);
@@ -140,7 +137,7 @@ export class SessionRunner {
     });
     return done.then((result : SessionResult) => {
       // pass the final summaryMap result back...
-      return Promise.resolve(this.summaryMap);
+      return Promise.resolve(summaryMap);
     });
   }
 
