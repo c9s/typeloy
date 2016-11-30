@@ -19,8 +19,8 @@ export interface SummaryMapHistory {
   "context"? : any;
 }
 
-export function mergeSummaryMap(summaryMaps) : SummaryMap {
-  return <SummaryMap>_.flatten(summaryMaps).reduce((cur, _summaryMap) => {
+export function mergeSummaryMap(summaryMaps : Array<SummaryMap | {}>) : SummaryMap {
+  return _.flatten(summaryMaps).reduce((cur, _summaryMap) => {
     return _.extend(cur, _summaryMap);
   })
 }
