@@ -3,11 +3,6 @@ import {DeployTask} from "./DeployTask";
 import {Config} from "../config";
 import {Session, SessionResult, sync, copy} from "../Session";
 
-
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
-
 export class CopyBundleDeployTask extends DeployTask {
 
   protected bundlePath : string;
