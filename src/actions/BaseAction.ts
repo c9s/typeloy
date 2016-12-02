@@ -4,8 +4,10 @@ import {Config, AppConfig, ServerConfig, SiteConfig} from '../config';
 import LinuxTaskBuilder from "../TaskBuilder/LinuxTaskBuilder";
 import {Deployment} from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
-import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors, mergeSummaryMap} from "../SummaryMap";
+import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors, reduceSummaryMaps, mergeSummaryMap} from "../SummaryMap";
 import {PluginRunner} from "../PluginRunner";
+
+import {Session, SessionRunner} from '../Session';
 
 import {EventEmitter} from "events";
 
@@ -88,33 +90,27 @@ export class BaseAction extends EventEmitter {
     }
   }
 
+
   protected executePararell(actionName : string, deployment : Deployment, sites : Array<string>, args) : Promise<SummaryMap> {
-    let sitesPromise = Promise.resolve({});
-    for (let i = 0; i < sites.length; i++) {
-      const site = sites[i];
-      sitesPromise = sitesPromise.then((previousSummaryMap : SummaryMap) => {
-        let siteConfig = this.getSiteConfig(site);
-        let sessionsMap = this.createSiteSessionsMap(siteConfig);
-        let sessionInfoList = _.values(sessionsMap);
-        let taskPromises = _.map(sessionInfoList,
-          (sessionGroup : SessionGroup) => {
-            return new Promise<SummaryMap>(resolve => {
-              const taskListsBuilder = this.createTaskBuilderByOs(sessionGroup);
-              const taskList = taskListsBuilder[actionName].apply(taskListsBuilder, args);
-
-              this.propagateTaskEvents(taskList);
-
-              taskList.run(sessionGroup.sessions, (summaryMap:SummaryMap) => {
-                resolve(summaryMap);
-              });
-            });
-          });
-        return Promise.all(taskPromises).then((summaryMaps) => {
-          return Promise.resolve(_.extend(previousSummaryMap, mergeSummaryMap(summaryMaps)));
-        });
-      });
-    }
-    return sitesPromise.then((summaryMap : SummaryMap) => {
+    const runner = new SessionRunner;
+    const sitePromises = _.map(sites, (site : string) => {
+        const siteConfig = this.getSiteConfig(site);
+        const sessionsMap = this.createSiteSessionsMap(siteConfig);
+        const groupPromises : Array<Promise<SummaryMap>> = _.map(sessionsMap,
+                (sessionGroup : SessionGroup) => {
+                      const taskListsBuilder = this.createTaskBuilderByOs(sessionGroup);
+                      const tasks = taskListsBuilder[actionName].apply(taskListsBuilder, args);
+                      const sessionPromises : Array<Promise<SummaryMap>> = _.map(sessionGroup.sessions, (session : Session) => {
+                          return runner.execute(session, tasks, {});
+                      });
+                      // this.propagateTaskEvents(taskList);
+                      return reduceSummaryMaps(sessionPromises);
+                });
+        return reduceSummaryMaps(groupPromises);
+    });
+    return Promise.all(sitePromises).then((summaryMaps) => {
+      return Promise.resolve(mergeSummaryMap(summaryMaps));
+    }).then((summaryMap : SummaryMap) => {
       this.whenAfterCompleted(deployment, summaryMap);
       return Promise.resolve(summaryMap);
     });
