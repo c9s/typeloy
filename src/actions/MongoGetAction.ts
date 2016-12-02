@@ -6,6 +6,6 @@ import {Deployment} from '../Deployment';
 
 export class MongoGetAction extends BaseAction {
   public run(deployment : Deployment, site : string, file : string) : Promise<SummaryMap> {
-    return this.executePararell("mongoGet", deployment, [site], [this.config, file]);
+    return this.executePararell("mongoGet", deployment, [site], [file]);
   }
 }

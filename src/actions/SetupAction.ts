@@ -6,6 +6,6 @@ import {SummaryMap} from '../SummaryMap';
 
 export class SetupAction extends BaseAction {
   public run(deployment : Deployment, sites : Array<string>, taskNames : Array<string>) : Promise<SummaryMap> {
-    return this.executePararell("setup", deployment, sites, [this.config, taskNames]);
+    return this.executePararell("setup", deployment, sites, [taskNames]);
   }
 }

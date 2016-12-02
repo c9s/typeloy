@@ -130,11 +130,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     return this.sessionGroup._siteConfig; 
   }
 
-  protected taskList(title : string) {
-    return nodemiral.taskList(title);
-  }
-
-  public setup(config : Config, taskNames : Array<string>) {
+  public setup(config : Config, env, taskNames : Array<string>) {
     const builder = new SetupTaskListBuilder(this);
     return builder.build(config, taskNames);
   }
@@ -143,21 +139,21 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     return DeployTaskList.build(config, bundlePath, env);
   };
 
-  public reconfig(env, config : Config) {
+  public reconfig(config : Config, env) {
     return [
       new EnvVarsTask(config, env),
       new RestartTask(config)
     ];
   }
 
-  public mongoGet(config : Config, file : string) {
+  public mongoGet(config : Config, env, file : string) {
     if (!config.mongo) {
       throw new Error("mongo settings is not configured.");
     }
     return [new MongoDumpTask(config), new MongoGetTask(config, file)];
   }
 
-  public mongoRestore(config : Config, localFile : string) {
+  public mongoRestore(config : Config, env, localFile : string) {
     const tasks : Array<Task> = [];
     if (!config.mongo) {
       throw new Error("mongo settings is not configured.");
@@ -172,26 +168,26 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     ];
   }
 
-  public mongoDump(config : Config) {
+  public mongoDump(config : Config, env) {
     if (!config.mongo) {
       throw new Error("mongo settings is not configured.");
     }
     return [new MongoDumpTask(config)];
   }
 
-  public restart(config : Config) {
-    return [new RestartTask(config)];
-  }
-
   public logs(config : Config, hostPrefix : string, logOptions : any) {
     return [new LogsTask(config, hostPrefix, logOptions)];
   }
 
-  public stop(config : Config) {
+  public restart(config : Config, env) {
+    return [new RestartTask(config)];
+  }
+
+  public stop(config : Config, env) {
     return [new StopTask(config)];
   }
 
-  public start(config : Config) {
+  public start(config : Config, env) {
     return [new StartTask(config)];
   }
 }

@@ -6,6 +6,6 @@ import {Deployment} from '../Deployment';
 
 export class MongoRestoreAction extends BaseAction {
   public run(deployment : Deployment, site : string, localFile : string) : Promise<SummaryMap> {
-    return this.executePararell("mongoRestore", deployment, [site], [this.config, localFile]);
+    return this.executePararell("mongoRestore", deployment, [site], [localFile]);
   }
 }
