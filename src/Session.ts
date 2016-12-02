@@ -18,8 +18,8 @@ Session {
   _tasks: [],
   _callbacks: [],
   _debug: { [Function: disabled] enabled: false },
-  _serverConfig:
-   { host: '....',
+  _serverConfig: {
+     host: '....',
      username: 'root',
      password: '...',
      env:

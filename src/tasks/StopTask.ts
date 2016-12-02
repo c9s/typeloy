@@ -15,7 +15,7 @@ export class StopTask extends Task {
 
   public run(session : Session) : Promise<SessionResult> {
     return executeScript(session,
-      path.resolve(TEMPLATES_DIR, 'service/stop'), {
+      this.resolveScript(session, 'service/stop'), {
         'vars': this.extendArgs({ })
       });
   }

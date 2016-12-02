@@ -15,8 +15,7 @@ export class StartTask extends Task {
 
   public run(session : Session) : Promise<SessionResult> {
     return executeScript(session,
-      path.resolve(TEMPLATES_DIR, 'service/start'), {
-        'vars': this.extendArgs({ })
+        this.resolveScript(session, 'service/start'), { 'vars': this.extendArgs({ })
       });
   }
 

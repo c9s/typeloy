@@ -44,7 +44,7 @@ export class EnvVarsTask extends Task {
   public run(session : Session) : Promise<SessionResult> {
     const bashenv = this.buildEnvDict();
     return copy(session,
-                path.resolve(TEMPLATES_DIR, 'env-vars'),
+                this.resolveTemplate(session, 'env-vars'),
                 this.appRoot + '/config/env-vars', { vars: this.extendArgs({ 'env': bashenv }) });
   }
 

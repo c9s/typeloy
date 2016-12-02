@@ -2,10 +2,16 @@ import {Config, AppConfig} from "../config";
 import {Session, SessionResult, executeScript, sync} from "../Session";
 
 const path = require('path');
+const fs = require('fs');
 const _ = require('underscore');
 
 export const SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/ubuntu');
+
 export const TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/ubuntu');
+
+export const BASE_TEMPLATES_DIR = path.resolve(__dirname, '../../../templates');
+
+export const BASE_SCRIPT_DIR = path.resolve(__dirname, '../../../scripts');
 
 export abstract class Task {
 
@@ -59,6 +65,37 @@ export abstract class Task {
 
   protected getAppName() : string {
     return this.config.app.name;
+  }
+
+
+  protected resolveScript(session : Session, fileName : string) : string {
+    const os = session._serverConfig.os || 'ubuntu';
+    const paths = [
+      path.resolve(BASE_SCRIPT_DIR, os, fileName),
+      path.resolve(BASE_SCRIPT_DIR, fileName),
+    ];
+    const templatePath = _.find(paths, (p) => {
+      return typeof p === "string" && fs.existsSync(p);
+    });
+    if (!templatePath) {
+      throw new Error(`scriptt ${fileName} not found.`);
+    }
+    return templatePath;
+  }
+
+  protected resolveTemplate(session : Session, fileName : string) : string {
+    const os = session._serverConfig.os || 'ubuntu';
+    const paths = [
+      path.resolve(BASE_TEMPLATES_DIR, os, fileName),
+      path.resolve(BASE_TEMPLATES_DIR, fileName),
+    ];
+    const templatePath = _.find(paths, (p) => {
+      return typeof p === "string" && fs.existsSync(p);
+    });
+    if (!templatePath) {
+      throw new Error(`template ${fileName} not found.`);
+    }
+    return templatePath;
   }
 
   protected extendArgs(args) {
