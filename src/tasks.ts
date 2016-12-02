@@ -9,6 +9,7 @@ export * from "./tasks/MongoGetTask";
 export * from "./tasks/MongoRestoreTask";
 export * from "./tasks/StudSetupTask";
 export * from "./tasks/CertbotSetupTask";
+export * from "./tasks/CertbotRenewTask";
 export * from "./tasks/PhantomJsSetupTask";
 export * from "./tasks/SystemdSetupTask";
 export * from "./tasks/UpstartSetupTask";
