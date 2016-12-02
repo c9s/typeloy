@@ -45,7 +45,7 @@ export class LogsTask extends Task {
     const onStdout = this.getStdoutHandler();
     const onStderr = this.getStderrHandler();
     return executeScript(session, 
-      path.resolve(TEMPLATES_DIR, 'service/logs'),
+      this.resolveScript(session, 'service/logs'),
       {
         "vars": this.extendArgs({
           "logOptions": this.logOptions.tail ? "-f" : ""

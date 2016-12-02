@@ -280,7 +280,7 @@ export class ConfigParser {
           server.sshOptions = server.sshOptions || {};
           server.sshOptions.agent = sshAgent;
         }
-        server.os = server.os || "linux";
+        server.os = server.os || "ubuntu";
         if (server.pem) {
           server.pem = expandPath(server.pem);
         }

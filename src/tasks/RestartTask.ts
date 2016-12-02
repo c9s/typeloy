@@ -14,7 +14,11 @@ export class RestartTask extends Task {
   }
 
   public run(session : Session) : Promise<SessionResult> {
-    return executeScript(session, path.resolve(SCRIPT_DIR, 'service/restart'), { 'vars': this.extendArgs({ }) });
+    return executeScript(session,
+                         this.resolveScript(session, 'service/restart'),
+                         {
+                            'vars': this.extendArgs({ })
+                         });
   }
 
   public build(taskList) {
