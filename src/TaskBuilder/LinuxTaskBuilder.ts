@@ -161,18 +161,11 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
 
 
   public mongoGet(config : Config, file : string) {
-    const tasks : Array<Task> = [];
     if (config.mongo) {
-      tasks.push(new MongoDumpTask(config));
-      tasks.push(new MongoGetTask(config, file));
-    } else {
-      console.error("mongo settings is not configured.");
+      return [new MongoDumpTask(config),
+              new MongoGetTask(config, file)];
     }
-    const taskList = this.taskList("MongoDB Get (linux)");
-    tasks.forEach((t : Task) => {
-      t.build(taskList);
-    });
-    return taskList;
+    throw new Error("mongo settings is not configured.");
   }
 
   public mongoRestore(config : Config, localFile : string) {
@@ -195,17 +188,10 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   }
 
   public mongoDump(config : Config) {
-    const tasks : Array<Task> = [];
     if (config.mongo) {
-      tasks.push(new MongoDumpTask(config));
-    } else {
-      console.error("mongo settings is not configured.");
+      return [new MongoDumpTask(config)];
     }
-    const taskList = this.taskList("MongoDB Dump (linux)");
-    tasks.forEach((t : Task) => {
-      t.build(taskList);
-    });
-    return taskList;
+    throw new Error("mongo settings is not configured.");
   }
 
   public restart(config : Config) {
@@ -217,22 +203,10 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   }
 
   public stop(config : Config) {
-    let taskList = this.taskList("Stopping Application (linux)");
-    const tasks : Array<Task> = [];
-    tasks.push(new StopTask(config));
-    tasks.forEach((t : Task) => {
-      t.build(taskList);
-    });
-    return taskList;
+    return [new StopTask(config)];
   }
 
   public start(config : Config) {
-    let taskList = this.taskList("Starting Application (linux)");
-    const tasks : Array<Task> = [];
-    tasks.push(new StartTask(config));
-    tasks.forEach((t : Task) => {
-      t.build(taskList);
-    });
-    return taskList;
+    return [new StartTask(config)];
   }
 }
