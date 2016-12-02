@@ -21,8 +21,8 @@ export class UpstartSetupTask extends SetupTask {
     const upstartConfig = this.getUpstartConfigPath();
     return copy(session,
                 this.resolveTemplate(session, 'meteor/upstart.conf'),
-                upstartConfig, {
-                  vars: this.extendArgs({ })
-                });
+                upstartConfig,
+                { vars: this.extendArgs({ }) }
+            );
   }
 }
