@@ -6,17 +6,12 @@ const path = require('path');
 const util = require('util');
 
 export class PkgUpdateTask extends Task {
+
   public describe() : string {
     return 'Updating package index';
   }
 
   public run(session : Session) : Promise<SessionResult> {
-    return executeScript(session, path.resolve(SCRIPT_DIR, 'apt-update.sh'));
-  }
-
-  public build(taskList) {
-    taskList.executeScript(this.describe(), {
-      script: path.resolve(SCRIPT_DIR, 'apt-update.sh'), vars: { }
-    });
+    return executeScript(session, this.resolveScript(session, 'update-packages.sh'));
   }
 }

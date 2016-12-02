@@ -18,8 +18,8 @@ export class CertbotSetupTask extends CertbotBaseTask {
       'domain': this.domain,
     }) };
     return sync(
-      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot-install.sh'), options),
-      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot-genssl.sh'), options)
+      executeScript(session, this.resolveScript(session, 'certbot-install.sh'), options),
+      executeScript(session, this.resolveScript(session, 'certbot-genssl.sh'), options)
     );
   }
 

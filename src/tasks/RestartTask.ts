@@ -21,10 +21,4 @@ export class RestartTask extends Task {
                          });
   }
 
-  public build(taskList) {
-    taskList.executeScript(this.describe(), {
-      'script': path.resolve(TEMPLATES_DIR, 'service/restart'),
-      'vars': this.extendArgs({ })
-    });
-  }
 }

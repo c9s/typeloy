@@ -20,7 +20,7 @@ export class SystemdSetupTask extends SetupTask {
 
   public run(session : Session) : Promise<SessionResult> {
     return copy(session,
-      path.resolve(TEMPLATES_DIR, 'meteor/systemd.conf'),
+      this.resolveTemplate(session, 'meteor/systemd.conf'),
       this.getConfigPath(), {
         'vars': this.extendArgs({ })
       });

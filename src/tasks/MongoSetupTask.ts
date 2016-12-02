@@ -13,12 +13,6 @@ export class MongoSetupTask extends SetupTask {
   }
 
   public run(session : Session) : Promise<SessionResult> {
-    return executeScript(session, path.resolve(SCRIPT_DIR, 'mongo-install.sh'));
-  }
-
-  public build(taskList) {
-    taskList.executeScript('Installing MongoDB', {
-      script: path.resolve(SCRIPT_DIR, 'mongo-install.sh')
-    });
+    return executeScript(session, this.resolveScript(session, 'mongo-install.sh'));
   }
 }
