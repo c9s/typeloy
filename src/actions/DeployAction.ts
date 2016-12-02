@@ -85,10 +85,7 @@ export class DeployAction extends BaseAction {
   }
 
   public run(deployment : Deployment, sites : Array<string>, options : CmdDeployOptions = {} as CmdDeployOptions) {
-    console.log(this.config.app);
     const appName = this.config.app.name || "app";
-
-    this._showKadiraLink();
 
     // /tmp/shaka-/Users/c9s/src/work/kaneoh/delivery/shaka1/shaka1/app/bundle.tar.gz
     const buildLocation = options.buildDir 

@@ -74,23 +74,6 @@ export class BaseAction extends EventEmitter {
     return this.sessionManager.createSiteConnections(site);
   }
 
-  // XXX: Extract this to Kadira plugin
-  protected _showKadiraLink() {
-    let versionsFile = path.join(this.config.app.directory, '.meteor', 'versions');
-    if (fs.existsSync(versionsFile)) {
-      let packages = fs.readFileSync(versionsFile, 'utf-8');
-      let hasKadira = kadiraRegex.test(packages);
-      if(!hasKadira) {
-        console.log(
-          "“ Checkout " + "Kadira" + "!"+
-          "\n  It's the best way to monitor performance of your app."+
-          "\n  Visit: " + "https://kadira.io/mup" + " ”\n"
-        );
-      }
-    }
-  }
-
-
   protected executePararell(actionName : string, deployment : Deployment, sites : Array<string>, args) : Promise<SummaryMap> {
     const runner = new SessionRunner;
     const sitePromises = _.map(sites, (site : string) => {
@@ -108,9 +91,8 @@ export class BaseAction extends EventEmitter {
                 });
         return reduceSummaryMaps(groupPromises);
     });
-    return Promise.all(sitePromises).then((summaryMaps) => {
-      return Promise.resolve(mergeSummaryMap(summaryMaps));
-    }).then((summaryMap : SummaryMap) => {
+
+    return reduceSummaryMaps(sitePromises).then((summaryMap : SummaryMap) => {
       this.whenAfterCompleted(deployment, summaryMap);
       return Promise.resolve(summaryMap);
     });
