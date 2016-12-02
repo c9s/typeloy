@@ -100,7 +100,11 @@ const castStatus = (error) => error ? "FAILED" : "SUCCESS";
 
 export class SessionRunner {
 
-  constructor() { }
+  protected options;
+
+  constructor(options = {}) {
+    this.options = options;
+  }
 
   /**
    * Helper function that pushes the result into the summary map
@@ -109,12 +113,18 @@ export class SessionRunner {
     if (typeof summaryMap[session._host] === "undefined") {
       summaryMap[session._host] = { "error": false, "history": [] };
     }
-    let mapResult = summaryMap[session._host]; // get the mapResult object
 
-    result.status = castStatus(result.error);
-    if (result.error) {
-      mapResult.error = true;
+    const mapResult = summaryMap[session._host]; // get the mapResult object
+
+    // console.log(JSON.stringify(result, null, "  "));
+
+    const errored = result.error || result.code != 0;
+
+    result.status = castStatus(errored);
+    if (errored) {
+      mapResult.error = result.error || errored;
     }
+
     if (extend) {
       result = _.extend(result, extend);
     }
