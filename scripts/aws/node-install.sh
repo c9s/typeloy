@@ -1,5 +1,6 @@
 #!/bin/bash
 # Remove the lock
+set -e
 
 # Install Node.js - either nodeVersion or which works with latest Meteor release
 <% if (nodeVersion) { %>
