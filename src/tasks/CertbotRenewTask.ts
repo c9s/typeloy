@@ -18,23 +18,8 @@ export class CertbotRenewTask extends CertbotBaseTask {
       'domain': this.domain,
     }) };
     return sync(
-      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot-renew.sh'), options),
-      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot-genssl.sh'), options)
+      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot/renew.sh'), options),
+      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot/genssl.sh'), options)
     );
-  }
-
-  public build(taskList) {
-    const args = this.extendArgs({
-      'email':  this.email,
-      'domain': this.domain,
-    });
-    taskList.executeScript('Renewing ssl keys', {
-      'script': path.resolve(SCRIPT_DIR, 'certbot-renew.sh'),
-      'vars': args,
-    });
-    taskList.executeScript('Updating pem key file', {
-      'script': path.resolve(SCRIPT_DIR, 'certbot-genssl.sh'),
-      'vars': args,
-    });
   }
 }
