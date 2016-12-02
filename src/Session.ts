@@ -279,3 +279,4 @@ const applyTemplate = function(file, vars, callback) {
     } 
   });
 };
+

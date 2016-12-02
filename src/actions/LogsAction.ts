@@ -4,7 +4,14 @@ import {Deployment} from '../Deployment';
 import {Session} from '../Session';
 import {SessionRunner} from '../Session';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
-import {SummaryMap,SummaryMapResult, SummaryMapHistory, haveSummaryMapsErrors, hasSummaryMapErrors, mergeSummaryMap} from "../SummaryMap";
+import {
+  SummaryMap,
+  SummaryMapResult,
+  SummaryMapHistory,
+  haveSummaryMapsErrors,
+  hasSummaryMapErrors,
+  reduceSummaryMaps,
+  mergeSummaryMap} from "../SummaryMap";
 
 const _ = require('underscore');
 
@@ -28,19 +35,13 @@ export class LogsAction extends BaseAction {
               const runner = new SessionRunner;
               return runner.execute(session, tasks, {});
           });
-          return Promise.all(sessionPromises).then((summaryMaps : Array<SummaryMap>) => {
-              return Promise.resolve(mergeSummaryMap(summaryMaps));
-          });
+          return reduceSummaryMaps(sessionPromises);
       });
-      return Promise.all(groupPromises).then((summaryMaps : Array<SummaryMap>) => {
-          return Promise.resolve(mergeSummaryMap(summaryMaps));
-      });
+      return reduceSummaryMaps(groupPromises);
   }
 
   public run(deployment : Deployment, sites : Array<string>, options : LogsOptions) : Promise<SummaryMap> {
-    const sitesPromise : Array<Promise<SummaryMap>> = _.map(sites, (site : string) => this.runSite(deployment, site, options));
-    return Promise.all(sitesPromise).then((summaryMaps : Array<SummaryMap>) => {
-      return Promise.resolve(mergeSummaryMap(summaryMaps));
-    });
+    const sitePromises : Array<Promise<SummaryMap>> = _.map(sites, (site : string) => this.runSite(deployment, site, options));
+    return reduceSummaryMaps(sitePromises);
   }
 }

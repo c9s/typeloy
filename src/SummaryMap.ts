@@ -34,3 +34,9 @@ export function hasSummaryMapErrors(summaryMap : SummaryMap) : boolean {
     return summary && summary.error;
   });
 }
+
+export function reduceSummaryMaps(promises : Array<Promise<SummaryMap>>) {
+    return Promise.all(promises).then((summaryMaps : Array<SummaryMap>) => {
+        return Promise.resolve(mergeSummaryMap(summaryMaps));
+    });
+}
