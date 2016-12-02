@@ -74,7 +74,7 @@ export class BaseAction extends EventEmitter {
     return this.sessionManager.createSiteConnections(site);
   }
 
-  protected executePararell(actionName : string, deployment : Deployment, sites : Array<string>, args) : Promise<SummaryMap> {
+  protected executePararell(actionName : string, deployment : Deployment, sites : Array<string>, args? : Array<any>) : Promise<SummaryMap> {
     const runner = new SessionRunner;
     const sitePromises = _.map(sites, (site : string) => {
         const siteConfig = this.getSiteConfig(site);
@@ -82,10 +82,16 @@ export class BaseAction extends EventEmitter {
         const groupPromises : Array<Promise<SummaryMap>> = _.map(sessionsMap,
                 (sessionGroup : SessionGroup) => {
                       const taskListsBuilder = this.createTaskBuilderByOs(sessionGroup);
-                      const tasks = taskListsBuilder[actionName].apply(taskListsBuilder, args);
+
                       const sessionPromises : Array<Promise<SummaryMap>> = _.map(sessionGroup.sessions, (session : Session) => {
+                          const env = _.extend({},
+                              this.config.env || {},
+                              siteConfig.env || {},
+                              session._serverConfig.env || {});
+                          const tasks = taskListsBuilder[actionName].apply(taskListsBuilder, [this.config, env].concat(args || []));
                           return runner.execute(session, tasks, {});
                       });
+
                       // this.propagateTaskEvents(taskList);
                       return reduceSummaryMaps(sessionPromises);
                 });

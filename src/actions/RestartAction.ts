@@ -6,6 +6,6 @@ import {Deployment} from '../Deployment';
 
 export class RestartAction extends BaseAction {
   public run(deployment : Deployment, sites : Array<string>) : Promise<SummaryMap> {
-    return this.executePararell("restart", deployment, sites, [this.config]);
+    return this.executePararell("restart", deployment, sites);
   }
 }
