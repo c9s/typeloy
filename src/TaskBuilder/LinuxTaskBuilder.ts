@@ -102,18 +102,13 @@ class SetupTaskListBuilder {
   }
 
   public build(config : Config, taskNames : Array<string>) : Array<Task> {
-    const taskList = nodemiral.taskList('Setup Tasks');
     const taskDefinitions = this.definitions(config);
     if (taskNames) {
-      const tasks = _(taskNames).chain().map((taskName) => {
+      return _(taskNames).chain().map((taskName) => {
         return taskDefinitions[taskName];
       }).filter(x => x ? true : false).value();
-      tasks.forEach((t:Task) => t.build(taskList));
-    } else {
-      const tasks = this.buildDefaultTasks(config, taskDefinitions);
-      tasks.forEach((t:Task) => t.build(taskList));
     }
-    return taskList;
+    return this.buildDefaultTasks(config, taskDefinitions);
   }
 }
 
@@ -149,14 +144,10 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
   };
 
   public reconfig(env, config : Config) {
-    const taskList = this.taskList("Reconfiguring Application (linux)");
-    const tasks : Array<Task> = [];
-    tasks.push(new EnvVarsTask(config, env));
-    tasks.push(new RestartTask(config));
-    tasks.forEach((t : Task) => {
-      t.build(taskList);
-    });
-    return taskList;
+    return [
+      new EnvVarsTask(config, env),
+      new RestartTask(config)
+    ];
   }
 
 
@@ -173,18 +164,14 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     if (config.mongo) {
       // const tmpFile = `/opt/${config.app.name}/tmp/mongo-restore-${uuid.v4()}.gz`;
       const tmpFile = `/tmp/mongo-restore-${uuid.v4()}.gz`;
-      tasks.push(new UploadTask(config, localFile, tmpFile, true));
-      tasks.push(new StopTask(config));
-      tasks.push(new MongoRestoreTask(config, tmpFile));
-      tasks.push(new StartTask(config));
-    } else {
-      console.error("mongo settings is not configured.");
+      return [
+        new UploadTask(config, localFile, tmpFile, true),
+        new StopTask(config),
+        new MongoRestoreTask(config, tmpFile),
+        new StartTask(config)
+      ];
     }
-    const taskList = this.taskList("MongoDB Restore (linux)");
-    tasks.forEach((t : Task) => {
-      t.build(taskList);
-    });
-    return taskList;
+    throw new Error("mongo settings is not configured.");
   }
 
   public mongoDump(config : Config) {
