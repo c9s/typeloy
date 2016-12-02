@@ -44,11 +44,11 @@ export class LogsTask extends Task {
         "vars": this.extendArgs({
           "logOptions": this.logOptions.tail ? "-f" : ""
         }),
-        "onStdout": () => {
-          return (data) => onStdout(this.hostPrefix, data);
+        "onStdout": (data) => {
+          return onStdout(this.hostPrefix, data);
         },
-        "onStderr": () => {
-          return (data) => onStderr(this.hostPrefix, data);
+        "onStderr": (data) => {
+          return onStderr(this.hostPrefix, data);
         }
       });
   }
