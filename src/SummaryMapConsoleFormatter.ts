@@ -2,7 +2,7 @@
 import {colorize} from "./colorize";
 import {SummaryMap} from "./SummaryMap";
 
-var _ = require('underscore');
+const _ = require('underscore');
 
 export class SummaryMapConsoleFormatter {
 
@@ -10,11 +10,11 @@ export class SummaryMapConsoleFormatter {
 
     const checkMark = "\u2714";
     const crossMark = "\u2718";
-    let tab : string = "  ";
+    const tab : string = "  ";
     let output = "";
     for (let host in summaryMap) {
-      let summaryResult = summaryMap[host];
-      let errored = summaryResult.error ? true : false;
+      const summaryResult = summaryMap[host];
+      const errored = summaryResult.error ? true : false;
 
       if (errored) {
         output += colorize("red", crossMark + ` Host ${host}`) + "\n";
