@@ -19,7 +19,9 @@ export class CopyBundleDeployTask extends DeployTask {
   public run(session : Session) : Promise<SessionResult> {
     const appName = this.config.app.name;
     const remoteBundlePath = this.deployPrefix + '/' + appName + '/tmp/bundle.tar.gz'
+
     console.log("Transfering " + this.bundlePath + ' => ' + remoteBundlePath);
+
     return copy(session, this.bundlePath,
          this.deployPrefix + '/' + appName + '/tmp/bundle.tar.gz',
          { progressBar: this.config.deploy.uploadProgress });

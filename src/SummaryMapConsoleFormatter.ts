@@ -36,8 +36,16 @@ export class SummaryMapConsoleFormatter {
               const err = taskResult['error'];
               output += colorize("red", tab + tab + `Error: ${err.message}` + "\n");
             }
+
+            console.log(JSON.stringify(taskResult, null, "  "));
+
             if (taskResult.context.code != 0) {
-              output += tab + tab + taskResult.context.stderr + "\n";
+              if (taskResult.context.stderr) {
+                output += tab + tab + taskResult.context.stderr + "\n";
+              }
+              if (taskResult.context.stdout) {
+                output += tab + tab + taskResult.context.stdout + "\n";
+              }
             }
             break;
         }

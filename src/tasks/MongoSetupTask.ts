@@ -9,7 +9,7 @@ const util = require('util');
 export class MongoSetupTask extends SetupTask {
 
   public describe() : string {
-    return 'Copying MongoDB configuration';
+    return 'Setting up MongoDB configuration';
   }
 
   public run(session : Session) : Promise<SessionResult> {
