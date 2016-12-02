@@ -20,8 +20,9 @@ export class NodeJsSetupTask extends SetupTask {
 
   public run(session : Session) : Promise<SessionResult> {
     return executeScript(session, path.resolve(SCRIPT_DIR, 'install-node.sh'), {
-      nodeVersion: this.getNodeVersion(),
-      deployPrefix: this.deployPrefix
+      vars: this.extendArgs({
+        nodeVersion: this.getNodeVersion()
+      })
     });
   }
 

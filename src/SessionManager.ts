@@ -47,7 +47,7 @@ export class SessionManager {
     const host = server.host;
 
     /// The auth object is used for nodemiral to connect ssh servers.
-    let auth:SshAuthOptions = {
+    let auth : SshAuthOptions = {
       username: server.username
     };
     if (server.pem) {
@@ -56,6 +56,8 @@ export class SessionManager {
       auth.password = server.password;
     }
 
+    console.log(`Connecting ${host}...`);
+
     // create options for nodemiral
     const nodemiralOptions = _.extend(this.config, { });
 
@@ -63,7 +65,7 @@ export class SessionManager {
       nodemiralOptions['ssh'] = _.extend(this.config.ssh || {}, server.sshOptions);
     }
 
-    let session : Session = nodemiral.session(host, auth, nodemiralOptions);
+    const session : Session = nodemiral.session(host, auth, nodemiralOptions);
     session._serverConfig = server;
     return session;
   }
