@@ -23,21 +23,28 @@ export class LogsTask extends Task {
     return `Log ${this.config.app.name}`;
   }
 
+
+  protected getStdoutHandler() {
+    if (this.logOptions.onStdout) {
+      return this.logOptions.onStdout;
+    }
+    return (hostPrefix : string, data) => {
+      process.stdout.write(hostPrefix + data.toString());
+    };
+  }
+
+  protected getStderrHandler() {
+    if (this.logOptions.onStderr) {
+      return this.logOptions.onStderr;
+    }
+    return (hostPrefix : string, data) => {
+      process.stderr.write(hostPrefix + data.toString());
+    };
+  }
+
   public run(session : Session) : Promise<SessionResult> {
-    let onStdout = this.logOptions.onStdout;
-    if (!onStdout) {
-      onStdout = (hostPrefix : string, data) => {
-        process.stdout.write(hostPrefix + data.toString());
-      };
-    }
-
-    let onStderr = this.logOptions.onStderr;
-    if (!onStderr) {
-      onStderr = (hostPrefix : string, data) => {
-        process.stderr.write(hostPrefix + data.toString());
-      };
-    }
-
+    const onStdout = this.getStdoutHandler();
+    const onStderr = this.getStderrHandler();
     return executeScript(session, 
       path.resolve(TEMPLATES_DIR, 'service/logs'),
       {
