@@ -62,6 +62,7 @@ export class DeployAction extends BaseAction {
       const groupPromises : Array<Promise<SummaryMap>> 
         = _.map(sessionsMap, (sessionGroup : SessionGroup) => {
           const taskBuilder = this.createTaskBuilderByOs(sessionGroup);
+
           const sessionPromises : Array<Promise<SummaryMap>> = _.map(sessionGroup.sessions, (session : Session) : Promise<SummaryMap> => {
               const env = _.extend({},
                   this.config.env || {},
