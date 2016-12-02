@@ -150,35 +150,33 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
     ];
   }
 
-
   public mongoGet(config : Config, file : string) {
-    if (config.mongo) {
-      return [new MongoDumpTask(config),
-              new MongoGetTask(config, file)];
+    if (!config.mongo) {
+      throw new Error("mongo settings is not configured.");
     }
-    throw new Error("mongo settings is not configured.");
+    return [new MongoDumpTask(config), new MongoGetTask(config, file)];
   }
 
   public mongoRestore(config : Config, localFile : string) {
     const tasks : Array<Task> = [];
-    if (config.mongo) {
-      // const tmpFile = `/opt/${config.app.name}/tmp/mongo-restore-${uuid.v4()}.gz`;
-      const tmpFile = `/tmp/mongo-restore-${uuid.v4()}.gz`;
-      return [
-        new UploadTask(config, localFile, tmpFile, true),
-        new StopTask(config),
-        new MongoRestoreTask(config, tmpFile),
-        new StartTask(config)
-      ];
+    if (!config.mongo) {
+      throw new Error("mongo settings is not configured.");
     }
-    throw new Error("mongo settings is not configured.");
+    // const tmpFile = `/opt/${config.app.name}/tmp/mongo-restore-${uuid.v4()}.gz`;
+    const tmpFile = `/tmp/mongo-restore-${uuid.v4()}.gz`;
+    return [
+      new UploadTask(config, localFile, tmpFile, true),
+      new StopTask(config),
+      new MongoRestoreTask(config, tmpFile),
+      new StartTask(config)
+    ];
   }
 
   public mongoDump(config : Config) {
-    if (config.mongo) {
-      return [new MongoDumpTask(config)];
+    if (!config.mongo) {
+      throw new Error("mongo settings is not configured.");
     }
-    throw new Error("mongo settings is not configured.");
+    return [new MongoDumpTask(config)];
   }
 
   public restart(config : Config) {
