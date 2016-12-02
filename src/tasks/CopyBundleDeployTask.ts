@@ -26,15 +26,4 @@ export class CopyBundleDeployTask extends DeployTask {
          this.deployPrefix + '/' + appName + '/tmp/bundle.tar.gz',
          { progressBar: this.config.deploy.uploadProgress });
   }
-
-  public build(taskList) {
-    const appName = this.config.app.name;
-    const remoteBundlePath = this.deployPrefix + '/' + appName + '/tmp/bundle.tar.gz'
-    console.log("Transfering " + this.bundlePath + ' => ' + remoteBundlePath);
-    taskList.copy(this.describe(), {
-      src: this.bundlePath,
-      dest: this.deployPrefix + '/' + appName + '/tmp/bundle.tar.gz',
-      progressBar: this.config.deploy.uploadProgress
-    });
-  }
 }

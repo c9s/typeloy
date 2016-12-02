@@ -3,7 +3,6 @@ import {SetupTask} from "./SetupTask";
 import {Config, AppConfig} from "../config";
 import {Session, SessionResult, executeScript, copy} from "../Session";
 
-import fs from 'fs';
 import path from 'path';
 
 const util = require('util');

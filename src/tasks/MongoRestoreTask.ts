@@ -3,12 +3,7 @@ import {SetupTask} from "./SetupTask";
 import {Config} from "../config";
 import {Session, SessionResult, executeScript, sync} from "../Session";
 
-
 const moment = require('moment');
-
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
 
 export class MongoRestoreTask extends SetupTask {
 

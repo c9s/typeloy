@@ -2,11 +2,6 @@ import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {Task} from "./Task";
 import {Session, SessionResult, executeScript, sync} from "../Session";
 
-
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
-
 export class RestartTask extends Task {
 
   public describe() : string {
