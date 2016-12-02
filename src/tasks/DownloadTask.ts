@@ -3,11 +3,6 @@ import {DeployTask} from "./DeployTask";
 import {Config} from "../config";
 import {Session, SessionResult, download} from "../Session";
 
-
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
-
 export class DownloadTask extends DeployTask {
 
   protected srcPath : string;

@@ -6,10 +6,10 @@ import {CertbotBaseTask} from "./CertbotBaseTask";
 
 const path = require('path');
 
-export class CertbotSetupTask extends CertbotBaseTask {
+export class CertbotRenewTask extends CertbotBaseTask {
 
   public describe() : string {
-    return 'Setting up certbot';
+    return 'Renewing SSL with Certbot';
   }
 
   public run(session : Session) : Promise<SessionResult> {
@@ -18,25 +18,23 @@ export class CertbotSetupTask extends CertbotBaseTask {
       'domain': this.domain,
     }) };
     return sync(
-      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot-install.sh'), options),
+      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot-renew.sh'), options),
       executeScript(session, path.resolve(SCRIPT_DIR, 'certbot-genssl.sh'), options)
     );
   }
 
   public build(taskList) {
-    taskList.executeScript('Installing certbot', {
-      'script': path.resolve(SCRIPT_DIR, 'certbot-install.sh'),
-      'vars': this.extendArgs({
-        'email': this.email,
-        'domain': this.domain,
-      })
+    const args = this.extendArgs({
+      'email':  this.email,
+      'domain': this.domain,
     });
-    taskList.executeScript('Generating pem key file', {
+    taskList.executeScript('Renewing ssl keys', {
+      'script': path.resolve(SCRIPT_DIR, 'certbot-renew.sh'),
+      'vars': args,
+    });
+    taskList.executeScript('Updating pem key file', {
       'script': path.resolve(SCRIPT_DIR, 'certbot-genssl.sh'),
-      'vars': this.extendArgs({
-        'email': this.email,
-        'domain': this.domain,
-      })
+      'vars': args,
     });
   }
 }
