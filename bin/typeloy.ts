@@ -170,6 +170,7 @@ prog.command('reconfig [sites...]')
     let afterSetup = actions.run(deployment, sites);
     afterSetup.then((mapResult) => {
       console.log(SummaryMapConsoleFormatter.format(mapResult));
+      // console.log(JSON.stringify(mapResult, null, "  "));
       const errorCode = haveSummaryMapsErrors(mapResult) ? 1 : 0;
     }).catch((err) => {
       console.error(err);

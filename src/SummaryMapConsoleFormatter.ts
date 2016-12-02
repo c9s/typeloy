@@ -32,6 +32,9 @@ export class SummaryMapConsoleFormatter {
               let lines = taskResult['error'].split( /\r?\n/ );
               lines = _.map(lines, (line) => { return tab + tab + line; });
               output += colorize("red", lines.join("\n") + "\n");
+            } else if (taskResult['error'] instanceof Error) {
+              const err = taskResult['error'];
+              output += colorize("red", tab + tab + `Error: ${err.message}` + "\n");
             }
             break;
         }
