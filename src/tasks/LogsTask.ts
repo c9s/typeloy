@@ -58,38 +58,4 @@ export class LogsTask extends Task {
         }
       });
   }
-
-  public build(taskList) {
-    let onStdout = this.logOptions.onStdout;
-
-    if (!onStdout) {
-      onStdout = (hostPrefix : string, data) => {
-        process.stdout.write(hostPrefix + data.toString());
-      };
-    }
-
-    let onStderr = this.logOptions.onStderr;
-    if (!onStderr) {
-      onStderr = (hostPrefix : string, data) => {
-        process.stderr.write(hostPrefix + data.toString());
-      };
-    }
-
-    taskList.executeScript(this.describe(), {
-      "script": path.resolve(TEMPLATES_DIR, 'service/logs'),
-      "vars": this.extendArgs({
-        "logOptions": this.logOptions.tail ? "-f" : ""
-      }),
-      "onStdout": () => {
-        return (data) => {
-          return onStdout(this.hostPrefix, data);
-        };
-      },
-      "onStderr": () => {
-        return (data) => {
-          return onStderr(this.hostPrefix, data);
-        };
-      }
-    });
-  }
 }

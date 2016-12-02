@@ -25,12 +25,4 @@ export class DownloadTask extends DeployTask {
   public run(session : Session) : Promise<SessionResult> {
     return download(session, this.srcPath, this.destPath, { progressBar: this.progress });
   }
-
-  public build(taskList) {
-    taskList.download(this.describe(), {
-      src: this.srcPath,
-      dest: this.destPath,
-      progressBar: this.progress,
-    });
-  }
 }

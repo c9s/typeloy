@@ -3,10 +3,6 @@ import {SetupTask} from "./SetupTask";
 import {Config, AppConfig} from "../config";
 import {Session, SessionResult, executeScript, copy, sync} from "../Session";
 
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
-
 export class UpstartSetupTask extends SetupTask {
 
   public describe() : string {
