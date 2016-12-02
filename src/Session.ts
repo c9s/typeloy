@@ -128,12 +128,14 @@ export class SessionRunner {
         if (t instanceof Array) {
             done = done.then(i => {
                 const all = _.map(t, (subt : Task) => subt.input(i).run(session).then((result : SessionResult) => {
+                  console.log(subt.describe());
                   this.pushResult(summaryMap, session, result);
                 }));
                 return Promise.all(all);
             });
         } else {
             done = done.then(i => {
+              console.log(t.describe());
               return t.input(i).run(session);
             }).then((result : SessionResult) => {
               // push the result into SummaryMap

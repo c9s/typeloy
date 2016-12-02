@@ -36,8 +36,6 @@ export abstract class Task {
 
   public abstract describe();
 
-  public abstract build(taskList);
-
   public abstract run(session : Session) : Promise<SessionResult>;
 
   public input(i) {
@@ -67,18 +65,18 @@ export abstract class Task {
     return this.config.app.name;
   }
 
-
   protected resolveScript(session : Session, fileName : string) : string {
     const os = session._serverConfig.os || 'ubuntu';
     const paths = [
       path.resolve(BASE_SCRIPT_DIR, os, fileName),
+      path.resolve(SCRIPT_DIR, fileName), // fallback to 'ubuntu'
       path.resolve(BASE_SCRIPT_DIR, fileName),
     ];
     const templatePath = _.find(paths, (p) => {
       return typeof p === "string" && fs.existsSync(p);
     });
     if (!templatePath) {
-      throw new Error(`scriptt ${fileName} not found.`);
+      throw new Error(`Script ${fileName} not found.`);
     }
     return templatePath;
   }
@@ -87,6 +85,7 @@ export abstract class Task {
     const os = session._serverConfig.os || 'ubuntu';
     const paths = [
       path.resolve(BASE_TEMPLATES_DIR, os, fileName),
+      path.resolve(TEMPLATES_DIR, fileName),
       path.resolve(BASE_TEMPLATES_DIR, fileName),
     ];
     const templatePath = _.find(paths, (p) => {

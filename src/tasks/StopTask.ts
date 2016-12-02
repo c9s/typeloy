@@ -19,11 +19,4 @@ export class StopTask extends Task {
         'vars': this.extendArgs({ })
       });
   }
-
-  public build(taskList) {
-    taskList.executeScript(this.describe(), {
-      'script': path.resolve(TEMPLATES_DIR, 'service/stop'),
-      'vars': this.extendArgs({ })
-    });
-  }
 }

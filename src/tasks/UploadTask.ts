@@ -35,12 +35,4 @@ export class UploadTask extends DeployTask {
         'vars': this.extendArgs({ })
       });
   }
-
-  public build(taskList) {
-    taskList.copy(this.describe(), {
-      src: this.srcPath,
-      dest: this.destPath,
-      progressBar: this.progress,
-    });
-  }
 }

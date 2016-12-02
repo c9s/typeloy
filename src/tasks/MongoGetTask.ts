@@ -27,12 +27,4 @@ export class MongoGetTask extends SetupTask {
         "progressBar": true
       });
   }
-
-  public build(taskList) {
-    taskList.download(`Getting mongo database as ${this.filename}`, {
-      "src": this.deployPrefix + '/db/archive/latest',
-      "dest": this.filename,
-      "progressBar": true
-    });
-  }
 }

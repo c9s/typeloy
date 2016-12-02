@@ -24,21 +24,9 @@ export class UpstartSetupTask extends SetupTask {
   public run(session : Session) : Promise<SessionResult> {
     const upstartConfig = this.getUpstartConfigPath();
     return copy(session,
-                path.resolve(TEMPLATES_DIR, 'meteor/upstart.conf'),
+                this.resolveTemplate(session, 'meteor/upstart.conf'),
                 upstartConfig, {
                   vars: this.extendArgs({ })
                 });
-  }
-
-  public build(taskList) {
-    const upstartConfig = this.getUpstartConfigPath();
-    taskList.copy(this.describe(), {
-      src: path.resolve(TEMPLATES_DIR, 'meteor/upstart.conf'),
-      dest: upstartConfig,
-      vars: {
-        deployPrefix: this.deployPrefix,
-        appName: this.getAppName()
-      }
-    });
   }
 }
