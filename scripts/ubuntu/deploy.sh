@@ -11,6 +11,10 @@ BUNDLE_TARBALL_FILENAME=bundle.tar.gz
 # This is for fixing the arch binary issue
 REBUILD_NPM_MODULES=1
 
+mkdir -p $APP_ROOT
+mkdir -p $TMP_DIR
+mkdir -p $APP_DIR
+
 # utilities
 gyp_rebuild_inside_node_modules () {
   for npmModule in ./*; do

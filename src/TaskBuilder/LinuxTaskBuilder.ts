@@ -141,6 +141,7 @@ export default class LinuxTaskBuilder extends BaseTaskBuilder {
 
   public reconfig(config : Config, env) {
     return [
+      new BashEnvVarsTask(config, env),
       new EnvVarsTask(config, env),
       new RestartTask(config)
     ];

@@ -45,7 +45,8 @@ export class EnvVarsTask extends Task {
     const bashenv = this.buildEnvDict();
     return copy(session,
                 this.resolveTemplate(session, 'env-vars'),
-                this.appRoot + '/config/env-vars', { vars: this.extendArgs({ 'env': bashenv }) });
+                this.appRoot + '/config/env-vars',
+                { vars: this.extendArgs({ 'env': bashenv }) });
   }
 }
 
@@ -61,8 +62,9 @@ export class BashEnvVarsTask extends EnvVarsTask {
 
   public run(session : Session) : Promise<SessionResult> {
     const bashenv = this.buildEnvDict();
-    return copy(session, this.resolveTemplate(session, 'env.sh'),
+    return copy(session,
+                this.resolveTemplate(session, 'env.sh'),
                 this.appRoot + '/config/env.sh',
-                this.extendArgs({ 'env': bashenv }));
+                { vars: this.extendArgs({ 'env': bashenv }) });
   }
 }
