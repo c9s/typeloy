@@ -4,6 +4,8 @@ import {Config} from "../config";
 import {Session, SessionResult, executeScript, sync, copy} from "../Session";
 
 const util = require('util');
+const fs = require('fs');
+const path = require('path');
 
 export class StudSetupTask extends SetupTask {
 
@@ -28,17 +30,16 @@ export class StudSetupTask extends SetupTask {
     tasks.push(executeScript(session, this.resolveScript(session, 'stud-install.sh'), { vars }));
 
     // Creating upstart service entry
-    tasks.push(copy(session, this.resolveTemplate(session, 'stud.init.conf'), '/etc/init/stud.conf', { vars }));
-
-    tasks.push(copy(session, this.resolveTemplate(session, 'stud.service'), '/etc/systemd/system/stud.service', { vars }));
+    // tasks.push(copy(session, this.resolveTemplate(session, 'stud.init.conf'), '/etc/init/stud.conf', { vars }));
+    // tasks.push(copy(session, this.resolveTemplate(session, 'stud.service'), '/etc/systemd/system/stud.service', { vars }));
 
     if (pemFilePath) {
-      tasks.push(copy(session, this.resolveTemplate(session, pemFilePath), this.deployPrefix + '/stud/ssl.pem', { vars }));
+      tasks.push(copy(session, path.resolve(pemFilePath), this.deployPrefix + '/stud/ssl.pem', { vars }));
     }
 
     // Configuring stud
     tasks.push(copy(session, this.resolveTemplate(session, 'stud.conf'), this.deployPrefix + '/stud/stud.conf', {
-      vars: { backend: util.format('[%s]:%d', backend.host, backend.port) }
+      "vars": { backend: util.format('[%s]:%d', backend.host, backend.port) }
     }));
     return sync(tasks);
   }

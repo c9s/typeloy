@@ -60,7 +60,7 @@ class SetupTaskListBuilder {
     const siteConfig = this.builder.getSiteConfig();
 
     if (siteConfig.ssl) {
-      defs["stud"] = new StudSetupTask(config, siteConfig.ssl);
+      defs["studSetup"] = new StudSetupTask(config, siteConfig.ssl);
       defs["studTest"] = new StudTestTask(config);
       defs["studRestart"] = new StudRestartTask(config);
 
@@ -72,7 +72,7 @@ class SetupTaskListBuilder {
         if (!certbotConfig.email) {
           throw new Error("certbot.email is not defined");
         }
-        defs["certbot"] = new CertbotSetupTask(config, certbotConfig.domain, certbotConfig.email);
+        defs["certbotSetup"] = new CertbotSetupTask(config, certbotConfig.domain, certbotConfig.email);
         defs["certbotRenew"] = new CertbotRenewTask(config, certbotConfig.domain, certbotConfig.email);
       }
     }
@@ -100,7 +100,7 @@ class SetupTaskListBuilder {
 
     // Global ssl setup (work for all sites)
     if (config.ssl) {
-      tasks.push(definitions.stud);
+      tasks.push(definitions.studSetup);
       tasks.push(definitions.studTest);
       tasks.push(definitions.studRestart);
     }
