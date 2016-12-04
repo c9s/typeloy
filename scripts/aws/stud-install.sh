@@ -1,21 +1,22 @@
 #!/bin/bash
-export DEBIAN_FRONTEND=noninteractive
-# Remove the lock
-set +e
-sudo rm -f /var/lib/dpkg/lock > /dev/null
-sudo rm -f /var/cache/apt/archives/lock > /dev/null
-sudo dpkg --configure -a
-set -e
+sudo yum install -y libev libev-devel 
+sudo yum install -y openssl openssl-devel
+sudo yum install -y git
+sudo yum install -y gcc make
 
-sudo apt-get -y install libev4 libev-dev gcc make libssl-dev git
 cd /tmp
 sudo rm -rf /tmp/stud
 
 echo "Cloning stud git repository..."
 sudo git clone https://github.com/bumptech/stud.git stud
 
+# special patch for centos
+sudo cp -v /usr/include/libev/ev.h /usr/include
+
 echo "Compiling..."
 (cd stud && sudo make install)
+
+echo "Cleaning up..."
 sudo rm -rf /tmp/stud
 
 #make sure comet folder exists
@@ -63,7 +64,6 @@ WantedBy=multi-user.target
 END
 
 fi
-
 
 #create non-privileged user
 sudo useradd stud || :
