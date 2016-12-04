@@ -40,9 +40,6 @@ export class StudSetupTask extends SetupTask {
     tasks.push(copy(session, this.resolveTemplate(session, 'stud.conf'), this.deployPrefix + '/stud/stud.conf', {
       vars: { backend: util.format('[%s]:%d', backend.host, backend.port) }
     }));
-
-    // Verifying SSL Configurations
-    tasks.push(executeScript(session, this.resolveScript(session, 'stud-restart.sh'), { vars }));
     return sync(tasks);
   }
 }

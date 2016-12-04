@@ -24,6 +24,8 @@ import {
   MongoRestoreTask,
   MongoGetTask,
   StudSetupTask,
+  StudTestTask,
+  StudRestartTask,
   CertbotSetupTask,
   CertbotRenewTask,
   EnvVarsTask,
@@ -59,6 +61,8 @@ class SetupTaskListBuilder {
 
     if (siteConfig.ssl) {
       defs["stud"] = new StudSetupTask(config, siteConfig.ssl);
+      defs["studTest"] = new StudTestTask(config);
+      defs["studRestart"] = new StudRestartTask(config);
 
       if (siteConfig.ssl.certbot) {
         const certbotConfig = siteConfig.ssl.certbot;
@@ -97,6 +101,8 @@ class SetupTaskListBuilder {
     // Global ssl setup (work for all sites)
     if (config.ssl) {
       tasks.push(definitions.stud);
+      tasks.push(definitions.studTest);
+      tasks.push(definitions.studRestart);
     }
     return tasks;
   }

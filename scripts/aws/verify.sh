@@ -16,11 +16,6 @@ revert_app () {
     sudo rm -rf $APP_ROOT/app
     sudo mv $APP_ROOT/old_app $APP_ROOT/app
     service_restart $APP_NAME || :
-
-    if [[ -e /lib/systemd ]] ; then
-      journalctl -n10 -u ${APP_NAME}.service
-    fi
-
     echo "Latest deployment failed! Reverted back to the previous version." 1>&2
     exit 1
   else
