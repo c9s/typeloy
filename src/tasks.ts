@@ -8,6 +8,8 @@ export * from "./tasks/MongoDumpTask";
 export * from "./tasks/MongoGetTask";
 export * from "./tasks/MongoRestoreTask";
 export * from "./tasks/StudSetupTask";
+export * from "./tasks/StudTestTask";
+export * from "./tasks/StudRestartTask";
 export * from "./tasks/CertbotSetupTask";
 export * from "./tasks/CertbotRenewTask";
 export * from "./tasks/PhantomJsSetupTask";
