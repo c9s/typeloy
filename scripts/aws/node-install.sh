@@ -42,7 +42,7 @@ sudo npm install -g node-pre-gyp
 sudo npm install -g node-gyp
 
 if [[ -e $DEPLOY_PREFIX/nodejs/lib/node_modules/userdown/bin/userdown ]] ; then
-    sudo ln -s $DEPLOY_PREFIX/nodejs/lib/node_modules/userdown/bin/userdown /usr/bin/userdown
+    sudo ln -sf $DEPLOY_PREFIX/nodejs/lib/node_modules/userdown/bin/userdown /usr/bin/userdown
 fi
 if [[ -e $DEPLOY_PREFIX/nodejs/lib/node_modules/forever/bin/forever ]] ; then
     sudo ln -sf $DEPLOY_PREFIX/nodejs/lib/node_modules/forever/bin/forever /usr/bin/forever

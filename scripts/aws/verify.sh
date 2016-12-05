@@ -12,6 +12,7 @@ REVERT_WHEN_FAILED=0
 . $APP_ROOT/config/env.sh
 
 revert_app () {
+  echo "Reverting app ..."
   if [[ -d $APP_ROOT/old_app ]]; then
     sudo rm -rf $APP_ROOT/app
     sudo mv $APP_ROOT/old_app $APP_ROOT/app
