@@ -1,13 +1,16 @@
 #!/bin/bash
-set -e
-cat <<END > mongodb-org-3.0.repo
-[mongodb-org-3.0]
+cat <<END | sudo tee /etc/yum.repos.d/mongodb-org-3.2.repo
+[mongodb-org-3.2]
 name=MongoDB Repository
-baseurl=https://repo.mongodb.org/yum/amazon/2013.03/mongodb-org/3.0/x86_64/
-gpgcheck=0
+baseurl=https://repo.mongodb.org/yum/amazon/2013.03/mongodb-org/3.2/x86_64/
+gpgcheck=1
 enabled=1
+gpgkey=https://www.mongodb.org/static/pgp/server-3.2.asc
 END
-sudo mv -v mongodb-org-3.0.repo /etc/yum.repos.d/mongodb-org-3.0.repo
+sudo yum update -y
+set -e
 sudo yum install -y mongodb-org
-sudo service mongod start
-sudo chkconfig mongod on
+if [[ ! -e /var/run/mongodb/mongod.pid ]] ; then
+    sudo service mongod start
+    sudo chkconfig mongod on
+fi
