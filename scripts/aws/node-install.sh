@@ -28,7 +28,7 @@ sudo yum install -y gcc48-c++ libgcc48 libstdc++48
 sudo yum install -y git curl python
 
 cd /tmp
-wget http://nodejs.org/dist/v${NODE_VERSION}/${NODE_DIST}.tar.gz
+wget -q http://nodejs.org/dist/v${NODE_VERSION}/${NODE_DIST}.tar.gz
 tar xvzf ${NODE_DIST}.tar.gz
 sudo rm -rf /opt/nodejs
 sudo mv ${NODE_DIST} /opt/nodejs
