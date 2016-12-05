@@ -30,9 +30,6 @@ export class UploadTask extends DeployTask {
   public run(session : Session) : Promise<SessionResult> {
     return copy(session,
       this.srcPath,
-      this.destPath, {
-        'progressBar': this.progress,
-        'vars': this.extendArgs({ })
-      });
+      this.destPath, { 'progressBar': this.progress });
   }
 }
