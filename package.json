@@ -20,6 +20,7 @@
     "moment": "^2.15.1",
     "node-slack": "0.0.7",
     "nodemiral": "c9s/nodemiral",
+    "progress": "^1.1.8",
     "propagate": "^1.0.0",
     "request": "^2.74.0",
     "rimraf": "^2.5.4",
