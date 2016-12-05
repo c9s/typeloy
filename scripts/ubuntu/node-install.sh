@@ -11,10 +11,9 @@ sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a
 set -e
 
 # Install Node.js - either nodeVersion or which works with latest Meteor release
+NODE_VERSION=0.10.47
 <% if (nodeVersion) { %>
   NODE_VERSION=<%= nodeVersion %>
-<% } else {%>
-  NODE_VERSION=0.10.47
 <% } %>
 
 ARCH=$(python -c 'import platform; print platform.architecture()[0]')
