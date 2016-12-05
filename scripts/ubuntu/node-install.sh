@@ -1,4 +1,6 @@
 #!/bin/bash
+APP_NAME="<%= appName %>"
+DEPLOY_PREFIX="<%= deployPrefix %>"
 export DEBIAN_FRONTEND=noninteractive
 
 # Remove the lock
@@ -28,24 +30,26 @@ sudo apt-get -y install g++-multilib lib32stdc++6
 # python is required to configure node js
 sudo apt-get -y install build-essential libssl-dev git curl python
 
-
-
 cd /tmp
 wget http://nodejs.org/dist/v${NODE_VERSION}/${NODE_DIST}.tar.gz
 tar xvzf ${NODE_DIST}.tar.gz
-sudo rm -rf /opt/nodejs
-sudo mv ${NODE_DIST} /opt/nodejs
+sudo rm -rf $DEPLOY_PREFIX/nodejs
+sudo mv ${NODE_DIST} $DEPLOY_PREFIX/nodejs
 
-sudo ln -sf /opt/nodejs/bin/node /usr/bin/node
-sudo ln -sf /opt/nodejs/bin/npm /usr/bin/npm
+sudo ln -sf $DEPLOY_PREFIX/nodejs/bin/node /usr/bin/node
+sudo ln -sf $DEPLOY_PREFIX/nodejs/bin/npm /usr/bin/npm
 sudo npm install -g forever 
+sudo npm install -g userdown 
 sudo npm install -g wait-for-mongo
 sudo npm install -g node-pre-gyp
 sudo npm install -g node-gyp
 
-if [[ -e /opt/nodejs/lib/node_modules/forever/bin/forever ]] ; then
-    sudo ln -sf /opt/nodejs/lib/node_modules/forever/bin/forever /usr/bin/forever
+if [[ -e $DEPLOY_PREFIX/nodejs/lib/node_modules/userdown/bin/userdown ]] ; then
+    sudo ln -s $DEPLOY_PREFIX/nodejs/lib/node_modules/userdown/bin/userdown /usr/bin/userdown
 fi
-if [[ -e /opt/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo ]] ; then
-    sudo ln -sf /opt/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo /usr/bin/wait-for-mongo
+if [[ -e $DEPLOY_PREFIX/nodejs/lib/node_modules/forever/bin/forever ]] ; then
+    sudo ln -sf $DEPLOY_PREFIX/nodejs/lib/node_modules/forever/bin/forever /usr/bin/forever
+fi
+if [[ -e $DEPLOY_PREFIX/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo ]] ; then
+    sudo ln -sf $DEPLOY_PREFIX/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo /usr/bin/wait-for-mongo
 fi
