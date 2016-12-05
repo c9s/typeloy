@@ -9,9 +9,9 @@ export class StopTask extends Task {
   }
 
   public run(session : Session) : Promise<SessionResult> {
+    const vars = this.extendArgs({ });
     return executeScript(session,
       this.resolveScript(session, 'service/stop'), {
-        'vars': this.extendArgs({ })
-      });
+        'vars': vars });
   }
 }

@@ -1,4 +1,7 @@
 #!/bin/bash
+APP_NAME="<%= appName %>"
+DEPLOY_PREFIX="<%= deployPrefix %>"
+
 export DEBIAN_FRONTEND=noninteractive
 # Remove the lock
 set +e
@@ -19,11 +22,11 @@ echo "Compiling..."
 sudo rm -rf /tmp/stud
 
 #make sure comet folder exists
-sudo mkdir -p /opt/stud
+sudo mkdir -p $DEBIAN_FRONTEND/stud
 
 #initial permission
 sudo chown -R $USER /etc/init
-sudo chown -R $USER /opt/stud
+sudo chown -R $USER $DEBIAN_FRONTEND/stud
 
 
 if [[ -d /etc/init ]] ; then
