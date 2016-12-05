@@ -37,6 +37,14 @@ The difference between **typeloy** and **meteor-up**:
 
 - Tested with Meteor 1.3 and 1.4
 
+**Supported Platforms**
+
+- Amazon Linux 2016.09
+- Ubuntu 14.04
+- Ubuntu 14.10
+- Ubuntu 16.04
+- Ubuntu 16.10
+
 **New Features**
 
 - Supports LetEncrypt. You can easily configure/setup certbot on servers and get ssl certification easily renewed.
