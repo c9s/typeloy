@@ -20,14 +20,14 @@ export class MongoRestoreTask extends SetupTask {
 
   public run(session : Session) : Promise<SessionResult> {
     const dbName = this.config.mongo.database || this.config.app.name;
-    const opts = {
+    const vars = this.extendArgs({
       host: this.config.mongo.host || "localhost",
       port: this.config.mongo.port || 27017,
       dbName: dbName,
       file: this.remoteFile,
-    };
+    });
     return executeScript(session, this.resolveScript(session, 'mongo-restore.sh'), {
-      "vars": this.extendArgs(opts)
+      "vars": vars
     });
   }
 }

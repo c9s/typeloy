@@ -15,7 +15,7 @@ if [[ -d /etc/letsencrypt ]] ; then
     sudo chmod -R oga+rw /etc/letsencrypt/
     for d in /etc/letsencrypt/live/* ; do
         echo "Generating ssl pem in $d"
-        (cd $d && cat privkey.pem cert.pem /opt/dhparam.pem | sudo tee ssl.pem)
+        (cd $d && cat privkey.pem cert.pem $DEPLOY_PREFIX/dhparam.pem | sudo tee ssl.pem)
     done
 fi
 
@@ -23,7 +23,7 @@ STUD_DIR=$DEPLOY_PREFIX/stud
 PEM_SRC=/etc/letsencrypt/live/$DOMAIN/ssl.pem
 PEM_DEST=$DEPLOY_PREFIX/stud/ssl.pem
 
-mkdir -p $STUD_DIR
+sudo mkdir -p $STUD_DIR
 
 # service_stop stud
 if [[ -e $PEM_SRC ]] ; then
