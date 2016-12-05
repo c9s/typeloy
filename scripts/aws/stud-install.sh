@@ -1,8 +1,11 @@
 #!/bin/bash
-sudo yum install -y libev libev-devel 
-sudo yum install -y openssl openssl-devel
-sudo yum install -y git
-sudo yum install -y gcc make
+APP_NAME="<%= appName %>"
+DEPLOY_PREFIX="<%= deployPrefix %>"
+set -e
+
+# make sure the epel repo is enabled.
+sudo sed -i -e 's/enabled=0/enabled=1/' /etc/yum.repos.d/epel.repo
+sudo yum install -y libev libev-devel openssl openssl-devel git gcc make
 
 cd /tmp
 sudo rm -rf /tmp/stud
@@ -20,12 +23,11 @@ echo "Cleaning up..."
 sudo rm -rf /tmp/stud
 
 #make sure comet folder exists
-sudo mkdir -p /opt/stud
+sudo mkdir -p $DEPLOY_PREFIX/stud
 
 #initial permission
 sudo chown -R $USER /etc/init
-sudo chown -R $USER /opt/stud
-
+sudo chown -R $USER $DEPLOY_PREFIX/stud
 
 if [[ -d /etc/init ]] ; then
 
