@@ -1,6 +1,8 @@
 #!/bin/bash
 # Remove the lock
 set -e
+APP_NAME="<%= appName %>"
+DEPLOY_PREFIX="<%= deployPrefix %>"
 
 # Install Node.js - either nodeVersion or which works with latest Meteor release
 <% if (nodeVersion) { %>
@@ -34,13 +36,17 @@ sudo mv ${NODE_DIST} /opt/nodejs
 sudo ln -sf /opt/nodejs/bin/node /usr/bin/node
 sudo ln -sf /opt/nodejs/bin/npm /usr/bin/npm
 sudo npm install -g forever 
+sudo npm install -g userdown 
 sudo npm install -g wait-for-mongo
 sudo npm install -g node-pre-gyp
 sudo npm install -g node-gyp
 
-if [[ -e /opt/nodejs/lib/node_modules/forever/bin/forever ]] ; then
-    sudo ln -sf /opt/nodejs/lib/node_modules/forever/bin/forever /usr/bin/forever
+if [[ -e $DEPLOY_PREFIX/nodejs/lib/node_modules/userdown/bin/userdown ]] ; then
+    sudo ln -s $DEPLOY_PREFIX/nodejs/lib/node_modules/userdown/bin/userdown /usr/bin/userdown
 fi
-if [[ -e /opt/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo ]] ; then
-    sudo ln -sf /opt/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo /usr/bin/wait-for-mongo
+if [[ -e $DEPLOY_PREFIX/nodejs/lib/node_modules/forever/bin/forever ]] ; then
+    sudo ln -sf $DEPLOY_PREFIX/nodejs/lib/node_modules/forever/bin/forever /usr/bin/forever
+fi
+if [[ -e $DEPLOY_PREFIX/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo ]] ; then
+    sudo ln -sf $DEPLOY_PREFIX/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo /usr/bin/wait-for-mongo
 fi

@@ -174,10 +174,6 @@ if [[ $REBUILD_NPM_MODULES == "1" ]] ; then
   if [ -d npm/node_modules/bignum ] ; then
       (cd npm && sudo npm install --update-binary -f bignum)
   fi
-  # we have bignum used in nsq.js
-  if [ -d npm/node_modules/nsq.js/node_modules/bignum ] ; then
-      (cd npm/node_modules/nsq.js && sudo npm install --update-binary -f bignum)
-  fi
   # for meteor 1.2, we have npm-container
   if [ -d npm/npm-container/node_modules/nsq.js/node_modules/bignum ] ; then
       sudo rm -rf npm/npm-container/node_modules/nsq.js/node_modules/bignum

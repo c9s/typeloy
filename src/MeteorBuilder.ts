@@ -1,11 +1,9 @@
-var spawn = require('child_process').spawn;
-var archiver = require('archiver');
+const spawn = require('child_process').spawn;
+const archiver = require('archiver');
 const fs = require('fs');
 const path = require('path');
-
-var pathResolve = path.resolve;
-
-var _ = require('underscore');
+const pathResolve = path.resolve;
+const _ = require('underscore');
 
 import {Config} from './config';
 
