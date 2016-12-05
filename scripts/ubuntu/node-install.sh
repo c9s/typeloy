@@ -38,11 +38,7 @@ sudo mv ${NODE_DIST} $DEPLOY_PREFIX/nodejs
 
 sudo ln -sf $DEPLOY_PREFIX/nodejs/bin/node /usr/bin/node
 sudo ln -sf $DEPLOY_PREFIX/nodejs/bin/npm /usr/bin/npm
-sudo npm install -g forever 
-sudo npm install -g userdown 
-sudo npm install -g wait-for-mongo
-sudo npm install -g node-pre-gyp
-sudo npm install -g node-gyp
+sudo npm install -g forever userdown wait-for-mongo node-pre-gyp node-gyp
 
 if [[ -e $DEPLOY_PREFIX/nodejs/lib/node_modules/userdown/bin/userdown ]] ; then
     sudo ln -s $DEPLOY_PREFIX/nodejs/lib/node_modules/userdown/bin/userdown /usr/bin/userdown

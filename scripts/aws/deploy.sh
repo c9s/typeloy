@@ -13,7 +13,6 @@ REBUILD_NPM_MODULES=1
 
 mkdir -p $APP_ROOT
 mkdir -p $TMP_DIR
-mkdir -p $APP_DIR
 
 # utilities
 gyp_rebuild_inside_node_modules () {
@@ -202,8 +201,9 @@ fi
 if [ -d $APP_ROOT/app ]; then
   sudo mv $APP_ROOT/app $APP_ROOT/old_app
 fi
-sudo mv $APP_ROOT/tmp/bundle $APP_DIR
 
+## install new app
+sudo mv $APP_ROOT/tmp/bundle $APP_DIR
 # chown to support dumping heapdump and etc
 sudo chown -R meteoruser: $APP_DIR
 
