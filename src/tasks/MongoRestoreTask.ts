@@ -25,7 +25,7 @@ export class MongoRestoreTask extends SetupTask {
       dbName: dbName,
       file: this.remoteFile,
     });
-    return executeScript(session, this.resolveScript(session, 'mongo-restore.sh'), {
+    return executeScript(session, this.resolveScript(session, 'mongo/restore.sh'), {
       "vars": vars
     });
   }

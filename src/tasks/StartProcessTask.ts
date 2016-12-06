@@ -10,7 +10,7 @@ export class StartProcessTask extends DeployTask {
   public run(session : Session) : Promise<SessionResult> {
     const opts = {
       'vars': this.extendArgs({
-        'deployCheckWaitTime': this.config.deploy.checkDelay || 10
+        'deployCheckWaitTime': this.config.deploy.checkDelay || 15
       })
     };
     return sync([
@@ -18,7 +18,7 @@ export class StartProcessTask extends DeployTask {
       (result : SessionResult) => executeScript(session, this.resolveScript(session, 'deploy/install.sh'), opts),
       (result : SessionResult) => executeScript(session, this.resolveScript(session, 'deploy/move-bundle.sh'), opts),
       (result : SessionResult) => executeScript(session, this.resolveScript(session, 'deploy.sh'), opts),
-      (result : SessionResult) => executeScript(session, this.resolveScript(session, 'verify.sh'), opts)
+      (result : SessionResult) => executeScript(session, this.resolveScript(session, 'deploy/verify.sh'), opts)
     ]);
   }
 }

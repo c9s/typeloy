@@ -255,6 +255,7 @@ export function copy(session : Session, localFile : string, remoteFile : string,
 }
 
 export function execute(session : Session, shellCommand : string, options : Object, callback ?: SessionCallback) : Promise<SessionResult> {
+  console.log("execute", shellCommand);
   return new Promise<SessionResult>((resolve, reject) => {
     session.execute(shellCommand, options, wrapSessionCallbackPromise(session, resolve, reject, callback));
   });
@@ -282,6 +283,7 @@ export function sync(...tasks : Array<any>) : Promise<SessionResult> {
  * A promise compliant wrapper for executeScript method.
  */
 export function executeScript(session : Session, script : string, options? : Object, callback? : SessionCallback) : Promise<SessionResult> {
+  console.log("executeScript", script);
   return new Promise<SessionResult>((resolve, reject) => {
     session.executeScript(script, options || {}, wrapSessionCallbackPromise(session, resolve, reject, callback));
   });

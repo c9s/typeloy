@@ -11,8 +11,8 @@ DOMAIN="<%= domain %>"
 
 sudo mkdir -p $DEPLOY_PREFIX/certbot
 cd $DEPLOY_PREFIX/certbot
-curl -O https://dl.eff.org/certbot-auto
-chmod a+x certbot-auto
+sudo curl -O https://dl.eff.org/certbot-auto
+sudo chmod a+x certbot-auto
 
 # Require gpg2 to verify it.
 # wget -N https://dl.eff.org/certbot-auto.asc
