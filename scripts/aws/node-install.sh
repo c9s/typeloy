@@ -21,8 +21,7 @@ else
 fi
 NODE_DIST=node-v${NODE_VERSION}-linux-${NODE_ARCH}
 
-# Note: lib32stdc++-5-dev libx32stdc++6 are included in g++-multilib
-sudo yum install -y gcc48-c++ libgcc48 libstdc++48
+sudo yum install -y gcc-c++ gcc48 gcc48-c++ gcc48-c++ libgcc48 libstdc++48 libstdc++48-devel libstdc++-devel 
 
 # python is required to configure node js
 sudo yum install -y git curl python
@@ -41,6 +40,11 @@ sudo npm install -g wait-for-mongo
 sudo npm install -g node-pre-gyp
 sudo npm install -g node-gyp
 
+# http://ethan.logdown.com/posts/2015/06/23/sh-1-node-gyp-permission-denied
+sudo npm config set unsafe-perm true
+
+sudo ln -fs /opt/nodejs/lib/node_modules/node-pre-gyp/bin/node-pre-gyp /usr/bin/node-pre-gyp
+
 if [[ -e $DEPLOY_PREFIX/nodejs/lib/node_modules/userdown/bin/userdown ]] ; then
     sudo ln -sf $DEPLOY_PREFIX/nodejs/lib/node_modules/userdown/bin/userdown /usr/bin/userdown
 fi
@@ -50,3 +54,4 @@ fi
 if [[ -e $DEPLOY_PREFIX/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo ]] ; then
     sudo ln -sf $DEPLOY_PREFIX/nodejs/lib/node_modules/wait-for-mongo/bin/wait-for-mongo /usr/bin/wait-for-mongo
 fi
+
