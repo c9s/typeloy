@@ -33,4 +33,4 @@ echo "Waiting for $DEPLOY_CHECK_WAIT_TIME seconds while app is booting up"
 sleep $DEPLOY_CHECK_WAIT_TIME
 
 echo "Checking app on localhost:${PORT}"
-curl --connect-timeout 30 localhost:${PORT} || ([[ $REVERT_WHEN_FAILED == "1" ]] && revert_app)
+curl --head --connect-timeout 30 localhost:${PORT} || ([[ $REVERT_WHEN_FAILED == "1" ]] && revert_app)

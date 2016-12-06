@@ -13,12 +13,12 @@ export class StartProcessTask extends DeployTask {
         'deployCheckWaitTime': this.config.deploy.checkDelay || 10
       })
     };
-
-    return sync(
-      executeScript(session, this.resolveScript(session, 'app-bundle-extract.sh'), opts),
-      executeScript(session, this.resolveScript(session, 'app-bundle-install.sh'), opts),
-      executeScript(session, this.resolveScript(session, 'deploy.sh'), opts),
-      executeScript(session, this.resolveScript(session, 'verify.sh'), opts)
-    );
+    return sync([
+      (result : SessionResult) => executeScript(session, this.resolveScript(session, 'deploy/extract-bundle.sh'), opts),
+      (result : SessionResult) => executeScript(session, this.resolveScript(session, 'deploy/install.sh'), opts),
+      (result : SessionResult) => executeScript(session, this.resolveScript(session, 'deploy/move-bundle.sh'), opts),
+      (result : SessionResult) => executeScript(session, this.resolveScript(session, 'deploy.sh'), opts),
+      (result : SessionResult) => executeScript(session, this.resolveScript(session, 'verify.sh'), opts)
+    ]);
   }
 }

@@ -14,11 +14,11 @@ export class MeteorEnvSetupTask extends SetupTask {
 
   public run(session : Session) : Promise<SessionResult> {
     return sync(
-      executeScript(session,
+      (result : SessionResult) => executeScript(session,
           this.resolveScript(session, 'setup-env.sh'),
           { vars: this.extendArgs({}) }
       ),
-      copy(session,
+      (result : SessionResult) => copy(session,
            this.resolveTemplate(session, 'functions.sh'),
            this.deployPrefix + '/lib/functions.sh',
            { vars: this.extendArgs({ }) }

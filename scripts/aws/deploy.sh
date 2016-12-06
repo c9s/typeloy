@@ -80,21 +80,6 @@ fi
 
 cd $APP_ROOT
 
-# remove old app, if it exists
-if [ -d $APP_ROOT/old_app ]; then
-  sudo rm -rf $APP_ROOT/old_app
-fi
-
-## backup current version
-if [ -d $APP_ROOT/app ]; then
-  sudo mv $APP_ROOT/app $APP_ROOT/old_app
-fi
-
-## install new app
-sudo mv $APP_ROOT/tmp/bundle $APP_DIR
-# chown to support dumping heapdump and etc
-sudo chown -R meteoruser: $APP_DIR
-
 # wait and check
 echo "Waiting for MongoDB to initialize. (5 minutes)"
 wait-for-mongo $MONGO_URL 300000
