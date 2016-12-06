@@ -9,4 +9,4 @@ sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a
 set -e
 
 # install requirement
-sudo apt-get -y install libfreetype6 libfreetype6-dev fontconfig
+sudo apt-get -y install libfreetype6 libfreetype6-dev fontconfig > /dev/null

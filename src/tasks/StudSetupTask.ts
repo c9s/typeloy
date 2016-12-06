@@ -27,6 +27,7 @@ export class StudSetupTask extends SetupTask {
     const backend = { host: '127.0.0.1', port: port };
 
     const tasks = [];
+    tasks.push(executeScript(session, this.resolveScript(session, 'stud-install-pre.sh'), { vars }));
     tasks.push(executeScript(session, this.resolveScript(session, 'stud-install.sh'), { vars }));
 
     // Creating upstart service entry
