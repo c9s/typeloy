@@ -40,18 +40,47 @@ prog.option('-v, --verbose', 'verbose mode');
 prog.option('-c, --config <file>', 'config file');
 
 
-
-prog.command('get-login [site]')
-  .description('get the command of ssh login')
-  .action((site : string, options) => {
-    let config = readConfig(prog.config);
-    let siteConfig = config.sites[site];
+prog.command('get-ssh-rsync [site] [remotePath]')
+  .description('get the command of ssh + rsync')
+  .action((site : string, remotePath : string, options) => {
+    const config = readConfig(prog.config);
+    const siteConfig = config.sites[site];
     if (!siteConfig) {
         console.error(`${site} config not found.`);
         return;
     }
-    let cmds = _.map(siteConfig.servers, (server) => {
-        let cmd = ["ssh"];
+    const cmds = _.map(siteConfig.servers, (server) => {
+        const cmd = ["rsync", "-av", "--progress"];
+
+        const e = [];
+        if (server.pem) {
+            e.push("ssh", "-i", server.pem);
+        } else if (server.password) {
+            // sshpass -p your_password
+            e.push("sshpass", "-p", server.password, "ssh");
+        }
+
+        if (server.sshOptions && server.sshOptions.port) {
+            e.push('-p', server.sshOptions.port);
+        }
+        cmd.push("-e", "'" + e.join(' ') + "'");
+        cmd.push(`${server.username}@${server.host}:${remotePath}`);
+        console.log(cmd.join(' '));
+    });
+  });
+
+
+prog.command('get-login [site]')
+  .description('get the command of ssh login')
+  .action((site : string, options) => {
+    const config = readConfig(prog.config);
+    const siteConfig = config.sites[site];
+    if (!siteConfig) {
+        console.error(`${site} config not found.`);
+        return;
+    }
+    const cmds = _.map(siteConfig.servers, (server) => {
+        const cmd = ["ssh"];
         if (server.pem) {
             cmd.push('-i');
             cmd.push(server.pem);
