@@ -1,4 +1,4 @@
-import {SCRIPT_DIR, TEMPLATES_DIR, Task} from "./Task";
+import {Task} from "./Task";
 import {SetupTask} from "./SetupTask";
 import {Config} from "../config";
 import {Session, SessionResult, executeScript, sync} from "../Session";
@@ -18,8 +18,8 @@ export class CertbotRenewTask extends CertbotBaseTask {
       'domain': this.domain,
     }) };
     return sync(
-      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot/renew.sh'), options),
-      executeScript(session, path.resolve(SCRIPT_DIR, 'certbot/genssl.sh'), options)
+      executeScript(session, this.resolveScript(session, 'certbot/renew.sh'), options),
+      executeScript(session, this.resolveScript(session, 'certbot/genssl.sh'), options)
     );
   }
 }

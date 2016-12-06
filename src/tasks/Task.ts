@@ -5,13 +5,9 @@ const path = require('path');
 const fs = require('fs');
 const _ = require('underscore');
 
-export const SCRIPT_DIR = path.resolve(__dirname, '../../../scripts/ubuntu');
+export const SCRIPT_DIR = path.resolve(__dirname, '../../../scripts');
 
-export const TEMPLATES_DIR = path.resolve(__dirname, '../../../templates/ubuntu');
-
-export const BASE_TEMPLATES_DIR = path.resolve(__dirname, '../../../templates');
-
-export const BASE_SCRIPT_DIR = path.resolve(__dirname, '../../../scripts');
+export const TEMPLATES_DIR = path.resolve(__dirname, '../../../templates');
 
 export abstract class Task {
 
@@ -68,9 +64,9 @@ export abstract class Task {
   protected resolveScript(session : Session, fileName : string) : string {
     const os = session._serverConfig.os || 'ubuntu';
     const paths = [
-      path.resolve(BASE_SCRIPT_DIR, os, fileName),
-      path.resolve(SCRIPT_DIR, fileName), // fallback to 'ubuntu'
-      path.resolve(BASE_SCRIPT_DIR, fileName),
+      path.resolve(SCRIPT_DIR, os, fileName),
+      path.resolve(SCRIPT_DIR, 'linux', fileName), // fallback to 'linux'
+      path.resolve(SCRIPT_DIR, fileName),
     ];
     const templatePath = _.find(paths, (p) => {
       return typeof p === "string" && fs.existsSync(p);
@@ -84,9 +80,9 @@ export abstract class Task {
   protected resolveTemplate(session : Session, fileName : string) : string {
     const os = session._serverConfig.os || 'ubuntu';
     const paths = [
-      path.resolve(BASE_TEMPLATES_DIR, os, fileName),
+      path.resolve(TEMPLATES_DIR, os, fileName),
+      path.resolve(TEMPLATES_DIR, 'linux', fileName),
       path.resolve(TEMPLATES_DIR, fileName),
-      path.resolve(BASE_TEMPLATES_DIR, fileName),
     ];
     const templatePath = _.find(paths, (p) => {
       return typeof p === "string" && fs.existsSync(p);
