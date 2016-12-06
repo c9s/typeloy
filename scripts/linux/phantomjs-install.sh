@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-sudo yum install -y freetype freetype-devel fontconfig
 ARCH=`uname -m`
 PHANTOMJS_VERSION=1.9.8
 cd /usr/local/share/
