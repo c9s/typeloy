@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 cat <<END | sudo tee /etc/yum.repos.d/mongodb-org-3.2.repo
 [mongodb-org-3.2]
 name=MongoDB Repository
@@ -8,7 +9,6 @@ enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-3.2.asc
 END
 sudo yum update -y
-set -e
 sudo yum install -y mongodb-org
 if [[ ! -e /var/run/mongodb/mongod.pid ]] ; then
     sudo service mongod start
