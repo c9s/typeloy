@@ -7,15 +7,18 @@ export class NodeJsSetupTask extends SetupTask {
     return 'Installing Node.js: ' + this.getNodeVersion();
   }
 
-  protected getNodeVersion() {
-    return this.config.setup.node || '0.10.44';
+  public run(session : Session) : Promise<SessionResult> {
+    const vars = this.extendArgs({
+      nodeVersion: this.getNodeVersion()
+    });
+    return sync(
+      executeScript(session, this.resolveScript(session, 'node-install-pre.sh'), { vars }),
+      executeScript(session, this.resolveScript(session, 'node-install.sh'), { vars }),
+      executeScript(session, this.resolveScript(session, 'node-install-post.sh'), { vars })
+    );
   }
 
-  public run(session : Session) : Promise<SessionResult> {
-    return executeScript(session, this.resolveScript(session, 'node-install.sh'), {
-      "vars": this.extendArgs({
-        nodeVersion: this.getNodeVersion()
-      })
-    });
+  protected getNodeVersion() {
+    return this.config.setup.node || '0.10.44';
   }
 }
