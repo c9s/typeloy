@@ -10,7 +10,7 @@ export class PhantomJsSetupTask extends SetupTask {
   public run(session : Session) : Promise<SessionResult> {
     const vars = this.extendArgs({});
     return sync(
-      executeScript(session, this.resolveScript(session, 'phantomjs-require.sh'), { vars }),
+      executeScript(session, this.resolveScript(session, 'phantomjs-install-pre.sh'), { vars }),
       executeScript(session, this.resolveScript(session, 'phantomjs-install.sh'), { vars })
     );
   }
