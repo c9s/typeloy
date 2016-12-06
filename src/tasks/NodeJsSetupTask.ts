@@ -12,9 +12,9 @@ export class NodeJsSetupTask extends SetupTask {
       nodeVersion: this.getNodeVersion()
     });
     return sync(
-      executeScript(session, this.resolveScript(session, 'node-install-pre.sh'), { vars }),
-      executeScript(session, this.resolveScript(session, 'node-install.sh'), { vars }),
-      executeScript(session, this.resolveScript(session, 'node-install-post.sh'), { vars })
+      (result : SessionResult) => executeScript(session, this.resolveScript(session, 'node-install-pre.sh'), { vars }),
+      (result : SessionResult) => executeScript(session, this.resolveScript(session, 'node-install.sh'), { vars }),
+      (result : SessionResult) => executeScript(session, this.resolveScript(session, 'node-install-post.sh'), { vars })
     );
   }
 

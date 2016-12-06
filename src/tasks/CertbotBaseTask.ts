@@ -1,7 +1,7 @@
 import {Task} from "./Task";
 import {SetupTask} from "./SetupTask";
 import {Config} from "../config";
-import {Session, SessionResult, executeScript, sync} from "../Session";
+import {Session, SessionResult, executeScript} from "../Session";
 
 export abstract class CertbotBaseTask extends Task {
 

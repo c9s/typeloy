@@ -168,19 +168,32 @@ export class SessionRunner {
 /**
  * A private helper function that collects callback results into a summary map.
  */
-function wrapSessionCallbackPromise(session : Session, resolve, callback? : SessionCallback, vars? : any) : SessionCallback {
+function wrapSessionCallbackPromise(session : Session, resolve, reject, callback? : SessionCallback, vars? : any) : SessionCallback {
   // the parent caller
   // callback(null, context.code, context);
   return (err, code, context : SessionResultContext) : void => {
     if (callback) {
       callback.call(this, err, code, context);
     }
-    resolve({
+    const result = {
       error: err,
       code,
       context,
       vars
-    } as SessionResult);
+    } as SessionResult;
+
+    if (context.stdout) {
+      console.log(context.stdout);
+    }
+    if (context.stderr) {
+      console.log(context.stderr);
+    }
+
+    if (err) {
+      reject(result);
+    } else {
+      resolve(result);
+    }
   };
 }
 
@@ -230,49 +243,47 @@ export function result(error : boolean, vars, input = null) : Promise<SessionRes
 
 
 export function download(session : Session, remoteFile : string, localFile : string, options : SessionDownloadOptions, callback? : SessionCallback) : Promise<SessionResult> {
-  return new Promise<SessionResult>(resolve => {
-    session.download(remoteFile, localFile, options, wrapSessionCallbackPromise(session, resolve, callback));
+  return new Promise<SessionResult>((resolve,reject) => {
+    session.download(remoteFile, localFile, options, wrapSessionCallbackPromise(session, resolve, reject, callback));
   });
 }
 
 export function copy(session : Session, localFile : string, remoteFile : string, options : SessionCopyOptions, callback? : SessionCallback) : Promise<SessionResult> {
-  return new Promise<SessionResult>(resolve => {
-    session.copy(localFile, remoteFile, options, wrapSessionCallbackPromise(session, resolve, callback));
+  return new Promise<SessionResult>((resolve, reject) => {
+    session.copy(localFile, remoteFile, options, wrapSessionCallbackPromise(session, resolve, reject, callback));
   });
 }
 
 export function execute(session : Session, shellCommand : string, options : Object, callback ?: SessionCallback) : Promise<SessionResult> {
-  return new Promise<SessionResult>(resolve => {
-    session.execute(shellCommand, options, wrapSessionCallbackPromise(session, resolve, callback));
+  return new Promise<SessionResult>((resolve, reject) => {
+    session.execute(shellCommand, options, wrapSessionCallbackPromise(session, resolve, reject, callback));
   });
 }
 
-
+type SessionThenable = (result : SessionResult) => Promise<SessionResult>;
 
 export function sync(...tasks : Array<any>) : Promise<SessionResult> {
-
-  const syncPromises = (taskPromises : Array<Promise<SessionResult>>) : Promise<SessionResult> => {
+  const wrapPromise = (p) => (result : SessionResult) => p;
+  const syncPromises = (taskPromises : Array<SessionThenable>) : Promise<SessionResult> => {
     let t = Promise.resolve()
     for (let i = 0; i < taskPromises.length ; i++) {
-      t = t.then((result : SessionResult) => {
-        return taskPromises[i];
-      });
+      t = t.then(taskPromises[i]);
     }
     return t;
   }
 
   if (tasks[0] instanceof Array) {
-    return syncPromises(tasks[0] as Array<Promise<SessionResult>>);
+    return syncPromises(tasks[0] as Array<SessionThenable>);
   }
-  return syncPromises(tasks as Array<Promise<SessionResult>>);
+  return syncPromises(tasks as Array<SessionThenable>);
 }
 
 /**
  * A promise compliant wrapper for executeScript method.
  */
 export function executeScript(session : Session, script : string, options? : Object, callback? : SessionCallback) : Promise<SessionResult> {
-  return new Promise<SessionResult>(resolve => {
-    session.executeScript(script, options || {}, wrapSessionCallbackPromise(session, resolve, callback));
+  return new Promise<SessionResult>((resolve, reject) => {
+    session.executeScript(script, options || {}, wrapSessionCallbackPromise(session, resolve, reject, callback));
   });
 }
 
