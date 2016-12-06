@@ -77,7 +77,9 @@ set -o xtrace
 #   gyp WARN EACCES attempting to reinstall using temporary dev dir "/opt/nodejs/lib/node_modules/bcrypt/.node-gyp"
 # 
 # SEE https://github.com/nodejs/node-gyp/issues/454 FOR MORE DETAILS
-sudo chown -v -R nobody: /root/.node-gyp || :
+if [[ -d /root/.node-gyp ]] ; then
+  sudo chown -v -R nobody: /root/.node-gyp || :
+fi
 
 cd ${BUNDLE_EXTRACT_DIR}/programs/server
 if [ -f package.json ]; then

@@ -31,7 +31,7 @@ export class MongoDumpTask extends SetupTask {
     } else {
       opts.file = "%app_name%_%db_name%_%today%.gz";
     }
-    return executeScript(session, this.resolveScript(session, 'mongo-dump.sh'), {
+    return executeScript(session, this.resolveScript(session, 'mongo/dump.sh'), {
       "vars": this.extendArgs(opts)
     });
   }

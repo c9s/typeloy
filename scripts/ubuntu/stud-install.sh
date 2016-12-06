@@ -13,11 +13,11 @@ echo "Compiling..."
 sudo rm -rf /tmp/stud
 
 #make sure comet folder exists
-sudo mkdir -p $DEBIAN_FRONTEND/stud
+sudo mkdir -p $DEPLOY_PREFIX/stud
 
 #initial permission
 sudo chown -R $USER /etc/init
-sudo chown -R $USER $DEBIAN_FRONTEND/stud
+sudo chown -R $USER $DEPLOY_PREFIX/stud
 
 
 if [[ -d /etc/init ]] ; then
