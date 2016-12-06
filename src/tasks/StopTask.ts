@@ -1,4 +1,3 @@
-import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {Task} from "./Task";
 import {Session, SessionResult, executeScript, sync} from "../Session";
 

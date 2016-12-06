@@ -1,4 +1,4 @@
-import {SCRIPT_DIR, TEMPLATES_DIR, Task} from "./Task";
+import {Task} from "./Task";
 import {Session, SessionResult, executeScript, sync} from "../Session";
 
 export class PkgUpdateTask extends Task {

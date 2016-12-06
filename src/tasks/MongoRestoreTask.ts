@@ -1,4 +1,3 @@
-import {SCRIPT_DIR, TEMPLATES_DIR} from "./Task";
 import {SetupTask} from "./SetupTask";
 import {Config} from "../config";
 import {Session, SessionResult, executeScript, sync} from "../Session";
