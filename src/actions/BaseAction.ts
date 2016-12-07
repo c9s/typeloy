@@ -1,6 +1,6 @@
 import path = require('path');
 import fs = require('fs');
-import {Config, AppConfig, ServerConfig, SiteConfig} from '../config';
+import {Config, AppConfig, ServerConfig, SiteConfig, generateMeteorSettings} from '../config';
 import LinuxTaskBuilder from "../TaskBuilder/LinuxTaskBuilder";
 import {Deployment} from '../Deployment';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
@@ -79,6 +79,13 @@ export class BaseAction extends EventEmitter {
     const sitePromises = _.map(sites, (site : string) => {
         const siteConfig = this.getSiteConfig(site);
         const sessionsMap = this.createSiteSessionsMap(siteConfig);
+
+        const meteorSettings = generateMeteorSettings(this.config, site, siteConfig, deployment);
+        console.log("Updated Meteor Settings:");
+        console.log(JSON.stringify(meteorSettings, null, "  "));
+        siteConfig.env['METEOR_SETTINGS'] = JSON.stringify(meteorSettings);
+
+
         const groupPromises : Array<Promise<SummaryMap>> = _.map(sessionsMap,
                 (sessionGroup : SessionGroup) => {
                       const taskListsBuilder = this.createTaskBuilderByOs(sessionGroup);

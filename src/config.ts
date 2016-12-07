@@ -3,6 +3,7 @@ var format = require('util').format;
 import path = require('path');
 import fs = require('fs');
 import 'colors';
+import {Deployment} from './Deployment';
 var _ = require('underscore');
 
 export interface Env {
@@ -415,4 +416,31 @@ function loadMeteorSettings(config : Config) {
     const settings = require(settingsFile);
     return config.app.settings = settings;
   }
+}
+
+export function generateMeteorSettings(config : Config, site : string, siteConfig : SiteConfig, deployment : Deployment) {
+    // Get settings.json into env,
+    // The METEOR_SETTINGS can be used for setting up meteor application without passing "--settings=...."
+    //
+    // Here is the guide of using METEOR_SETTINGS
+    // https://themeteorchef.com/snippets/making-use-of-settings-json/#tmc-using-settingsjson
+    //
+    // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
+    //
+    // TODO: support reading settings from command line
+    const meteorSettings = _.extend({
+      "public": {},
+      "private": {},
+      "log": { "level": "warn" }
+    }, siteConfig.settings || config.app.settings || {}); // prefer site config over the app settings
+
+    // always update
+    if (config.deploy.exposeSiteName && meteorSettings['public'] && typeof meteorSettings['public']['site'] === "undefined") {
+      // XXX: apply siteName from siteConfig
+      meteorSettings['public']['site'] = siteConfig.siteName || site;
+    }
+    if (config.deploy.exposeVersionInfo) {
+      meteorSettings['public']['version'] = deployment.brief();
+    }
+    return meteorSettings;
 }

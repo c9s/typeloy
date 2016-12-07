@@ -1,5 +1,5 @@
 import {BaseAction} from './BaseAction';
-import {Config} from '../config';
+import {Config, generateMeteorSettings} from '../config';
 import {Deployment} from '../Deployment';
 import {Session, SessionRunner} from '../Session';
 import {SessionManager, SessionManagerConfig, SessionGroup, SessionsMap} from '../SessionManager';
@@ -29,39 +29,16 @@ export class DeployAction extends BaseAction {
       const sessionsMap = this.createSiteSessionsMap(siteConfig);
       this.log(`Connecting to the ${site} servers: [${ _.map(siteConfig.servers, (server) => server.host).join(', ')}]`);
 
-      // Get settings.json into env,
-      // The METEOR_SETTINGS can be used for setting up meteor application without passing "--settings=...."
-      //
-      // Here is the guide of using METEOR_SETTINGS
-      // https://themeteorchef.com/snippets/making-use-of-settings-json/#tmc-using-settingsjson
-      //
-      // @see http://joshowens.me/environment-settings-and-security-with-meteor-js/
-      //
-      // TODO: support reading settings from command line
-      const meteorSettings = _.extend({
-        "public": {},
-        "private": {},
-        "log": { "level": "warn" }
-      }, siteConfig.settings || this.config.app.settings || {}); // prefer site config over the app settings
-
-      // always update
-      if (this.config.deploy.exposeSiteName && meteorSettings['public'] && typeof meteorSettings['public']['site'] === "undefined") {
-        // XXX: apply siteName from siteConfig
-        meteorSettings['public']['site'] = siteConfig.siteName || site;
-      }
-      if (this.config.deploy.exposeVersionInfo) {
-        meteorSettings['public']['version'] = deployment.brief();
-      }
-
+      const meteorSettings = generateMeteorSettings(this.config, site, siteConfig, deployment);
       console.log("Updated Meteor Settings:");
       console.log(JSON.stringify(meteorSettings, null, "  "));
-
       siteConfig.env['METEOR_SETTINGS'] = JSON.stringify(meteorSettings);
 
       // An array of Promise<SummaryMap> for sites server
       const groupPromises : Array<Promise<SummaryMap>> 
         = _.map(sessionsMap, (sessionGroup : SessionGroup) => {
           const taskBuilder = this.createTaskBuilderByOs(sessionGroup);
+
 
           const sessionPromises : Array<Promise<SummaryMap>> = _.map(sessionGroup.sessions, (session : Session) : Promise<SummaryMap> => {
               const env = _.extend({},
