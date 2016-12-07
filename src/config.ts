@@ -272,7 +272,7 @@ export class ConfigParser {
     }
 
     _.each(config.sites, (siteConfig, siteName) => {
-      _.each(siteConfig.servers, (server:ServerConfig) => {
+      _.each(siteConfig.servers, (server : ServerConfig) => {
         let sshAgentExists = false;
         let sshAgent:string = process.env.SSH_AUTH_SOCK;
         if (sshAgent) {
