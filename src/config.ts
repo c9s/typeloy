@@ -406,6 +406,12 @@ function loadMeteorSettings(config : Config) {
   }
   let settingsFilename = config.app.settings || "settings.json";
   if (typeof settingsFilename === "string") {
-    return config.app.settings = locateMeteorSettingsConfig(config, settingsFilename);
+    const settingsFile = locateMeteorSettingsConfig(config, settingsFilename);
+    if (!settingsFile) {
+      console.error("**METEOR requires settings.json config for production environment.**");
+      return false;
+    }
+    const settings = require(settingsFile);
+    return config.app.settings = settings;
   }
 }
