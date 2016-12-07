@@ -274,7 +274,7 @@ export class ConfigParser {
     _.each(config.sites, (siteConfig, siteName) => {
       _.each(siteConfig.servers, (server : ServerConfig) => {
         let sshAgentExists = false;
-        let sshAgent:string = process.env.SSH_AUTH_SOCK;
+        const sshAgent : string = process.env.SSH_AUTH_SOCK;
         if (sshAgent) {
           sshAgentExists = fs.existsSync(sshAgent);
           server.sshOptions = server.sshOptions || {};
@@ -287,7 +287,8 @@ export class ConfigParser {
 
         server.env = server.env || {};
         var defaultEndpointUrl : string =
-          format("http://%s:%s", server.host, config.env['PORT'] || 80);
+          config.env['ROOT_URL'] 
+            || format("http://%s:%s", server.host, config.env['PORT'] || 80);
         server.env['CLUSTER_ENDPOINT_URL'] =
           server.env['CLUSTER_ENDPOINT_URL'] || defaultEndpointUrl;
       });

@@ -71,10 +71,10 @@ export class SessionManager {
   }
 
   public createSiteConnections(siteConfig : SiteConfig) : SessionsMap {
-    let servers : Array<ServerConfig> = siteConfig.servers;
-    let sessionsMap : SessionsMap = {} as SessionsMap;
+    const servers : Array<ServerConfig> = siteConfig.servers;
+    const sessionsMap : SessionsMap = {} as SessionsMap;
     _.each(servers, (server : ServerConfig) => {
-      let session = this.create(server);
+      const session = this.create(server);
 
       // Create os => taskListBuilder map
       if (!sessionsMap[server.os]) {

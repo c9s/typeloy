@@ -45,7 +45,7 @@ export class EnvVarsTask extends Task {
     return copy(session,
                 this.resolveTemplate(session, 'env-vars'),
                 this.appRoot + '/config/env-vars',
-                { vars: this.extendArgs({ 'env': bashenv }) });
+                { progressBar : true, vars: this.extendArgs({ 'env': bashenv }) });
   }
 }
 
@@ -64,6 +64,6 @@ export class BashEnvVarsTask extends EnvVarsTask {
     return copy(session,
                 this.resolveTemplate(session, 'env.sh'),
                 this.appRoot + '/config/env.sh',
-                { vars: this.extendArgs({ 'env': bashenv }) });
+                { progressBar: true, vars: this.extendArgs({ 'env': bashenv }) });
   }
 }
