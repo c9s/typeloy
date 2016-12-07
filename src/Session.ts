@@ -243,21 +243,21 @@ export function result(error : boolean, vars, input = null) : Promise<SessionRes
 
 
 export function download(session : Session, remoteFile : string, localFile : string, options : SessionDownloadOptions, callback? : SessionCallback) : Promise<SessionResult> {
-  console.log("downloading", localFile, remoteFile);
+  console.log("==> downloading", localFile, remoteFile);
   return new Promise<SessionResult>((resolve,reject) => {
     session.download(remoteFile, localFile, options, wrapSessionCallbackPromise(session, resolve, reject, callback));
   });
 }
 
 export function copy(session : Session, localFile : string, remoteFile : string, options : SessionCopyOptions, callback? : SessionCallback) : Promise<SessionResult> {
-  console.log("copy", localFile, remoteFile);
+  console.log("==> copy", localFile, remoteFile);
   return new Promise<SessionResult>((resolve, reject) => {
     session.copy(localFile, remoteFile, options, wrapSessionCallbackPromise(session, resolve, reject, callback));
   });
 }
 
 export function execute(session : Session, shellCommand : string, options : Object, callback ?: SessionCallback) : Promise<SessionResult> {
-  console.log("execute", shellCommand);
+  console.log("==> execute", shellCommand);
   return new Promise<SessionResult>((resolve, reject) => {
     session.execute(shellCommand, options, wrapSessionCallbackPromise(session, resolve, reject, callback));
   });
@@ -285,7 +285,7 @@ export function sync(...tasks : Array<any>) : Promise<SessionResult> {
  * A promise compliant wrapper for executeScript method.
  */
 export function executeScript(session : Session, script : string, options? : Object, callback? : SessionCallback) : Promise<SessionResult> {
-  console.log("executeScript", script);
+  console.log("==> executeScript", script);
   return new Promise<SessionResult>((resolve, reject) => {
     session.executeScript(script, options || {}, wrapSessionCallbackPromise(session, resolve, reject, callback));
   });
