@@ -4,6 +4,11 @@ import fs = require('fs');
 const _ = require('underscore');
 
 import {readConfig, Config} from '../src/config';
+import {
+  get_ssh_login_command,
+  get_ssh_rsync_command,
+  get_ssh_config
+} from "../src/utils";
 
 import {
     BaseAction,
@@ -40,6 +45,9 @@ prog.option('-v, --verbose', 'verbose mode');
 prog.option('-c, --config <file>', 'config file');
 
 
+
+
+
 prog.command('get-ssh-rsync [site] [remotePath]')
   .description('get the command of ssh + rsync')
   .action((site : string, remotePath : string, options) => {
@@ -50,27 +58,14 @@ prog.command('get-ssh-rsync [site] [remotePath]')
         return;
     }
     const cmds = _.map(siteConfig.servers, (server) => {
-        const cmd = ["rsync", "-av", "--progress"];
-
-        const e = [];
-        if (server.pem) {
-            e.push("ssh", "-i", server.pem);
-        } else if (server.password) {
-            // sshpass -p your_password
-            e.push("sshpass", "-p", server.password, "ssh");
-        }
-
-        if (server.sshOptions && server.sshOptions.port) {
-            e.push('-p', server.sshOptions.port);
-        }
-        cmd.push("-e", "'" + e.join(' ') + "'");
-        cmd.push(`${server.username}@${server.host}:${remotePath}`);
-        console.log(cmd.join(' '));
+        const cmd = get_ssh_rsync_command(server, remotePath);
+        console.log(cmd);
+        return cmd;
     });
   });
 
 
-prog.command('get-login [site]')
+prog.command('get-ssh-login [site]')
   .description('get the command of ssh login')
   .action((site : string, options) => {
     const config = readConfig(prog.config);
@@ -80,25 +75,28 @@ prog.command('get-login [site]')
         return;
     }
     const cmds = _.map(siteConfig.servers, (server) => {
-        const cmd = ["ssh"];
-        if (server.pem) {
-            cmd.push('-i');
-            cmd.push(server.pem);
-        } else if (server.password) {
-            // sshpass -p your_password
-            cmd.unshift("sshpass", "-p", server.password);
-        }
-        if (server.sshOptions) {
-            if (server.sshOptions.port) {
-                cmd.push('-p');
-                cmd.push(server.sshOptions.port);
-            }
-        }
-        cmd.push(`${server.username}@${server.host}`);
-        console.log(cmd.join(' '));
+        const cmd = get_ssh_login_command(server);
+        console.log(cmd);
+        return cmd;
     });
   })
   ;
+
+prog.command('get-ssh-config [site]')
+  .description('get config for .ssh/config')
+  .action((site : string, remotePath : string, options) => {
+    const config = readConfig(prog.config);
+    const siteConfig = config.sites[site];
+    if (!siteConfig) {
+        console.error(`${site} config not found.`);
+        return;
+    }
+    const cmds = _.map(siteConfig.servers, (server) => {
+        const cmd = get_ssh_config(site, siteConfig, server);
+        console.log(cmd);
+        return cmd;
+    });
+  });
 
 
 prog.command('deploy [sites...]')
@@ -302,3 +300,5 @@ prog.on('--help', function(){
   */
 });
 prog.parse(process.argv);
+
+// vim:sw=2:ts=2:sts=2:et:filetype=typescript:
