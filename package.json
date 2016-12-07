@@ -1,6 +1,6 @@
 {
   "name": "typeloy",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "friendly meteor deployments",
   "main": "lib/src/index.js",
   "typings": "lib/src/index.d.ts",
