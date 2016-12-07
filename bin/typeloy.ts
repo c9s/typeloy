@@ -47,18 +47,44 @@ prog.option('-c, --config <file>', 'config file');
 
 
 
-
-prog.command('get-ssh-rsync [site] [remotePath]')
-  .description('get the command of ssh + rsync')
-  .action((site : string, remotePath : string, options) => {
+prog.command('browse [site]')
+  .description('open site in a browser')
+  .action((site : string, options) => {
     const config = readConfig(prog.config);
     const siteConfig = config.sites[site];
     if (!siteConfig) {
         console.error(`${site} config not found.`);
         return;
     }
+    const child_process = require('child_process');
+    const url = siteConfig.env['ROOT_URL'];
+    child_process.spawn("open", [url], { detached : true });
+  });
+
+
+prog.command('get-url [site]')
+  .description('get the url of a site')
+  .action((site : string, options) => {
+    const config = readConfig(prog.config);
+    const siteConfig = config.sites[site];
+    if (!siteConfig) {
+        console.error(`${site} config not found.`);
+        return;
+    }
+    console.log(siteConfig.env['ROOT_URL']);
+  });
+
+prog.command('get-ssh-rsync [site] [srcPath] [dstPath]')
+  .description('get the command of ssh + rsync')
+  .action((srcSite : string, srcPath : string, dstPath : string, options) => {
+    const config = readConfig(prog.config);
+    const siteConfig = config.sites[srcSite];
+    if (!siteConfig) {
+        console.error(`${srcSite} config not found.`);
+        return;
+    }
     const cmds = _.map(siteConfig.servers, (server) => {
-        const cmd = get_ssh_rsync_command(server, remotePath);
+        const cmd = get_ssh_rsync_command(server, srcPath, dstPath);
         console.log(cmd);
         return cmd;
     });

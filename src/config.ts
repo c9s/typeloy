@@ -371,6 +371,32 @@ export function readConfig(configPath : string) : Config {
 };
 
 
+function locateMeteorSettingsConfig(config : Config, settingsFilename : string) : string {
+    let dir;
+    if (dir = config.dirname) {
+      let settingsFile = path.resolve(dir, settingsFilename);
+      if (fs.existsSync(settingsFile)) {
+        return settingsFile;
+      }
+    }
+    if (dir = config.app.directory) {
+      let settingsFile = path.resolve(dir, settingsFilename);
+      if (fs.existsSync(settingsFile)) {
+        return settingsFile;
+      }
+    }
+    if (dir = config.app.root) {
+      let settingsFile = path.resolve(dir, settingsFilename);
+      if (fs.existsSync(settingsFile)) {
+        return settingsFile;
+      }
+    }
+    if (fs.existsSync(settingsFilename)) {
+      return settingsFilename;
+    }
+}
+
+
 function loadMeteorSettings(config : Config) {
   if (typeof config.app === "undefined") {
     config.app = {} as AppConfig;
@@ -380,32 +406,6 @@ function loadMeteorSettings(config : Config) {
   }
   let settingsFilename = config.app.settings || "settings.json";
   if (typeof settingsFilename === "string") {
-    let dir;
-
-    if (dir = config.dirname) {
-      let settingsFile = path.resolve(dir, settingsFilename);
-      if (fs.existsSync(settingsFile)) {
-        console.log(`Found ${settingsFile}`);
-        return config.app.settings = require(settingsFile);
-      }
-    }
-    if (dir = config.app.directory) {
-      let settingsFile = path.resolve(dir, settingsFilename);
-      if (fs.existsSync(settingsFile)) {
-        console.log(`Found ${settingsFile}`);
-        return config.app.settings = require(settingsFile);
-      }
-    }
-    if (dir = config.app.root) {
-      let settingsFile = path.resolve(dir, settingsFilename);
-      if (fs.existsSync(settingsFile)) {
-        console.log(`Found ${settingsFile}`);
-        return config.app.settings = require(settingsFile);
-      }
-    }
-    if (fs.existsSync(settingsFilename)) {
-      console.log(`Found ${settingsFilename}`);
-      return config.app.settings = require(settingsFilename);
-    }
+    return config.app.settings = locateMeteorSettingsConfig(config, settingsFilename);
   }
 }

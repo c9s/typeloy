@@ -2,7 +2,7 @@ import {ServerConfig} from "./config";
 
 const path = require('path');
 
-export function get_ssh_rsync_command(server : ServerConfig, remotePath : string) : string {
+export function get_ssh_rsync_command(server : ServerConfig, srcPath : string, destPath : string) : string {
     const cmd = ["rsync", "-av", "--progress"];
     const e = [];
     if (server.pem) {
@@ -15,7 +15,8 @@ export function get_ssh_rsync_command(server : ServerConfig, remotePath : string
         e.push('-p', server.sshOptions.port + "");
     }
     cmd.push("-e", "'" + e.join(' ') + "'");
-    cmd.push(`${server.username}@${server.host}:${remotePath}`);
+    cmd.push(`${server.username}@${server.host}:${srcPath}`);
+    cmd.push(destPath);
     return cmd.join(' ');
 }
 
