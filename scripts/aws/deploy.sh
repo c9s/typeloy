@@ -69,10 +69,10 @@ script
     fi
     if [ -z \$UPSTART_UID ]; then
       ## start the app using userdown
-      forever -c userdown --minUptime 2000 --spinSleepTime 1000 app/main.js
+      forever -c userdown --minUptime 2000 --spinSleepTime 1000 app/main.js  >> /var/log/<%= appName %>.log 2>&1
     else
       ## start the app as UPSTART_UID
-      exec su -s /bin/sh -c 'exec "\$0" "\$@"' \$UPSTART_UID -- forever --minUptime 2000 --spinSleepTime 1000 app/main.js
+      exec su -s /bin/sh -c 'exec "\$0" "\$@"' \$UPSTART_UID -- forever --minUptime 2000 --spinSleepTime 1000 app/main.js >> /var/log/<%= appName %>.log 2>&1
     fi
 end script
 END
