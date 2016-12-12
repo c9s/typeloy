@@ -24,10 +24,10 @@ if [[ -n $(ps aux | grep -v grep | grep stud) ]] ; then
     service_stop stud
 fi
 service_stop $APP_NAME
+
 ./certbot-auto certonly --standalone \
     --verbose \
     --non-interactive --text \
     --agree-tos \
     --keep-until-expiring \
     --email $EMAIL -d $DOMAIN
-service_start $APP_NAME

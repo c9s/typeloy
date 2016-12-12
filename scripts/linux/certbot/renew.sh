@@ -10,13 +10,14 @@ sudo mkdir -p $DEPLOY_PREFIX/certbot
 
 cd $DEPLOY_PREFIX/certbot
 
-# This will renew all domain name
-service_stop stud
+if [[ -n $(ps aux | grep -v grep | grep stud) ]] ; then
+    service_stop stud
+fi
 service_stop $APP_NAME
+
+# This will renew all domain name
 ./certbot-auto renew --standalone \
     --verbose \
     --non-interactive \
     --text \
     --keep-until-expiring
-service_start $APP_NAME
-service_start stud

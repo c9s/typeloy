@@ -29,5 +29,6 @@ sudo mkdir -p $STUD_DIR
 if [[ -e $PEM_SRC ]] ; then
     echo "Found pem file, copying pem file to $PEM_DEST"
     sudo cp -v $PEM_SRC $PEM_DEST
-    service_restart stud
 fi
+service_restart stud
+service_restart $APP_NAME
