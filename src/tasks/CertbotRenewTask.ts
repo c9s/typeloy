@@ -13,10 +13,12 @@ export class CertbotRenewTask extends CertbotBaseTask {
   }
 
   public run(session : Session) : Promise<SessionResult> {
-    const options = { 'vars': this.extendArgs({
-      'email':  this.email,
-      'domain': this.domain,
-    }) };
+    const options = {
+      'vars': this.extendArgs({
+        'email':  this.email,
+        'domain': this.domain,
+      })
+    };
     return sync(
       (result : SessionResult) => executeScript(session, this.resolveScript(session, 'certbot/renew.sh'), options),
       (result : SessionResult) => executeScript(session, this.resolveScript(session, 'certbot/genssl.sh'), options)
