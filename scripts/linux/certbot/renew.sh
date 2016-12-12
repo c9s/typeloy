@@ -1,13 +1,14 @@
 #!/bin/bash
-set -e
-sudo mkdir -p /opt/certbot
-cd /opt/certbot
-
+DEPLOY_PREFIX="<%= deployPrefix %>"
 APP_NAME="<%= appName %>"
 EMAIL="<%= email %>"
 DOMAIN="<%= domain %>"
+set -e
+. $DEPLOY_PREFIX/lib/functions.sh
 
-. /opt/lib/functions.sh
+sudo mkdir -p $DEPLOY_PREFIX/certbot
+
+cd $DEPLOY_PREFIX/certbot
 
 # This will renew all domain name
 service_stop $APP_NAME
