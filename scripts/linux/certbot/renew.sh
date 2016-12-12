@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-mkdir -p /opt/certbot
+sudo mkdir -p /opt/certbot
 cd /opt/certbot
 
 APP_NAME="<%= appName %>"
