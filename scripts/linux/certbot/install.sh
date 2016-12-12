@@ -25,6 +25,7 @@ if [[ -n $(ps aux | grep -v grep | grep stud) ]] ; then
 fi
 service_stop $APP_NAME
 
+unset PYTHON_INSTALL_LAYOUT
 ./certbot-auto certonly --standalone \
     --verbose \
     --non-interactive --text \

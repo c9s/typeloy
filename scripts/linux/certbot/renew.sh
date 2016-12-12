@@ -16,8 +16,10 @@ fi
 service_stop $APP_NAME
 
 # This will renew all domain name
+unset PYTHON_INSTALL_LAYOUT
+sudo pip install --upgrade pip
+sudo pip install virtualenv --upgrade
 ./certbot-auto renew --standalone \
-    --verbose \
+    --debug \
     --non-interactive \
-    --text \
-    --keep-until-expiring
+    --text
