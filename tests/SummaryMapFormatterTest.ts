@@ -1,5 +1,3 @@
-/// <reference path="../typings/globals/mocha/index.d.ts" />
-/// <reference path="../typings/globals/chai/index.d.ts" />
 import chai = require('chai');
 var expect = chai.expect;
 
@@ -65,7 +63,8 @@ let summaryMap : any = {
 describe('SummaryMapFormatter', () => {
   describe('#format', () => {
     it('should format summary map into console text', () => {
-      SummaryMapConsoleFormatter.format(summaryMap);
+      let output = SummaryMapConsoleFormatter.format(summaryMap);
+      console.log(output);
     });
   });
 });

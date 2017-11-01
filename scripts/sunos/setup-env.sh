@@ -11,7 +11,7 @@ sudo chown ${USER} /opt/<%= appName %> -R
 sudo chown ${USER} /etc/init
 sudo chown ${USER} /etc/
 
-sudo npm install -g userdown wait-for-mongo node-gyp
+sudo npm install -g userdown wait-for-mongodb node-gyp
 
 # Creating a non-privileged user
 sudo useradd mtuser || :
