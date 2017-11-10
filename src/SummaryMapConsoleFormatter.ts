@@ -38,8 +38,7 @@ export class SummaryMapConsoleFormatter {
             }
 
             console.log(JSON.stringify(taskResult, null, "  "));
-
-            if (taskResult.context.code != 0) {
+            if (taskResult.context && taskResult.context.code != 0) {
               if (taskResult.context.stderr) {
                 output += tab + tab + taskResult.context.stderr + "\n";
               }

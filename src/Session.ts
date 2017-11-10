@@ -268,7 +268,7 @@ type SessionThenable = (result : SessionResult) => Promise<SessionResult>;
 export function sync(...tasks : Array<any>) : Promise<SessionResult> {
   const wrapPromise = (p) => (result : SessionResult) => p;
   const syncPromises = (taskPromises : Array<SessionThenable>) : Promise<SessionResult> => {
-    let t = Promise.resolve()
+    let t:any = Promise.resolve()
     for (let i = 0; i < taskPromises.length ; i++) {
       t = t.then(taskPromises[i]);
     }
